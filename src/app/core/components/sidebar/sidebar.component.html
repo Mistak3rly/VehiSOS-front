@@ -1,0 +1,72 @@
+<div class="sidebar-wrapper" [class.collapsed]="isCollapsed()" [class.mobile-open]="isMobileOpen()">
+  <!-- Mobile Overlay -->
+  <div class="mobile-overlay" (click)="toggleMobileMenu()"></div>
+
+  <!-- Sidebar Container -->
+  <aside class="sidebar">
+    <!-- Header -->
+    <div class="sidebar-header">
+      <div class="logo">
+        <span class="logo-text">Vehi<span class="logo-sos">SOS</span></span>
+      </div>
+      <button class="toggle-btn" (click)="toggleSidebar()">
+        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor">
+          <path d="M440-240 200-480l240-240 56 56-183 184 183 184-56 56Zm264 0L464-480l240-240 56 56-183 184 183 184-56 56Z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Menu Section -->
+    <nav class="sidebar-nav">
+      <ul>
+        <ng-container *ngFor="let item of menuItems">
+          <li *ngIf="isItemVisible(item)" [class.has-submenu]="item.subItems" [class.expanded]="item.expanded">
+            
+            <!-- Link or Submenu Trigger -->
+            <a *ngIf="!item.subItems" [routerLink]="item.route" routerLinkActive="active" class="menu-link">
+              <span class="material-icons-round">{{ item.icon }}</span>
+              <span class="menu-title">{{ item.title }}</span>
+            </a>
+
+            <div *ngIf="item.subItems" (click)="toggleSubmenu(item)" class="menu-link submenu-trigger">
+              <span class="material-icons-round">{{ item.icon }}</span>
+              <span class="menu-title">{{ item.title }}</span>
+              <span class="arrow-icon material-icons-round">expand_more</span>
+            </div>
+
+            <!-- Submenu -->
+            <ul class="submenu" *ngIf="item.subItems">
+              <li *ngFor="let subItem of item.subItems">
+                <a [routerLink]="subItem.route" routerLinkActive="active" class="submenu-link">
+                  <span class="dot"></span>
+                  {{ subItem.title }}
+                </a>
+              </li>
+            </ul>
+
+          </li>
+        </ng-container>
+      </ul>
+    </nav>
+
+    <!-- Footer -->
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="avatar">
+          {{ userRole().charAt(0) }}
+        </div>
+        <div class="details">
+          <span class="role">{{ userRole() }}</span>
+        </div>
+      </div>
+      <button (click)="logout()" class="logout-btn" title="Cerrar sesión">
+        <span class="material-icons-round">logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Mobile Toggle Button (Visible only on mobile/tablet) -->
+  <button class="mobile-toggle" (click)="toggleMobileMenu()">
+    <span class="material-icons-round">menu</span>
+  </button>
+</div>

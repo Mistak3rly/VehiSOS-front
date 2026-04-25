@@ -1,0 +1,53 @@
+<div class="dashboard-container">
+  <header class="dashboard-header">
+    <div class="welcome">
+      <h1>Gestión de Taller</h1>
+      <p>Control operativo y despacho de servicios VehiSOS.</p>
+    </div>
+  </header>
+
+  <section class="stats-grid">
+    <div class="stat-card" *ngFor="let stat of stats" [class]="stat.color">
+      <div class="stat-icon">
+        <span class="material-icons-round">{{ stat.icon }}</span>
+      </div>
+      <div class="stat-info">
+        <span class="stat-value">{{ stat.value }}</span>
+        <span class="stat-title">{{ stat.title }}</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="content-grid">
+    <!-- Pending Services -->
+    <section class="activity-section card">
+      <div class="section-header">
+        <h2>Próximas Atenciones</h2>
+      </div>
+      <div class="activity-list">
+        <div class="activity-item" *ngFor="let service of pendingServices">
+          <div class="activity-info">
+            <span class="activity-desc">{{ service.vehicle }} - {{ service.issue }}</span>
+            <span class="activity-time">ID: {{ service.id }} | Hora: {{ service.time }}</span>
+          </div>
+          <button style="background: #C40016; color: white; border: none; padding: 8px 16px; border-radius: 12px; cursor: pointer; font-weight: 700;">Asignar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Technicians -->
+    <section class="activity-section card">
+      <div class="section-header">
+        <h2>Disponibilidad de Técnicos</h2>
+      </div>
+      <div class="activity-list">
+        <div class="activity-item" *ngFor="let tech of technicians">
+          <div class="activity-info">
+            <span class="activity-desc">{{ tech.name }}</span>
+          </div>
+          <span class="status-tag" [ngClass]="tech.class">{{ tech.status }}</span>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

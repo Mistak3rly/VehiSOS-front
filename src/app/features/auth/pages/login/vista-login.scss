@@ -6,10 +6,10 @@ $bg-light: #F8F1F1;
 $white: #FFFFFF;
 $text-dark: #2A1A1A;
 $text-secondary: #746A6A;
-$success-green: #4CAF50;
+$error-red: #C40016;
 $shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 
-.register-container {
+.login-container {
   min-height: 100vh;
   background-color: $bg-light;
   display: flex;
@@ -30,7 +30,7 @@ $shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   top: 0;
   z-index: 10;
 
-  .back-btn, .user-icon {
+  .menu-btn, .user-icon {
     background: none;
     border: none;
     color: $text-dark;
@@ -94,7 +94,7 @@ $shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 // Form
-.register-form {
+.login-form {
   text-align: left;
 
   .form-group {
@@ -152,35 +152,54 @@ $shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
   }
 
-  .form-check {
+  .login-options {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 0.8rem;
     margin-bottom: 2rem;
-    margin-left: 0.5rem;
+    padding: 0 0.5rem;
 
-    input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      accent-color: $primary-red;
-      cursor: pointer;
-    }
+    .form-check {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
 
-    label {
-      font-size: 0.85rem;
-      color: $text-secondary;
-      cursor: pointer;
+      input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: $primary-red;
+        cursor: pointer;
+      }
 
-      a {
-        color: $primary-red;
-        text-decoration: none;
-        font-weight: 600;
-
-        &:hover {
-          text-decoration: underline;
-        }
+      label {
+        font-size: 0.85rem;
+        color: $text-secondary;
+        cursor: pointer;
       }
     }
+
+    .forgot-link {
+      font-size: 0.85rem;
+      color: $primary-red;
+      text-decoration: none;
+      font-weight: 600;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  .global-error {
+    background-color: rgba($primary-red, 0.05);
+    color: $primary-red;
+    padding: 0.8rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    border: 1px solid rgba($primary-red, 0.1);
   }
 
   .submit-btn {
@@ -226,70 +245,6 @@ $shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       text-decoration: underline;
     }
   }
-}
-
-// Modal
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 100;
-  backdrop-filter: blur(4px);
-}
-
-.modal {
-  background-color: $white;
-  padding: 3rem 2rem;
-  border-radius: 32px;
-  width: 90%;
-  max-width: 400px;
-  text-align: center;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-  animation: modalScale 0.3s ease-out;
-
-  .success-icon {
-    margin-bottom: 1.5rem;
-  }
-
-  h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: $text-dark;
-    margin-bottom: 1rem;
-  }
-
-  p {
-    color: $text-secondary;
-    margin-bottom: 2rem;
-  }
-
-  .modal-btn {
-    width: 100%;
-    padding: 1rem;
-    background-color: $success-green;
-    color: $white;
-    border: none;
-    border-radius: 16px;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-
-    &:hover {
-      background-color: darken($success-green, 10%);
-    }
-  }
-}
-
-@keyframes modalScale {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
 }
 
 // Responsive

@@ -1,0 +1,151 @@
+<div class="tracking-container">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-content">
+      <h1>Seguimiento de solicitudes</h1>
+      <p>Consulta el estado de tus emergencias y revisa el avance de la atención.</p>
+    </div>
+  </header>
+
+  <!-- LIST MODE -->
+  <div class="list-view" *ngIf="viewMode() === 'list'">
+    <div class="requests-grid" *ngIf="solicitudes().length > 0; else emptyState">
+      <div class="request-card card" *ngFor="let s of solicitudes()">
+        <div class="card-header">
+          <span class="id-badge">{{ s.id }}</span>
+          <span class="status-chip" [ngClass]="getEstadoClass(s.estado)">{{ s.estado }}</span>
+        </div>
+        <div class="card-body">
+          <div class="info-item">
+            <span class="material-icons-round">directions_car</span>
+            <div class="text">
+              <span class="label">Vehículo</span>
+              <span class="value">{{ s.vehiculo }}</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <span class="material-icons-round">report_problem</span>
+            <div class="text">
+              <span class="label">Incidente</span>
+              <span class="value">{{ s.incidente }}</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <span class="material-icons-round">calendar_today</span>
+            <div class="text">
+              <span class="label">Fecha</span>
+              <span class="value">{{ s.fecha }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <button class="btn-detail" (click)="verDetalleSolicitud(s)">
+            Ver detalle
+            <span class="material-icons-round">chevron_right</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DETAIL MODE -->
+  <div class="detail-view" *ngIf="viewMode() === 'detail' && solicitudSeleccionada() as s">
+    <button class="btn-back" (click)="volverALista()">
+      <span class="material-icons-round">arrow_back</span>
+      Volver a solicitudes
+    </button>
+
+    <div class="detail-grid">
+      <!-- Main Info -->
+      <div class="main-info">
+        <section class="card detail-card">
+          <div class="detail-header">
+            <div class="title-group">
+              <span class="id-badge">{{ s.id }}</span>
+              <h2>Detalle de la Solicitud</h2>
+            </div>
+            <span class="status-chip big" [ngClass]="getEstadoClass(s.estado)">{{ s.estado }}</span>
+          </div>
+
+          <div class="info-grid">
+            <div class="grid-item">
+              <span class="label">Vehículo</span>
+              <span class="value">{{ s.vehiculo }}</span>
+            </div>
+            <div class="grid-item">
+              <span class="label">Incidente</span>
+              <span class="value">{{ s.incidente }}</span>
+            </div>
+            <div class="grid-item full">
+              <span class="label">Descripción</span>
+              <span class="value">{{ s.descripcion }}</span>
+            </div>
+            <div class="grid-item full">
+              <span class="label">Ubicación / Referencia</span>
+              <span class="value">
+                <span class="material-icons-round">location_on</span>
+                {{ s.ubicacion }}
+              </span>
+            </div>
+          </div>
+
+          <hr class="divider">
+
+          <div class="assignment-info">
+            <div class="info-box">
+              <span class="material-icons-round">store</span>
+              <div class="text">
+                <span class="label">Taller Asignado</span>
+                <span class="value">{{ s.taller || 'Sin taller asignado todavía' }}</span>
+              </div>
+            </div>
+            <div class="info-box">
+              <span class="material-icons-round">engineering</span>
+              <div class="text">
+                <span class="label">Técnico Asignado</span>
+                <span class="value">{{ s.tecnico || 'Esperando técnico...' }}</span>
+              </div>
+            </div>
+            <div class="info-box highlight">
+              <span class="material-icons-round">timer</span>
+              <div class="text">
+                <span class="label">Tiempo Estimado</span>
+                <span class="value">{{ s.tiempoEstimado || 'Tiempo estimado no disponible' }}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Timeline -->
+      <div class="timeline-column">
+        <section class="card timeline-card">
+          <h3>Trazabilidad</h3>
+          <div class="timeline">
+            <div class="timeline-item" *ngFor="let step of s.trazabilidad" [class.completed]="step.completado">
+              <div class="marker">
+                <span class="material-icons-round" *ngIf="step.completado">check</span>
+              </div>
+              <div class="content">
+                <span class="event">{{ step.evento }}</span>
+                <span class="time">{{ step.fecha }}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMPTY STATE -->
+  <ng-template #emptyState>
+    <div class="empty-container card">
+      <span class="material-icons-round icon">emergency</span>
+      <h3>Aún no tienes solicitudes registradas.</h3>
+      <p>Cuando reportes una emergencia, podrás seguir su avance aquí.</p>
+      <button class="btn-primary" routerLink="/emergencias/reportar">
+        Reportar emergencia
+      </button>
+    </div>
+  </ng-template>
+</div>

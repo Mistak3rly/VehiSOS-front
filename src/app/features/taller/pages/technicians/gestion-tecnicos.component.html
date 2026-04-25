@@ -1,0 +1,160 @@
+<div class="gestion-tecnicos-container">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-content">
+      <h1>Gestión de técnicos</h1>
+      <p>Administra tu equipo técnico y su disponibilidad para atender solicitudes.</p>
+    </div>
+  </header>
+
+  <div class="main-grid">
+    <!-- Left Column: List and Workshop Status -->
+    <div class="content-column">
+      <!-- Workshop Status Card -->
+      <section class="card status-card" [class.offline]="!tallerStatus().disponible">
+        <div class="status-info">
+          <div class="title-group">
+            <span class="material-icons-round icon">store</span>
+            <div>
+              <h3>Estado General del Taller</h3>
+              <p>{{ tallerStatus().disponible ? 'Activo y recibiendo emergencias' : 'Cerrado temporalmente' }}</p>
+            </div>
+          </div>
+          <div class="toggle-action">
+            <label class="switch">
+              <input type="checkbox" [checked]="tallerStatus().disponible" (change)="actualizarDisponibilidadTaller()">
+              <span class="slider round"></span>
+            </label>
+            <span class="status-label">{{ tallerStatus().disponible ? 'Disponible' : 'No disponible' }}</span>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stat">
+            <span class="label">Capacidad</span>
+            <span class="value">{{ tallerStatus().capacidad }} técnicos</span>
+          </div>
+          <div class="stat">
+            <span class="label">Activas</span>
+            <span class="value">{{ tallerStatus().solicitudesActivas }} solicitudes</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Technicians List -->
+      <section class="list-section card">
+        <div class="section-header">
+          <h2>Equipo Técnico</h2>
+        </div>
+
+        <div class="table-responsive" *ngIf="tecnicos().length > 0; else emptyState">
+          <table class="tecnicos-table">
+            <thead>
+              <tr>
+                <th>Técnico</th>
+                <th>Especialidad</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let t of tecnicos()">
+                <td>
+                  <div class="user-cell">
+                    <div class="avatar">{{ t.nombre.charAt(0) }}</div>
+                    <div class="info">
+                      <span class="name">{{ t.nombre }}</span>
+                      <span class="phone">{{ t.telefono }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="spec-tag">{{ t.especialidad }}</span></td>
+                <td>
+                  <span class="status-chip" [ngClass]="getEstadoClass(t.disponibilidad)" (click)="cambiarDisponibilidad(t)">
+                    {{ t.disponibilidad }}
+                  </span>
+                  <div class="last-update">{{ t.ultimaActualizacion }}</div>
+                </td>
+                <td>
+                  <div class="actions">
+                    <button class="btn-icon" (click)="editarTecnico(t)" title="Editar">
+                      <span class="material-icons-round">edit</span>
+                    </button>
+                    <button class="btn-icon delete" (click)="desactivarTecnico(t)" title="Eliminar">
+                      <span class="material-icons-round">delete_outline</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <ng-template #emptyState>
+          <div class="empty-state">
+            <span class="material-icons-round icon">engineering</span>
+            <p>Aún no tienes técnicos registrados.</p>
+            <button class="btn-text" (click)="nombreInput.focus()">Registrar primer técnico</button>
+          </div>
+        </ng-template>
+      </section>
+    </div>
+
+    <!-- Right Column: Form -->
+    <div class="form-column">
+      <section class="card form-card">
+        <h3>{{ isEditing() ? 'Editar Técnico' : 'Registrar Técnico' }}</h3>
+        <p class="subtitle">Ingresa los datos para {{ isEditing() ? 'actualizar' : 'añadir' }} un miembro al equipo.</p>
+
+        <form [formGroup]="tecnicoForm" (ngSubmit)="guardarTecnico()">
+          <div class="form-group">
+            <label>Nombre completo</label>
+            <input type="text" formControlName="nombre" #nombreInput placeholder="Ej. Juan Perez">
+            <small class="error" *ngIf="tecnicoForm.get('nombre')?.invalid && tecnicoForm.get('nombre')?.touched">
+              El nombre es obligatorio.
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input type="text" formControlName="telefono" placeholder="Ej. 70001234">
+            <small class="error" *ngIf="tecnicoForm.get('telefono')?.invalid && tecnicoForm.get('telefono')?.touched">
+              El teléfono es obligatorio.
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label>Correo electrónico</label>
+            <input type="email" formControlName="email" placeholder="correo@ejemplo.com">
+            <small class="error" *ngIf="tecnicoForm.get('email')?.invalid && tecnicoForm.get('email')?.touched">
+              Ingresa un correo válido.
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label>Especialidad</label>
+            <select formControlName="especialidad">
+              <option value="" disabled selected>Selecciona una especialidad</option>
+              <option *ngFor="let esp of especialidades" [value]="esp">{{ esp }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Disponibilidad inicial</label>
+            <select formControlName="disponibilidad">
+              <option *ngFor="let disp of disponibilidades" [value]="disp">{{ disp }}</option>
+            </select>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-outline" (click)="cancelarEdicion()" *ngIf="isEditing()">
+              Cancelar
+            </button>
+            <button type="submit" class="btn-primary" [disabled]="tecnicoForm.invalid">
+              {{ isEditing() ? 'Guardar cambios' : 'Registrar técnico' }}
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </div>
+</div>

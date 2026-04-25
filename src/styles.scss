@@ -1,1 +1,68 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global Styles VehiSOS */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons+Round');
+
+:root {
+  --primary-red: #C40016;
+  --dark-red: #8F0010;
+  --bg-light: #F8F1F1;
+  --white: #FFFFFF;
+  --text-dark: #2A1A1A;
+  --text-secondary: #746A6A;
+  --font-family: 'Manrope', sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-light);
+  color: var(--text-dark);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+button, input, select, textarea {
+  font-family: var(--font-family);
+}
+
+a {
+  text-decoration: none;
+  color: var(--primary-red);
+  transition: opacity 0.2s;
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+/* Material Icons Alignment */
+.material-icons-round {
+  vertical-align: middle;
+  line-height: 1;
+}
+
+/* Scrollbar Customization */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-light);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  &:hover {
+    background: rgba(0, 0, 0, 0.2);
+  }
+}

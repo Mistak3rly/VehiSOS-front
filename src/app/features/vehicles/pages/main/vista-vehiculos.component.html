@@ -1,0 +1,115 @@
+<div class="vehicles-container">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-content">
+      <h1>Mis vehículos</h1>
+      <p>Registra y administra tus vehículos para reportar emergencias más rápido.</p>
+    </div>
+    <button class="btn-primary" (click)="toggleForm()" *ngIf="!showForm">
+      <span class="material-icons-round">add</span>
+      Nuevo vehículo
+    </button>
+  </header>
+
+  <!-- Form Section -->
+  <section class="form-section card" *ngIf="showForm">
+    <div class="section-header">
+      <span class="material-icons-round">directions_car</span>
+      <h2>{{ isEditing ? 'Editar vehículo' : 'Registrar vehículo' }}</h2>
+      <button class="btn-close" (click)="toggleForm()">
+        <span class="material-icons-round">close</span>
+      </button>
+    </div>
+    <form [formGroup]="vehicleForm" (ngSubmit)="guardarVehiculo()">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="placa">Placa</label>
+          <input type="text" id="placa" formControlName="placa" placeholder="Ej. ABC-123">
+          <small class="error" *ngIf="vehicleForm.get('placa')?.invalid && vehicleForm.get('placa')?.touched">
+            La placa es obligatoria.
+          </small>
+        </div>
+        <div class="form-group">
+          <label for="marca">Marca</label>
+          <input type="text" id="marca" formControlName="marca" placeholder="Ej. Toyota">
+          <small class="error" *ngIf="vehicleForm.get('marca')?.invalid && vehicleForm.get('marca')?.touched">
+            La marca es obligatoria.
+          </small>
+        </div>
+        <div class="form-group">
+          <label for="modelo">Modelo</label>
+          <input type="text" id="modelo" formControlName="modelo" placeholder="Ej. Hilux">
+          <small class="error" *ngIf="vehicleForm.get('modelo')?.invalid && vehicleForm.get('modelo')?.touched">
+            El modelo es obligatorio.
+          </small>
+        </div>
+        <div class="form-group">
+          <label for="anio">Año</label>
+          <input type="number" id="anio" formControlName="anio" [placeholder]="currentYear">
+          <small class="error" *ngIf="vehicleForm.get('anio')?.invalid && vehicleForm.get('anio')?.touched">
+            Ingresa un año válido (1900 - {{currentYear}}).
+          </small>
+        </div>
+        <div class="form-group">
+          <label for="color">Color</label>
+          <input type="text" id="color" formControlName="color" placeholder="Ej. Rojo">
+          <small class="error" *ngIf="vehicleForm.get('color')?.invalid && vehicleForm.get('color')?.touched">
+            El color es obligatorio.
+          </small>
+        </div>
+        <div class="form-group full-width">
+          <label for="observaciones">Observaciones (Opcional)</label>
+          <textarea id="observaciones" formControlName="observaciones" placeholder="Detalles adicionales..."></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn-outline" (click)="toggleForm()">Cancelar</button>
+        <button type="submit" class="btn-primary" [disabled]="vehicleForm.invalid">
+          {{ isEditing ? 'Guardar cambios' : 'Registrar vehículo' }}
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Loading State -->
+  <div class="loading-overlay" *ngIf="isLoading()">
+    <div class="spinner"></div>
+    <p>Cargando vehículos...</p>
+  </div>
+
+  <!-- Empty State -->
+  <section class="empty-state card" *ngIf="vehiculos().length === 0 && !showForm && !isLoading()">
+    <div class="empty-icon">
+      <span class="material-icons-round">no_sim</span>
+    </div>
+    <h2>Aún no tienes vehículos registrados</h2>
+    <p>Registra tu primer vehículo para que podamos asistirte mejor en caso de emergencia.</p>
+    <button class="btn-primary" (click)="toggleForm()">
+      Registrar mi primer vehículo
+    </button>
+  </section>
+
+  <!-- Vehicle List Grid -->
+  <section class="vehicles-grid" *ngIf="vehiculos().length > 0 && !showForm">
+    <div class="vehicle-card card" *ngFor="let v of vehiculos()">
+      <div class="vehicle-img">
+        <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=400&auto=format&fit=crop" [alt]="v.marca">
+      </div>
+      <div class="vehicle-info">
+        <div class="plate-box">{{ v.placa }}</div>
+        <div class="details">
+          <h3>{{ v.marca }} {{ v.modelo }}</h3>
+          <p>{{ v.anio }} • {{ v.color }}</p>
+        </div>
+      </div>
+      <div class="vehicle-actions">
+        <button class="action-btn edit" (click)="editarVehiculo(v)" title="Editar">
+          <span class="material-icons-round">edit</span>
+        </button>
+        <button class="action-btn delete" (click)="eliminarVehiculo(v.id)" title="Eliminar">
+          <span class="material-icons-round">delete</span>
+        </button>
+      </div>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,170 @@
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, Subject } from 'rxjs';
+import { environment } from '../../../environments/environment';
+import {
+  TallerRead,
+  TallerCreate,
+  TallerUpdate,
+  PersonalTallerRead,
+  PersonalTallerCreate,
+  PersonalTallerUpdate,
+  SolicitudDisponibleRead,
+  AsignacionCreate,
+  AsignacionRead,
+  AsignacionRespuestaRequest,
+  PagoCreate,
+  PagoRead,
+  ResumenFinancieroRead,
+  NotificacionRead,
+  NotificacionTestCreate,
+} from '../models/api.models';
+import { AuthService } from './auth.service';
+
+@Injectable({ providedIn: 'root' })
+export class LogisticaService {
+  private readonly BASE = `${environment.apiUrl}/api/v1/logistica`;
+
+  /** Emite cada vez que llega una notificación nueva por WebSocket */
+  readonly notificacion$ = new Subject<NotificacionRead>();
+  private ws: WebSocket | null = null;
+
+  constructor(private http: HttpClient, private auth: AuthService) {}
+
+  // ── Talleres ──────────────────────────────
+  listTalleres(): Observable<TallerRead[]> {
+    return this.http.get<TallerRead[]>(`${this.BASE}/talleres`);
+  }
+
+  getTaller(id: number): Observable<TallerRead> {
+    return this.http.get<TallerRead>(`${this.BASE}/talleres/${id}`);
+  }
+
+  createTaller(payload: TallerCreate): Observable<TallerRead> {
+    return this.http.post<TallerRead>(`${this.BASE}/talleres`, payload);
+  }
+
+  updateTaller(id: number, payload: TallerUpdate): Observable<TallerRead> {
+    return this.http.patch<TallerRead>(`${this.BASE}/talleres/${id}`, payload);
+  }
+
+  // ── Personal ──────────────────────────────
+  listPersonal(tallerId: number): Observable<PersonalTallerRead[]> {
+    return this.http.get<PersonalTallerRead[]>(
+      `${this.BASE}/talleres/${tallerId}/personal`
+    );
+  }
+
+  addPersonal(tallerId: number, payload: PersonalTallerCreate): Observable<PersonalTallerRead> {
+    return this.http.post<PersonalTallerRead>(
+      `${this.BASE}/talleres/${tallerId}/personal`,
+      payload
+    );
+  }
+
+  updatePersonal(
+    tallerId: number,
+    personalId: number,
+    payload: PersonalTallerUpdate
+  ): Observable<PersonalTallerRead> {
+    return this.http.patch<PersonalTallerRead>(
+      `${this.BASE}/talleres/${tallerId}/personal/${personalId}`,
+      payload
+    );
+  }
+
+  // ── Solicitudes disponibles ───────────────
+  listSolicitudesDisponibles(): Observable<SolicitudDisponibleRead[]> {
+    return this.http.get<SolicitudDisponibleRead[]>(`${this.BASE}/solicitudes/disponibles`);
+  }
+
+  // ── Asignaciones ──────────────────────────
+  createAsignacion(payload: AsignacionCreate): Observable<AsignacionRead> {
+    return this.http.post<AsignacionRead>(`${this.BASE}/asignaciones`, payload);
+  }
+
+  responderAsignacion(
+    asignacionId: number,
+    payload: AsignacionRespuestaRequest
+  ): Observable<AsignacionRead> {
+    return this.http.patch<AsignacionRead>(
+      `${this.BASE}/asignaciones/${asignacionId}/respuesta`,
+      payload
+    );
+  }
+
+  historialAsignaciones(tallerId?: number): Observable<AsignacionRead[]> {
+    let params = new HttpParams();
+    if (tallerId !== undefined) params = params.set('taller_id', tallerId);
+    return this.http.get<AsignacionRead[]>(`${this.BASE}/asignaciones/historial`, { params });
+  }
+
+  // ── Pagos ─────────────────────────────────
+  registrarPago(payload: PagoCreate): Observable<PagoRead> {
+    return this.http.post<PagoRead>(`${this.BASE}/pagos`, payload);
+  }
+
+  historialPagos(tallerId?: number): Observable<PagoRead[]> {
+    let params = new HttpParams();
+    if (tallerId !== undefined) params = params.set('taller_id', tallerId);
+    return this.http.get<PagoRead[]>(`${this.BASE}/pagos/historial`, { params });
+  }
+
+  resumenFinanciero(tallerId?: number): Observable<ResumenFinancieroRead> {
+    let params = new HttpParams();
+    if (tallerId !== undefined) params = params.set('taller_id', tallerId);
+    return this.http.get<ResumenFinancieroRead>(`${this.BASE}/pagos/resumen`, { params });
+  }
+
+  // ── Notificaciones ────────────────────────
+  listNotificaciones(unreadOnly = false): Observable<NotificacionRead[]> {
+    const params = new HttpParams().set('unread_only', unreadOnly);
+    return this.http.get<NotificacionRead[]>(`${this.BASE}/notificaciones`, { params });
+  }
+
+  marcarLeida(notificationId: number): Observable<NotificacionRead> {
+    return this.http.patch<NotificacionRead>(
+      `${this.BASE}/notificaciones/${notificationId}/leer`,
+      {}
+    );
+  }
+
+  createTestNotification(payload: NotificacionTestCreate): Observable<NotificacionRead> {
+    return this.http.post<NotificacionRead>(
+      `${this.BASE}/notificaciones/test/manual`,
+      payload
+    );
+  }
+
+  // ── WebSocket notificaciones ──────────────
+  /**
+   * Conecta el WebSocket de notificaciones en tiempo real.
+   * Las notificaciones llegan a través del observable `notificacion$`.
+   */
+  connectNotificacionesWs(): void {
+    const token = this.auth.getToken();
+    if (!token || this.ws) return;
+
+    const wsUrl = `${environment.apiUrl.replace(/^http/, 'ws')}/api/v1/logistica/ws/notificaciones?token=${token}`;
+    this.ws = new WebSocket(wsUrl);
+
+    this.ws.onmessage = (event) => {
+      try {
+        const data: NotificacionRead = JSON.parse(event.data);
+        this.notificacion$.next(data);
+      } catch {
+        // Mensaje no JSON, ignorar
+      }
+    };
+
+    this.ws.onclose = () => {
+      this.ws = null;
+    };
+  }
+
+  /** Cierra la conexión WebSocket */
+  disconnectNotificacionesWs(): void {
+    this.ws?.close();
+    this.ws = null;
+  }
+}

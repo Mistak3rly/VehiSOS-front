@@ -1,0 +1,122 @@
+<div class="profile-container">
+  <!-- Header -->
+  <header class="page-header">
+    <h1>Mi perfil</h1>
+    <p>Administra tu información personal y seguridad de cuenta.</p>
+  </header>
+
+  <div class="profile-layout">
+    <!-- Left Column: User Card -->
+    <div class="left-column">
+      <section class="user-card card">
+        <div class="avatar-container">
+          <div class="avatar">{{ getInitials() }}</div>
+        </div>
+        <div class="user-details">
+          <h2>{{ userName }}</h2>
+          <span class="role-badge">{{ userRole }}</span>
+          <div class="status-indicator">
+            <span class="dot active"></span>
+            Estado: Activa
+          </div>
+        </div>
+      </section>
+
+      <!-- Deactivation Card -->
+      <section class="deactivation-card card">
+        <h3>Zona de Peligro</h3>
+        <p>Puedes solicitar la desactivación de tu cuenta. Esta acción será revisada por administración.</p>
+        <button class="btn-danger" (click)="solicitarDesactivacion()">
+          Solicitar desactivación
+        </button>
+      </section>
+    </div>
+
+    <!-- Right Column: Forms -->
+    <div class="right-column">
+      <!-- Personal Info Form -->
+      <section class="form-section card">
+        <div class="section-header">
+          <span class="material-icons-round">person</span>
+          <h2>Datos Personales</h2>
+        </div>
+        <form [formGroup]="profileForm" (ngSubmit)="guardarPerfil()">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="nombre">Nombre</label>
+              <input type="text" id="nombre" formControlName="nombre" placeholder="Ej. Juan">
+              <small class="error" *ngIf="profileForm.get('nombre')?.invalid && profileForm.get('nombre')?.touched">
+                El nombre es obligatorio.
+              </small>
+            </div>
+            <div class="form-group">
+              <label for="apellidos">Apellidos</label>
+              <input type="text" id="apellidos" formControlName="apellidos" placeholder="Ej. Perez">
+              <small class="error" *ngIf="profileForm.get('apellidos')?.invalid && profileForm.get('apellidos')?.touched">
+                Los apellidos son obligatorios.
+              </small>
+            </div>
+            <div class="form-group">
+              <label for="email">Correo electrónico</label>
+              <input type="email" id="email" formControlName="email" placeholder="juan.perez@example.com">
+              <small class="error" *ngIf="profileForm.get('email')?.invalid && profileForm.get('email')?.touched">
+                Ingresa un correo válido.
+              </small>
+            </div>
+            <div class="form-group">
+              <label for="telefono">Teléfono</label>
+              <input type="text" id="telefono" formControlName="telefono" placeholder="Ej. 78012345">
+              <small class="error" *ngIf="profileForm.get('telefono')?.invalid && profileForm.get('telefono')?.touched">
+                El teléfono es obligatorio.
+              </small>
+            </div>
+            <div class="form-group full-width">
+              <label for="ci">Documento de identidad (Opcional)</label>
+              <input type="text" id="ci" formControlName="ci" placeholder="Ej. 1234567 LP">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" [disabled]="profileForm.invalid">
+              Guardar cambios
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Security Form -->
+      <section class="form-section card">
+        <div class="section-header">
+          <span class="material-icons-round">security</span>
+          <h2>Seguridad</h2>
+        </div>
+        <form [formGroup]="passwordForm" (ngSubmit)="actualizarPassword()">
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label for="currentPassword">Contraseña actual</label>
+              <input type="password" id="currentPassword" formControlName="currentPassword" placeholder="••••••••">
+            </div>
+            <div class="form-group">
+              <label for="newPassword">Nueva contraseña</label>
+              <input type="password" id="newPassword" formControlName="newPassword" placeholder="Mín. 8 caracteres">
+              <small class="error" *ngIf="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched">
+                Mínimo 8 caracteres.
+              </small>
+            </div>
+            <div class="form-group">
+              <label for="confirmPassword">Confirmar nueva contraseña</label>
+              <input type="password" id="confirmPassword" formControlName="confirmPassword" placeholder="••••••••">
+              <small class="error" *ngIf="passwordForm.hasError('mismatch') && passwordForm.get('confirmPassword')?.touched">
+                Las contraseñas no coinciden.
+              </small>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-outline" [disabled]="passwordForm.invalid">
+              Actualizar contraseña
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </div>
+</div>

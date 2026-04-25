@@ -1,0 +1,128 @@
+<div class="emergency-report-container">
+  <!-- Header -->
+  <header class="page-header">
+    <h1>Reportar emergencia</h1>
+    <p>Describe tu incidente y comparte tu ubicación para recibir asistencia técnica.</p>
+  </header>
+
+  <div class="report-layout">
+    <!-- Main Form Column -->
+    <div class="form-column">
+      <section class="form-card card">
+        <form [formGroup]="emergencyForm" (ngSubmit)="enviarEmergencia()">
+          <!-- Vehicle Selection -->
+          <div class="form-group">
+            <label for="vehiculoId">Vehículo involucrado</label>
+            <select id="vehiculoId" formControlName="vehiculoId">
+              <option value="" disabled selected>Selecciona un vehículo</option>
+              <option *ngFor="let v of vehiculos" [value]="v.id">
+                {{ v.marca }} {{ v.modelo }} ({{ v.placa }})
+              </option>
+            </select>
+            <small class="error" *ngIf="emergencyForm.get('vehiculoId')?.invalid && emergencyForm.get('vehiculoId')?.touched">
+              Debes seleccionar un vehículo.
+            </small>
+          </div>
+
+          <!-- Incident Type -->
+          <div class="form-group">
+            <label for="tipoIncidente">Tipo de incidente</label>
+            <select id="tipoIncidente" formControlName="tipoIncidente">
+              <option value="" disabled selected>Selecciona el tipo de falla</option>
+              <option *ngFor="let type of incidentTypes" [value]="type">{{ type }}</option>
+            </select>
+            <small class="error" *ngIf="emergencyForm.get('tipoIncidente')?.invalid && emergencyForm.get('tipoIncidente')?.touched">
+              El tipo de incidente es obligatorio.
+            </small>
+          </div>
+
+          <!-- Description -->
+          <div class="form-group">
+            <label for="descripcion">Descripción del problema</label>
+            <textarea id="descripcion" formControlName="descripcion" placeholder="Explica brevemente qué sucede..."></textarea>
+            <small class="error" *ngIf="emergencyForm.get('descripcion')?.invalid && emergencyForm.get('descripcion')?.touched">
+              La descripción es obligatoria.
+            </small>
+          </div>
+
+          <!-- Location -->
+          <div class="form-group location-group">
+            <label>Ubicación del incidente</label>
+            <div class="location-actions">
+              <button type="button" class="btn-location" (click)='obtenerUbicacionActual()' [class.loading]="isLocating">
+                <span class="material-icons-round">my_location</span>
+                {{ isLocating ? 'Obteniendo...' : 'Obtener ubicación actual' }}
+              </button>
+              <div class="coordinates" *ngIf="capturedLocation.captured">
+                <span>Lat: {{ capturedLocation.lat.toFixed(6) }}</span>
+                <span>Lng: {{ capturedLocation.lng.toFixed(6) }}</span>
+              </div>
+            </div>
+            <input type="text" formControlName="referenciaUbicacion" placeholder="Referencia adicional (Ej. Frente al cine center)">
+            <small class="error" *ngIf="emergencyForm.get('lat')?.invalid && emergencyForm.get('lat')?.touched">
+              La ubicación GPS es obligatoria. Pulsa el botón superior.
+            </small>
+          </div>
+
+          <!-- Evidence -->
+          <div class="form-group evidence-group">
+            <label>Evidencias multimedia</label>
+            <div class="evidence-actions">
+              <label class="btn-evidence">
+                <span class="material-icons-round">photo_camera</span>
+                Adjuntar fotos
+                <input type="file" (change)="adjuntarFotos($event)" multiple accept="image/*" style="display: none;">
+              </label>
+              <button type="button" class="btn-evidence" (click)="adjuntarAudio()" [class.active]="isAudioRecording">
+                <span class="material-icons-round">{{ isAudioRecording ? 'stop' : 'mic' }}</span>
+                {{ isAudioRecording ? 'Grabando...' : 'Grabar audio' }}
+              </button>
+            </div>
+
+            <!-- Preview Photos -->
+            <div class="previews-grid" *ngIf="imagePreviews.length > 0">
+              <div class="preview-item" *ngFor="let img of imagePreviews; let i = index">
+                <img [src]="img" alt="Vista previa">
+                <button type="button" class="remove-btn" (click)="removeFoto(i)">
+                  <span class="material-icons-round">close</span>
+                </button>
+              </div>
+            </div>
+            <p class="hint">Máximo 5 fotografías. El audio es opcional.</p>
+          </div>
+
+          <!-- Actions -->
+          <div class="form-actions">
+            <button type="button" class="btn-outline" (click)="cancelar()">Cancelar</button>
+            <button type="submit" class="btn-primary" [disabled]="emergencyForm.invalid">
+              Enviar emergencia
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+
+    <!-- Side Help Column -->
+    <div class="help-column">
+      <section class="card help-card">
+        <span class="material-icons-round icon">info</span>
+        <h3>¿Qué sucede después?</h3>
+        <ul>
+          <li>Tu reporte llegará a los talleres más cercanos.</li>
+          <li>Un taller aceptará tu solicitud según su disponibilidad.</li>
+          <li>Podrás chatear con el técnico asignado.</li>
+          <li>El costo final será evaluado en el sitio.</li>
+        </ul>
+      </section>
+      
+      <section class="card emergency-contact">
+        <h3>Llamada de urgencia</h3>
+        <p>Si es un accidente grave con heridos, llama directamente a emergencias médicas.</p>
+        <a href="tel:911" class="btn-call">
+          <span class="material-icons-round">call</span>
+          Llamar al 911
+        </a>
+      </section>
+    </div>
+  </div>
+</div>

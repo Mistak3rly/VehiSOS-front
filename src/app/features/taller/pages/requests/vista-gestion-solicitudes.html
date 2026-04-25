@@ -1,0 +1,228 @@
+<div class="requests-container">
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-content">
+      <h1>Gestión de solicitudes</h1>
+      <p>Revisa, acepta y actualiza solicitudes de atención vehicular.</p>
+    </div>
+  </header>
+
+  <!-- List View -->
+  <ng-container *ngIf="!showDetail()">
+    <!-- Filters -->
+    <section class="filters-card card">
+      <form [formGroup]="filterForm" class="filters-grid">
+        <div class="form-group search">
+          <label>Buscar</label>
+          <div class="input-with-icon">
+            <span class="material-icons-round">search</span>
+            <input type="text" formControlName="search" placeholder="Código de solicitud...">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Estado</label>
+          <select formControlName="status">
+            <option value="">Todos los estados</option>
+            <option value="Disponible">Disponible</option>
+            <option value="Asignada">Asignada</option>
+            <option value="Aceptada">Aceptada</option>
+            <option value="En camino">En camino</option>
+            <option value="En atención">En atención</option>
+            <option value="Finalizada">Finalizada</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Prioridad</label>
+          <select formControlName="priority">
+            <option value="">Todas las prioridades</option>
+            <option value="Baja">Baja</option>
+            <option value="Media">Media</option>
+            <option value="Alta">Alta</option>
+            <option value="Urgente">Urgente</option>
+          </select>
+        </div>
+      </form>
+    </section>
+
+    <!-- Requests List -->
+    <div class="requests-grid" *ngIf="!isLoading(); else loadingTpl">
+      <div class="request-card card" *ngFor="let s of solicitudes()" (click)="verDetalleSolicitud(s)">
+        <div class="card-header">
+          <span class="code">{{ s.codigo }}</span>
+          <span class="status-badge" [ngClass]="getStatusClass(s.estado)">{{ s.estado }}</span>
+        </div>
+        <div class="card-body">
+          <div class="info-item">
+            <span class="material-icons-round">person</span>
+            <div class="text">
+              <label>Cliente</label>
+              <span>{{ s.cliente }}</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <span class="material-icons-round">directions_car</span>
+            <div class="text">
+              <label>Vehículo</label>
+              <span>{{ s.vehiculo }}</span>
+            </div>
+          </div>
+          <div class="info-item">
+            <span class="material-icons-round">report_problem</span>
+            <div class="text">
+              <label>Incidente</label>
+              <span>{{ s.tipoIncidente }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <span class="priority-badge" [ngClass]="getPriorityClass(s.prioridad)">
+            {{ s.prioridad }}
+          </span>
+          <span class="date">{{ s.fechaReporte | date:'short' }}</span>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state card" *ngIf="solicitudes().length === 0">
+        <span class="material-icons-round">receipt_long</span>
+        <h3>No existen solicitudes disponibles</h3>
+        <p>Cuando un cliente reporte una emergencia, aparecerá aquí.</p>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- Detail View -->
+  <ng-container *ngIf="showDetail()">
+    <div class="detail-layout">
+      <div class="back-nav">
+        <button class="btn-text" (click)="volverALista()">
+          <span class="material-icons-round">arrow_back</span>
+          Volver a la lista
+        </button>
+      </div>
+
+      <div class="detail-grid">
+        <!-- Info Column -->
+        <div class="info-column">
+          <section class="detail-card card">
+            <div class="section-title">
+              <span class="material-icons-round">info</span>
+              <h2>Información del Incidente</h2>
+              <span class="status-badge" [ngClass]="getStatusClass(solicitudSeleccionada()?.estado || '')">
+                {{ solicitudSeleccionada()?.estado }}
+              </span>
+            </div>
+
+            <div class="detail-items">
+              <div class="detail-item">
+                <label>Código</label>
+                <span>{{ solicitudSeleccionada()?.codigo }}</span>
+              </div>
+              <div class="detail-item">
+                <label>Fecha y Hora</label>
+                <span>{{ solicitudSeleccionada()?.fechaReporte | date:'medium' }}</span>
+              </div>
+              <div class="detail-item">
+                <label>Cliente</label>
+                <span>{{ solicitudSeleccionada()?.cliente }} ({{ solicitudSeleccionada()?.telefono }})</span>
+              </div>
+              <div class="detail-item">
+                <label>Vehículo</label>
+                <span>{{ solicitudSeleccionada()?.vehiculo }}</span>
+              </div>
+              <div class="detail-item">
+                <label>Tipo de Incidente</label>
+                <span class="priority-text">{{ solicitudSeleccionada()?.tipoIncidente }}</span>
+              </div>
+              <div class="detail-item full-width">
+                <label>Descripción</label>
+                <p>{{ solicitudSeleccionada()?.descripcion }}</p>
+              </div>
+              <div class="detail-item full-width">
+                <label>Ubicación</label>
+                <div class="location-box">
+                  <span class="material-icons-round">location_on</span>
+                  <div class="loc-text">
+                    <p class="ref">{{ solicitudSeleccionada()?.ubicacion?.referencia }}</p>
+                    <p class="coords">Lat: {{ solicitudSeleccionada()?.ubicacion?.lat }}, Lng: {{ solicitudSeleccionada()?.ubicacion?.lng }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Evidencias -->
+            <div class="evidencias-section" *ngIf="solicitudSeleccionada()?.evidencias?.length">
+              <label>Evidencias</label>
+              <div class="evidencias-grid">
+                <div class="evidence-item" *ngFor="let ev of solicitudSeleccionada()?.evidencias">
+                  <img [src]="ev.url" alt="Evidencia">
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Actions Column -->
+        <div class="actions-column">
+          <section class="action-card card">
+            <div class="section-title">
+              <span class="material-icons-round">settings</span>
+              <h2>Gestión de Servicio</h2>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions" *ngIf="solicitudSeleccionada()?.estado === 'Disponible' || solicitudSeleccionada()?.estado === 'Pendiente'">
+              <button class="btn-success" (click)="aceptarSolicitud()">
+                <span class="material-icons-round">check</span>
+                Aceptar solicitud
+              </button>
+              <button class="btn-outline-error" (click)="rechazarSolicitud()">
+                <span class="material-icons-round">close</span>
+                Rechazar
+              </button>
+            </div>
+
+            <!-- Update Status Form -->
+            <form [formGroup]="statusForm" (ngSubmit)="actualizarEstadoServicio()" class="status-update-form">
+              <div class="form-group">
+                <label>Asignar Técnico</label>
+                <select formControlName="tecnicoId">
+                  <option value="">Seleccionar técnico...</option>
+                  <option *ngFor="let t of tecnicos" [value]="t.id">{{ t.nombre }} - {{ t.especialidad }}</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Estado del Servicio</label>
+                <select formControlName="estado">
+                  <option value="Aceptada">Aceptada</option>
+                  <option value="En camino">En camino</option>
+                  <option value="En atención">En atención</option>
+                  <option value="Finalizada">Finalizada</option>
+                  <option value="Cancelada">Cancelada</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Observaciones</label>
+                <textarea formControlName="observaciones" placeholder="Notas internas..."></textarea>
+              </div>
+
+              <button type="submit" class="btn-primary" [disabled]="statusForm.invalid">
+                <span class="material-icons-round">save</span>
+                Actualizar estado
+              </button>
+            </form>
+          </section>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-template #loadingTpl>
+    <div class="loading-state card">
+      <div class="spinner"></div>
+      <p>Cargando solicitudes...</p>
+    </div>
+  </ng-template>
+</div>

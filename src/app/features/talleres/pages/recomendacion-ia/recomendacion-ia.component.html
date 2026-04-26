@@ -1,0 +1,227 @@
+<div class="recomendacion-ia-container">
+  <!-- Header -->
+  <div class="ia-header">
+    <div class="ia-badge" [class.ai-real]="!isFallback() && provider() !== 'local'" [class.ai-local]="isFallback() || provider() === 'local'">
+      <span class="ia-icon">{{ !isFallback() && provider() !== 'local' ? '🤖' : '💻' }}</span>
+      <span>{{ !isFallback() && provider() !== 'local' ? 'Asistente IA Real' : 'Asistente Local' }}</span>
+    </div>
+    <div class="provider-badge" [class.ai-real]="!isFallback() && provider() !== 'local'" [class.ai-local]="isFallback() || provider() === 'local'">
+      @if (!isFallback() && provider() !== 'local') {
+        @switch (provider()) {
+          @case ('openai') {
+            <span class="provider-name">🧠 OpenAI</span>
+          }
+          @case ('anthropic') {
+            <span class="provider-name">✨ Claude</span>
+          }
+          @default {
+            <span class="provider-name">🤖 IA Real</span>
+          }
+        }
+        @if (model()) {
+          <span class="model">{{ model() }}</span>
+        }
+      } @else {
+        <span class="provider-name">💻 Modo Local</span>
+        <span class="model">Sin conexión a IA</span>
+      }
+    </div>
+  </div>
+
+  <!-- Estado de Conexión IA -->
+  @if (!isFallback() && provider() !== 'local') {
+    <div class="ai-status-bar ai-connected">
+      <span class="status-dot"></span>
+      <span class="status-text">✅ Conectado a {{ provider() === 'openai' ? 'OpenAI' : 'Anthropic Claude' }} - Respuestas generadas por IA real</span>
+    </div>
+  } @else if (isFallback() || provider() === 'local') {
+    <div class="ai-status-bar ai-disconnected">
+      <span class="status-dot"></span>
+      <span class="status-text">⚠️ Modo Local activado - Respuestas predefinidas sin IA</span>
+    </div>
+  }
+
+  <!-- Mensaje del Asistente -->
+  @if (assistantText()) {
+    <div class="assistant-message" [class.ai-real]="!isFallback() && provider() !== 'local'">
+      <div class="message-header">
+        @if (!isFallback() && provider() !== 'local') {
+          <span class="ai-badge">🤖 Generado por {{ provider() === 'openai' ? 'OpenAI' : 'Claude' }}</span>
+        } @else {
+          <span class="local-badge">💻 Respuesta Local</span>
+        }
+      </div>
+      <div class="message-bubble">
+        <p>{{ assistantText() }}</p>
+      </div>
+    </div>
+  }
+
+  <!-- Selector de Problema -->
+  <div class="problem-selector">
+    <label>¿Qué problema tienes?</label>
+    <div class="problem-chips">
+      <button
+        class="chip"
+        [class.active]="issue() === 'Pinchazo de llanta'"
+        (click)="cambiarProblema('Pinchazo de llanta')"
+      >
+        🛞 Pinchazo
+      </button>
+      <button
+        class="chip"
+        [class.active]="issue() === 'Fallo de motor'"
+        (click)="cambiarProblema('Fallo de motor')"
+      >
+        🔧 Motor
+      </button>
+      <button
+        class="chip"
+        [class.active]="issue() === 'Accidente'"
+        (click)="cambiarProblema('Accidente')"
+      >
+        🚗 Accidente
+      </button>
+      <button
+        class="chip"
+        [class.active]="issue() === 'Sin gasolina'"
+        (click)="cambiarProblema('Sin gasolina')"
+      >
+        ⛽ Gasolina
+      </button>
+      <button
+        class="chip"
+        [class.active]="issue() === 'Batería descargada'"
+        (click)="cambiarProblema('Batería descargada')"
+      >
+        🔋 Batería
+      </button>
+    </div>
+  </div>
+
+  <!-- Mapa de Google Maps -->
+  @if (!isLoading()) {
+    <div class="map-container">
+      <div #googleMap class="google-map"></div>
+      <div class="map-overlay" *ngIf="recommendations().length > 0">
+        <span class="map-badge">📍 {{ recommendations().length }} talleres cercanos</span>
+      </div>
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>🤖 La IA está analizando los mejores talleres para ti...</p>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (error()) {
+    <div class="error-state">
+      <span class="error-icon">⚠️</span>
+      <p>{{ error() }}</p>
+      <button class="btn-retry" (click)="recargar()">Reintentar</button>
+    </div>
+  }
+
+  <!-- Lista de Recomendaciones -->
+  @if (!isLoading() && !error() && recommendations().length > 0) {
+    <div class="recommendations-list">
+      <h3>🏆 Mejores opciones recomendadas</h3>
+
+      @for (taller of recommendations(); track taller.name; let first = $first) {
+        <div class="workshop-card" [class.best-option]="first" (click)="seleccionarTaller(taller)">
+          @if (first) {
+            <div class="best-badge">⭐ MEJOR OPCIÓN</div>
+          }
+
+          <div class="workshop-header">
+            <h4>{{ taller.name }}</h4>
+            <div class="rating">
+              ⭐ {{ taller.rating | number:'1.1' }}
+            </div>
+          </div>
+
+          <div class="workshop-details">
+            <p class="address">📍 {{ taller.address }}</p>
+            <p class="distance">🚗 {{ taller.distanceKm | number:'1.1' }} km de distancia</p>
+            <p class="status" [class.open]="taller.isOpen" [class.closed]="!taller.isOpen">
+              {{ taller.isOpen ? '🟢 Abierto' : '🔴 Cerrado' }}
+            </p>
+          </div>
+
+          @if (taller.reasons.length > 0) {
+            <div class="reasons">
+              @for (reason of taller.reasons; track reason) {
+                <span class="reason-tag">{{ reason }}</span>
+              }
+            </div>
+          }
+
+          <div class="workshop-actions">
+            <button class="btn-primary" (click)="solicitarAyuda(taller); $event.stopPropagation()">
+              Solicitar Ayuda
+            </button>
+            <button class="btn-secondary" (click)="seleccionarTaller(taller); $event.stopPropagation()">
+              Ver Detalles
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Sin resultados -->
+  @if (!isLoading() && !error() && recommendations().length === 0) {
+    <div class="empty-state">
+      <span class="empty-icon">🔍</span>
+      <p>No se encontraron talleres disponibles en tu área.</p>
+      <button class="btn-retry" (click)="recargar()">Buscar nuevamente</button>
+    </div>
+  }
+</div>
+
+<!-- Modal de Detalle -->
+@if (showDetail() && selectedWorkshop()) {
+  <div class="modal-overlay" (click)="cerrarDetalle()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="cerrarDetalle()">✕</button>
+
+      <div class="modal-header">
+        <h2>{{ selectedWorkshop()!.name }}</h2>
+        <div class="rating-big">⭐ {{ selectedWorkshop()!.rating | number:'1.1' }}</div>
+      </div>
+
+      <div class="modal-body">
+        <p class="detail-address">📍 {{ selectedWorkshop()!.address }}</p>
+        <p class="detail-distance">🚗 {{ selectedWorkshop()!.distanceKm | number:'1.1' }} km</p>
+        <p class="detail-status" [class.open]="selectedWorkshop()!.isOpen">
+          {{ selectedWorkshop()!.isOpen ? '🟢 Abierto ahora' : '🔴 Cerrado' }}
+        </p>
+
+        @if (selectedWorkshop()!.reasons.length > 0) {
+          <div class="detail-reasons">
+            <h4>💡 Por qué te lo recomendamos:</h4>
+            <ul>
+              @for (reason of selectedWorkshop()!.reasons; track reason) {
+                <li>{{ reason }}</li>
+              }
+            </ul>
+          </div>
+        }
+
+        <div class="detail-coordinates">
+          <small>📌 Lat: {{ selectedWorkshop()!.latitude | number:'1.5' }}, Lng: {{ selectedWorkshop()!.longitude | number:'1.5' }}</small>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-primary btn-full" (click)="solicitarAyuda(selectedWorkshop()!)">
+          🚨 Solicitar Ayuda Ahora
+        </button>
+      </div>
+    </div>
+  </div>
+}

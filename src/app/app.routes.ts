@@ -21,6 +21,7 @@ import { GlobalFinances } from './features/admin/pages/global-finances/global-fi
 import { UserManagement } from './features/admin/pages/user-management/user-management';
 import { RolesPermissions } from './features/admin/pages/roles-permissions/roles-permissions';
 import { AuditLogs } from './features/admin/pages/audit-logs/audit-logs';
+import { RecomendacionIAComponent } from './features/talleres/pages/recomendacion-ia/recomendacion-ia.component';
 
 export const routes: Routes = [
   { path: 'login', component: VistaLogin },
@@ -50,7 +51,8 @@ export const routes: Routes = [
   { path: 'cliente/vehiculos/historial', component: HistorialVehiculos },
   { path: 'cliente/emergencias/reportar', component: VistaReportarEmergencia },
   { path: 'cliente/solicitudes/seguimiento', component: VistaSeguimientoSolicitudes },
+  { path: 'cliente/talleres/recomendacion-ia', component: RecomendacionIAComponent },
   { path: 'tecnicos', component: Vista_gestion_tecnicos },
-  
+
   { path: '', redirectTo: 'login', pathMatch: 'full' }
 ];

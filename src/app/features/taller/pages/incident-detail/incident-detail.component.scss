@@ -1,0 +1,341 @@
+.incident-detail-container {
+  min-height: 100vh;
+  background-color: var(--bg-smoke);
+  color: var(--text-dark);
+}
+
+// Banner de Urgencia
+.urgency-banner {
+  padding: 4rem 4rem;
+  color: white;
+  transition: all 0.5s ease;
+
+  .banner-content {
+    max-width: 1200px;
+    margin: 0 auto;
+
+    .priority-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 0.5rem 1.25rem;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      backdrop-filter: blur(10px);
+      margin-bottom: 2rem;
+
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px white;
+      }
+    }
+
+    h1 {
+      font-size: 4rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      margin-bottom: 1.5rem;
+      line-height: 1;
+    }
+
+    .ai-summary {
+      font-size: 1.4rem;
+      font-weight: 500;
+      max-width: 800px;
+      line-height: 1.5;
+      opacity: 0.9;
+    }
+  }
+
+  &.urgency-critical {
+    background: linear-gradient(135deg, #7a000a 0%, #c40016 100%);
+  }
+
+  &.urgency-high {
+    background: linear-gradient(135deg, #e65100 0%, #ff9800 100%);
+  }
+
+  &.urgency-normal {
+    background: linear-gradient(135deg, #1d1b1b 0%, #4a4545 100%);
+  }
+}
+
+.detail-content {
+  max-width: 1400px;
+  margin: -3rem auto 0;
+  padding: 0 4rem 4rem;
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 3rem;
+
+    @media (max-width: 1024px) {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+.card {
+  background: var(--surface-lowest);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem;
+  border: none;
+  box-shadow: 0 20px 60px rgba(151, 0, 14, 0.05);
+  margin-bottom: 2.5rem;
+}
+
+// Paneles de Evidencia
+.panel-evidencias {
+  padding: 0;
+  overflow: hidden;
+
+  .section-header {
+    padding: 2rem 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: background 0.3s;
+
+    &:hover {
+      background: var(--surface-low);
+    }
+
+    .title-group {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      
+      h2 {
+        font-size: 1.5rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        margin: 0;
+      }
+    }
+
+    .btn-toggle {
+      background: none;
+      border: none;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      &.rotated { transform: rotate(180deg); }
+    }
+  }
+
+  .collapsible-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), padding 0.5s;
+    
+    &.visible {
+      max-height: 1000px;
+      padding: 0 2.5rem 2.5rem;
+    }
+  }
+}
+
+.transcription-box {
+  background: var(--bg-smoke);
+  padding: 2rem;
+  border-radius: 20px;
+  p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--text-dark);
+    margin: 0;
+  }
+}
+
+.tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+
+  .damage-tag {
+    background: #ffebee;
+    color: #c62828;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+.image-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+
+  .image-wrapper {
+    border-radius: 20px;
+    overflow: hidden;
+    aspect-ratio: 4/3;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s;
+      &:hover { transform: scale(1.05); }
+    }
+  }
+}
+
+// Mapa
+.panel-mapa {
+  .map-container {
+    height: 400px;
+    border-radius: 24px;
+    overflow: hidden;
+    background: #e0e0e0;
+  }
+
+  .map-placeholder {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .marker {
+      padding: 0.5rem 1rem;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 0.8rem;
+      position: absolute;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+
+      &.origin {
+        background: #1d1b1b;
+        color: white;
+        top: 20%;
+        left: 20%;
+      }
+      &.destination {
+        background: var(--primary-red);
+        color: white;
+        bottom: 20%;
+        right: 20%;
+      }
+    }
+
+    .route-line {
+      position: absolute;
+      width: 60%;
+      height: 4px;
+      background: rgba(151, 0, 14, 0.3);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-35deg);
+      border-radius: 4px;
+      &::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: var(--primary-red);
+        animation: routeFlow 3s infinite linear;
+      }
+    }
+
+    .map-info {
+      position: absolute;
+      bottom: 1.5rem;
+      left: 1.5rem;
+      background: white;
+      padding: 1rem 1.5rem;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      max-width: 300px;
+      font-size: 0.9rem;
+    }
+  }
+}
+
+// Columna Lateral
+.vehicle-card {
+  h3 { font-size: 1.2rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1.5rem; }
+  
+  .vehicle-info {
+    .main-info {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 1rem;
+      .brand { font-size: 2.5rem; font-weight: 800; line-height: 1; color: var(--text-dark); }
+      .model { font-size: 1.5rem; color: var(--text-muted); font-weight: 600; }
+    }
+    .plate {
+      display: inline-block;
+      background: #eee;
+      padding: 0.5rem 1.25rem;
+      border-radius: 12px;
+      font-weight: 800;
+      font-family: monospace;
+      font-size: 1.2rem;
+    }
+  }
+}
+
+.btn-primary-action {
+  width: 100%;
+  padding: 1.8rem;
+  background: #ff9800; // Naranja solicitado
+  color: white;
+  border: none;
+  border-radius: 999px;
+  font-size: 1.25rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 15px 35px rgba(255, 152, 0, 0.3);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 45px rgba(255, 152, 0, 0.4);
+    background: #f57c00;
+  }
+
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+@keyframes routeFlow {
+  0% { transform: scaleX(0); transform-origin: left; }
+  50% { transform: scaleX(1); transform-origin: left; }
+  50.1% { transform: scaleX(1); transform-origin: right; }
+  100% { transform: scaleX(0); transform-origin: right; }
+}
+
+.loading-full {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-smoke);
+  gap: 2rem;
+  
+  .spinner {
+    width: 60px;
+    height: 60px;
+    border: 6px solid #eee;
+    border-top: 6px solid var(--primary-red);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+}
+
+@keyframes spin { 100% { transform: rotate(360deg); } }

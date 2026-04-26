@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { VehicleService } from '../../../../core/services/vehicle.service';
 
 @Component({
   selector: 'app-formulario-vehiculo',
@@ -16,7 +17,8 @@ export class Formulario_Vehiculo implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private vehicleService: VehicleService
   ) {
     this.vehicleForm = this.fb.group({
       placa: ['', [Validators.required]],
@@ -32,15 +34,25 @@ export class Formulario_Vehiculo implements OnInit {
 
   guardarVehiculo() {
     if (this.vehicleForm.valid) {
-      console.log('Registrando vehículo...', this.vehicleForm.value);
-      
-      // Simular guardado exitoso
-      alert('Vehículo registrado correctamente.');
-      
-      // En una implementación real, aquí se llamaría al servicio para guardar en el backend
-      // y se manejaría la respuesta.
-      
-      this.router.navigate(['/vehiculos']);
+      const data = this.vehicleForm.value;
+      this.vehicleService.createVehicle({
+        placa: data.placa,
+        marca: data.marca,
+        modelo: data.modelo,
+        anio: data.year,
+        color: data.color,
+        observaciones: data.observaciones
+      }).subscribe({
+        next: () => {
+          alert('Vehículo registrado correctamente.');
+          this.router.navigate(['/vehiculos']);
+        },
+        error: (err) => {
+          alert(err.error?.detail || 'Error al registrar vehículo');
+        }
+      });
+    } else {
+      this.vehicleForm.markAllAsTouched();
     }
   }
 

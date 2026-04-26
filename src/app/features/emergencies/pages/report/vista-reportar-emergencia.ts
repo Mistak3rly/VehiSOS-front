@@ -2,13 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { EmergenciasService } from '../../../../core/services/emergencias.service';
+import { VehiculoRead, TipoIncidenteRead, IncidenteCreate, EvidenciaCreate } from '../../../../core/models/api.models';
 
-interface Vehiculo {
-  id: number;
-  placa: string;
-  marca: string;
-  modelo: string;
-}
 
 @Component({
   selector: 'app-vista-reportar-emergencia',
@@ -19,20 +15,10 @@ interface Vehiculo {
 })
 export class VistaReportarEmergencia implements OnInit {
   emergencyForm: FormGroup;
-  vehiculos: Vehiculo[] = [
-    { id: 1, placa: 'ABC-123', marca: 'Tesla', modelo: 'Model 3' },
-    { id: 2, placa: 'XYZ-789', marca: 'Toyota', modelo: 'Hilux' }
-  ];
-
-  incidentTypes = [
-    'Falla mecánica',
-    'Pinchazo de llanta',
-    'Batería descargada',
-    'Sobrecalentamiento',
-    'Accidente leve',
-    'Llaves dentro del vehículo',
-    'Otro'
-  ];
+  vehiculos: VehiculoRead[] = [];
+  incidentTypes: TipoIncidenteRead[] = [];
+  errorMessage = '';
+  isSubmitting = false;
 
   isLocating = false;
   capturedLocation = { lat: 0, lng: 0, captured: false };
@@ -42,7 +28,8 @@ export class VistaReportarEmergencia implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private router: Router
+    private router: Router,
+    private emergenciasService: EmergenciasService
   ) {
     this.emergencyForm = this.fb.group({
       vehiculoId: ['', [Validators.required]],
@@ -54,7 +41,21 @@ export class VistaReportarEmergencia implements OnInit {
     });
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.cargarDatos();
+  }
+
+  cargarDatos() {
+    this.emergenciasService.listVehiculos().subscribe({
+      next: (data) => this.vehiculos = data,
+      error: (err) => console.error('Error al cargar vehículos', err)
+    });
+
+    this.emergenciasService.listTiposIncidente().subscribe({
+      next: (data) => this.incidentTypes = data,
+      error: (err) => console.error('Error al cargar tipos de incidente', err)
+    });
+  }
 
   obtenerUbicacionActual() {
     this.isLocating = true;
@@ -117,16 +118,62 @@ export class VistaReportarEmergencia implements OnInit {
 
   enviarEmergencia() {
     if (this.emergencyForm.valid) {
-      console.log('Enviando emergencia...', {
-        ...this.emergencyForm.value,
-        evidencias: this.selectedFiles.length,
-        audio: this.isAudioRecording
+      this.isSubmitting = true;
+      this.errorMessage = '';
+      
+      const formValue = this.emergencyForm.value;
+      const evidencias: EvidenciaCreate[] = [];
+
+      // Mapear fotos a EvidenciaCreate
+      this.imagePreviews.forEach((preview, index) => {
+        evidencias.push({
+          tipo_evidencia: 'imagen',
+          url_archivo: preview, // Enviamos el base64 como url para el mockup
+          nombre_archivo: `foto_${index}.jpg`,
+          tipo_mime: 'image/jpeg'
+        });
       });
 
-      // Simular guardado exitoso
-      alert('Emergencia reportada correctamente. Tu solicitud fue creada con estado pendiente.');
-      
-      this.router.navigate(['/solicitudes']);
+      if (this.isAudioRecording) {
+        evidencias.push({
+          tipo_evidencia: 'audio',
+          url_archivo: 'data:audio/mp3;base64,...',
+          nombre_archivo: 'grabacion.mp3',
+          tipo_mime: 'audio/mpeg'
+        });
+      }
+
+      if (formValue.descripcion) {
+        evidencias.push({
+          tipo_evidencia: 'texto',
+          contenido_texto: formValue.descripcion
+        });
+      }
+
+      const payload: IncidenteCreate = {
+        id_vehiculo: parseInt(formValue.vehiculoId, 10),
+        id_tipo_incidente: parseInt(formValue.tipoIncidente, 10),
+        titulo: 'Emergencia Reportada',
+        descripcion_texto: formValue.descripcion,
+        referencia_ubicacion: formValue.referenciaUbicacion,
+        latitud: formValue.lat,
+        longitud: formValue.lng,
+        evidencias: evidencias
+      };
+
+      this.emergenciasService.createIncidente(payload).subscribe({
+        next: (res) => {
+          this.isSubmitting = false;
+          alert('Emergencia reportada correctamente. Tu solicitud fue creada con estado pendiente.');
+          this.router.navigate(['/cliente/solicitudes/seguimiento']);
+        },
+        error: (err) => {
+          this.isSubmitting = false;
+          this.errorMessage = err.error?.detail || 'Error al reportar la emergencia. Revisa los datos.';
+        }
+      });
+    } else {
+      this.emergencyForm.markAllAsTouched();
     }
   }
 

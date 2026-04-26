@@ -3,13 +3,25 @@
 @import url('https://fonts.googleapis.com/icon?family=Material+Icons+Round');
 
 :root {
-  --primary-red: #C40016;
-  --dark-red: #8F0010;
-  --bg-light: #F8F1F1;
-  --white: #FFFFFF;
-  --text-dark: #2A1A1A;
-  --text-secondary: #746A6A;
+  /* LIGHT THEME (STITCH BASE) */
+  --primary-red: #97000e;
+  --primary-container: #c40016;
+  --bg-smoke: #fff8f8;
+  --surface-lowest: #ffffff;
+  --surface-low: #f9f2f2;
+  --text-dark: #1d1b1b;
+  --text-muted: #5d3f3c;
   --font-family: 'Manrope', sans-serif;
+  --radius-md: 24px;
+  --radius-lg: 32px;
+
+  /* DARK THEME (PREMIUM EDITORIAL) */
+  --dark-bg: #0a0a0a;
+  --dark-surface: #141414;
+  --dark-surface-light: #1e1e1e;
+  --dark-text: #f0f0f0;
+  --dark-text-muted: #aaaaaa;
+  --ghost-border: rgba(230, 189, 184, 0.15);
 }
 
 * {
@@ -26,12 +38,20 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: 800;
   letter-spacing: -0.02em;
 }
 
-button, input, select, textarea {
+button,
+input,
+select,
+textarea {
   font-family: var(--font-family);
 }
 
@@ -39,6 +59,7 @@ a {
   text-decoration: none;
   color: var(--primary-red);
   transition: opacity 0.2s;
+
   &:hover {
     opacity: 0.8;
   }
@@ -62,6 +83,7 @@ a {
 ::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.1);
   border-radius: 10px;
+
   &:hover {
     background: rgba(0, 0, 0, 0.2);
   }

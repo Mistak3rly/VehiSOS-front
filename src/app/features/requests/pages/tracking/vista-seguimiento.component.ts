@@ -1,13 +1,17 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { EmergenciasService } from '../../../../core/services/emergencias.service';
+import { InteligenciaService } from '../../../../core/services/inteligencia.service';
 
 interface Solicitud {
   id: string;
+  incidenteId: number;
   vehiculo: string;
   incidente: string;
   fecha: string;
-  estado: 'Pendiente' | 'Asignada' | 'En camino' | 'En atención' | 'Finalizada' | 'Cancelada';
+  estado: string;
   descripcion?: string;
   ubicacion?: string;
   taller?: string;
@@ -20,7 +24,7 @@ interface Solicitud {
 @Component({
   selector: 'app-vista-seguimiento',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './vista-seguimiento.component.html',
   styleUrl: './vista-seguimiento.component.scss'
 })
@@ -28,81 +32,67 @@ export class VistaSeguimientoSolicitudes implements OnInit {
   solicitudes = signal<Solicitud[]>([]);
   solicitudSeleccionada = signal<Solicitud | null>(null);
   viewMode = signal<'list' | 'detail'>('list');
+  isLoading = signal(false);
+  
+  // Variables modal calificación (CU15)
+  showRatingModal = false;
+  ratingValue = 0;
+  ratingComment = '';
 
-  constructor() {}
+  constructor(
+    private emergenciasService: EmergenciasService,
+    private inteligenciaService: InteligenciaService
+  ) {}
 
   ngOnInit(): void {
     this.cargarSolicitudes();
   }
 
   cargarSolicitudes() {
-    // Simulación de datos
-    const mockData: Solicitud[] = [
-      {
-        id: 'SOS-2024-001',
-        vehiculo: 'Tesla Model 3 (ABC-123)',
-        incidente: 'Falla mecánica',
-        fecha: '24/04/2024 10:30',
-        estado: 'En camino',
-        descripcion: 'El vehículo no enciende y muestra alerta de sistema térmico.',
-        ubicacion: 'Av. Busch y 2do Anillo',
-        taller: 'Taller Central VehiSOS',
-        tecnico: 'Carlos Rodriguez',
-        tiempoEstimado: '15 min',
-        evidencias: ['assets/demo/evidencia1.jpg'],
-        trazabilidad: [
-          { evento: 'Solicitud creada', fecha: '10:30 AM', completado: true },
-          { evento: 'Solicitud recibida', fecha: '10:32 AM', completado: true },
-          { evento: 'Taller asignado', fecha: '10:35 AM', completado: true },
-          { evento: 'Técnico en camino', fecha: '10:40 AM', completado: true },
-          { evento: 'Atención iniciada', fecha: '--', completado: false },
-          { evento: 'Atención finalizada', fecha: '--', completado: false },
-        ]
+    this.isLoading.set(true);
+    this.emergenciasService.listIncidentes().subscribe({
+      next: (incidentes) => {
+        const mapeado = incidentes.map(inc => ({
+          id: inc.codigo_incidente,
+          incidenteId: inc.id,
+          vehiculo: `${inc.vehiculo.marca} ${inc.vehiculo.modelo} (${inc.vehiculo.placa})`,
+          incidente: inc.tipo_incidente?.nombre || 'General',
+          fecha: new Date(inc.fecha_reporte).toLocaleString(),
+          estado: inc.estado_servicio?.nombre || 'Pendiente',
+          descripcion: inc.descripcion_texto || '',
+          ubicacion: inc.referencia_ubicacion || 'Sin referencia',
+          taller: 'En búsqueda...', // idealmente vendría en una relación en el backend
+          evidencias: inc.evidencias?.map(e => e.url_archivo || '') || []
+        }));
+        this.solicitudes.set(mapeado);
+        this.isLoading.set(false);
       },
-      {
-        id: 'SOS-2024-002',
-        vehiculo: 'Toyota Hilux (XYZ-789)',
-        incidente: 'Pinchazo de llanta',
-        fecha: '23/04/2024 15:20',
-        estado: 'Finalizada',
-        descripcion: 'Llanta trasera derecha pinchada por clavo.',
-        ubicacion: 'Equipetrol Calle 7',
-        taller: 'Taller El Rayo',
-        tecnico: 'Mario Gomez',
-        tiempoEstimado: 'Atendido',
-        trazabilidad: [
-          { evento: 'Solicitud creada', fecha: '03:20 PM', completado: true },
-          { evento: 'Solicitud recibida', fecha: '03:25 PM', completado: true },
-          { evento: 'Taller asignado', fecha: '03:30 PM', completado: true },
-          { evento: 'Técnico en camino', fecha: '03:40 PM', completado: true },
-          { evento: 'Atención iniciada', fecha: '04:00 PM', completado: true },
-          { evento: 'Atención finalizada', fecha: '04:30 PM', completado: true },
-        ]
-      },
-      {
-        id: 'SOS-2024-003',
-        vehiculo: 'Tesla Model 3 (ABC-123)',
-        incidente: 'Batería descargada',
-        fecha: '24/04/2024 14:00',
-        estado: 'Pendiente',
-        descripcion: 'Me quedé sin carga cerca de la plaza principal.',
-        ubicacion: 'Plaza 24 de Septiembre',
-        taller: undefined,
-        tecnico: undefined,
-        tiempoEstimado: undefined,
-        trazabilidad: [
-          { evento: 'Solicitud creada', fecha: '02:00 PM', completado: true },
-          { evento: 'Solicitud recibida', fecha: '02:05 PM', completado: true },
-          { evento: 'Taller asignado', fecha: '--', completado: false },
-        ]
+      error: (err) => {
+        console.error('Error cargando solicitudes', err);
+        this.isLoading.set(false);
       }
-    ];
-    this.solicitudes.set(mockData);
+    });
   }
 
   verDetalleSolicitud(solicitud: Solicitud) {
     this.solicitudSeleccionada.set(solicitud);
     this.viewMode.set('detail');
+    
+    // Cargar trazabilidad real
+    this.inteligenciaService.getTrazabilidad(solicitud.incidenteId).subscribe({
+      next: (traz) => {
+        // Mapear historial a formato UI
+        const historialUi = traz.incidente.historial?.map((h: any) => ({
+          evento: h.tipo_evento,
+          fecha: new Date(h.fecha_creacion).toLocaleTimeString(),
+          completado: true
+        })) || [];
+        
+        // Actualizar datos del detalle
+        solicitud.trazabilidad = historialUi;
+        this.solicitudSeleccionada.set({ ...solicitud });
+      }
+    });
   }
 
   volverALista() {
@@ -112,5 +102,25 @@ export class VistaSeguimientoSolicitudes implements OnInit {
 
   getEstadoClass(estado: string): string {
     return 'status-' + estado.toLowerCase().replace(' ', '-');
+  }
+
+  // CU15 Modal calificación
+  abrirCalificacion() {
+    this.showRatingModal = true;
+    this.ratingValue = 0;
+    this.ratingComment = '';
+  }
+
+  cerrarCalificacion() {
+    this.showRatingModal = false;
+  }
+
+  setRating(val: number) {
+    this.ratingValue = val;
+  }
+
+  enviarCalificacion() {
+    alert(`Calificación enviada: ${this.ratingValue} estrellas. Gracias por tu feedback.`);
+    this.showRatingModal = false;
   }
 }

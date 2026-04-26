@@ -46,6 +46,9 @@
 
     <!-- Requests List -->
     <div class="requests-grid" *ngIf="!isLoading(); else loadingTpl">
+      <div class="error-message" *ngIf="errorMessage" style="color: red; grid-column: 1 / -1; font-weight: bold; padding: 1rem;">
+        {{ errorMessage }}
+      </div>
       <div class="request-card card" *ngFor="let s of solicitudes()" (click)="verDetalleSolicitud(s)">
         <div class="card-header">
           <span class="code">{{ s.codigo }}</span>
@@ -135,8 +138,14 @@
                 <span class="priority-text">{{ solicitudSeleccionada()?.tipoIncidente }}</span>
               </div>
               <div class="detail-item full-width">
-                <label>Descripción</label>
-                <p>{{ solicitudSeleccionada()?.descripcion }}</p>
+                <label>Descripción (Clasificación IA)</label>
+                <p>
+                  {{ solicitudSeleccionada()?.descripcion }}
+                </p>
+                <div class="ia-badge" *ngIf="solicitudSeleccionada()?.trazabilidad?.analisis?.length" style="margin-top: 5px; font-size: 0.85em; color: #6200ee; background: #eef; padding: 4px 8px; border-radius: 4px; display: inline-block;">
+                  <span class="material-icons-round" style="font-size: 14px; vertical-align: middle; margin-right: 4px;">smart_toy</span>
+                  Clasificado por IA: {{ solicitudSeleccionada()?.trazabilidad?.analisis?.[0]?.tipo_analisis }}
+                </div>
               </div>
               <div class="detail-item full-width">
                 <label>Ubicación</label>
@@ -156,6 +165,31 @@
               <div class="evidencias-grid">
                 <div class="evidence-item" *ngFor="let ev of solicitudSeleccionada()?.evidencias">
                   <img [src]="ev.url" alt="Evidencia">
+                </div>
+              </div>
+            </div>
+
+            <!-- CU-009 Timeline de Trazabilidad -->
+            <div class="timeline-container" *ngIf="solicitudSeleccionada()?.trazabilidad?.incidente?.historial?.length">
+              <label style="font-weight: 600; color: #aaaaaa; margin-bottom: 1rem; display: block;">Línea de Tiempo del Incidente</label>
+              <div class="timeline">
+                <div class="timeline-event" *ngFor="let h of solicitudSeleccionada()?.trazabilidad?.incidente?.historial">
+                  <div class="timeline-icon">
+                    <span class="material-icons-round">
+                      {{ h.tipo_evento === 'CREACION' ? 'add_circle' : 
+                         h.tipo_evento === 'ASIGNACION' ? 'person_add' :
+                         h.tipo_evento === 'CAMBIO_ESTADO' ? 'sync' : 'info' }}
+                    </span>
+                  </div>
+                  <div class="timeline-content">
+                    <div class="tl-header">
+                      <strong>{{ h.tipo_evento | titlecase }}</strong>
+                      <span>{{ h.fecha_creacion | date:'short' }}</span>
+                    </div>
+                    <div class="tl-body">
+                      {{ h.descripcion || 'Sin descripción' }}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -188,19 +222,31 @@
                 <label>Asignar Técnico</label>
                 <select formControlName="tecnicoId">
                   <option value="">Seleccionar técnico...</option>
-                  <option *ngFor="let t of tecnicos" [value]="t.id">{{ t.nombre }} - {{ t.especialidad }}</option>
+                  <option *ngFor="let t of tecnicos" [value]="t.id">Personal #{{ t.id_usuario }} - {{ t.tipo_personal }}</option>
                 </select>
               </div>
 
-              <div class="form-group">
+              <div class="form-group" *ngIf="solicitudSeleccionada()?.estado !== 'Disponible'">
                 <label>Estado del Servicio</label>
-                <select formControlName="estado">
-                  <option value="Aceptada">Aceptada</option>
-                  <option value="En camino">En camino</option>
-                  <option value="En atención">En atención</option>
-                  <option value="Finalizada">Finalizada</option>
-                  <option value="Cancelada">Cancelada</option>
-                </select>
+                <div class="stepper">
+                   <div class="step" 
+                        [class.completed]="solicitudSeleccionada()?.estado === 'En camino' || solicitudSeleccionada()?.estado === 'En atención' || solicitudSeleccionada()?.estado === 'Finalizada'"
+                        [class.active]="statusForm.get('estado')?.value === 'Aceptada'"
+                        (click)="setStatus('Aceptada')">1. Aceptada</div>
+                   <div class="step"
+                        [class.completed]="solicitudSeleccionada()?.estado === 'En atención' || solicitudSeleccionada()?.estado === 'Finalizada'"
+                        [class.active]="statusForm.get('estado')?.value === 'En camino'"
+                        (click)="setStatus('En camino')">2. En Camino</div>
+                   <div class="step"
+                        [class.completed]="solicitudSeleccionada()?.estado === 'Finalizada'"
+                        [class.active]="statusForm.get('estado')?.value === 'En atención'"
+                        (click)="setStatus('En atención')">3. En Atención</div>
+                   <div class="step"
+                        [class.active]="statusForm.get('estado')?.value === 'Finalizada'"
+                        [class.completed]="solicitudSeleccionada()?.estado === 'Finalizada'"
+                        (click)="setStatus('Finalizada')">4. Finalizada</div>
+                </div>
+                <input type="hidden" formControlName="estado">
               </div>
 
               <div class="form-group">

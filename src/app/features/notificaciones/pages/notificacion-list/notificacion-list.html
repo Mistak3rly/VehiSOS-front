@@ -1,1 +1,50 @@
-<p>notificacion-list works!</p>
+<div class="notifications-container">
+  <header class="page-header">
+    <div class="header-content">
+      <h1>Mis Notificaciones</h1>
+      <p *ngIf="userRole() === 'cliente'">Seguimiento en tiempo real de tus solicitudes y servicios.</p>
+      <p *ngIf="userRole() === 'operario' || userRole() === 'tecnico'">Gestión de asignaciones y alertas operativas.</p>
+    </div>
+  </header>
+
+  <div class="notification-filters card">
+    <button class="btn-refresh" (click)="loadNotifications()" [disabled]="isLoading()">
+      <span class="material-icons-round" [class.spinning]="isLoading()">refresh</span>
+      Actualizar
+    </button>
+  </div>
+
+  <div class="notifications-list" *ngIf="notifications().length > 0; else noNotifications">
+    <div 
+      *ngFor="let notif of notifications()" 
+      class="notification-card card" 
+      [class.unread]="notif.estado === 'enviada'"
+      (click)="markAsRead(notif.id)"
+    >
+      <div class="icon-wrapper" [ngClass]="getNotificationColor(notif)">
+        <span class="material-icons-round">{{ getNotificationIcon(notif) }}</span>
+      </div>
+      
+      <div class="notification-body">
+        <div class="notif-header">
+          <h3>{{ notif.titulo }}</h3>
+          <span class="date">{{ notif.fecha_creacion | date:'shortTime' }}</span>
+        </div>
+        <p>{{ notif.mensaje }}</p>
+        <span class="notif-id" *ngIf="notif.id_incidente">Incidente #{{ notif.id_incidente }}</span>
+      </div>
+
+      <div class="notif-status" *ngIf="notif.estado === 'enviada'">
+        <div class="dot"></div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #noNotifications>
+    <div class="empty-state card">
+      <span class="material-icons-round">notifications_none</span>
+      <h3>Sin notificaciones</h3>
+      <p>No tienes alertas pendientes en este momento.</p>
+    </div>
+  </ng-template>
+</div>

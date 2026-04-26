@@ -26,6 +26,10 @@
             <a *ngIf="!item.subItems" [routerLink]="item.route" routerLinkActive="active" class="menu-link">
               <span class="material-icons-round">{{ item.icon }}</span>
               <span class="menu-title">{{ item.title }}</span>
+              <!-- Notification Badge (CU-013) -->
+              <span class="badge" *ngIf="item.title === 'Notificaciones' && unreadCount() > 0">
+                {{ unreadCount() }}
+              </span>
             </a>
 
             <div *ngIf="item.subItems" (click)="toggleSubmenu(item)" class="menu-link submenu-trigger">

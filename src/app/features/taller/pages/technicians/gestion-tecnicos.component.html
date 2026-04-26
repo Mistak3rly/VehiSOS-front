@@ -12,7 +12,7 @@
     <div class="content-column">
       <!-- Workshop Status Card -->
       <section class="card status-card" [class.offline]="!tallerStatus().disponible">
-        <div class="status-info">
+        <div class="status-info" *ngIf="tallerId !== 0; else noTaller">
           <div class="title-group">
             <span class="material-icons-round icon">store</span>
             <div>
@@ -28,6 +28,21 @@
             <span class="status-label">{{ tallerStatus().disponible ? 'Disponible' : 'No disponible' }}</span>
           </div>
         </div>
+        
+        <ng-template #noTaller>
+          <div class="status-info no-taller">
+            <div class="title-group">
+              <span class="material-icons-round icon warn">warning</span>
+              <div>
+                <h3>Taller no configurado</h3>
+                <p>Necesitas un taller para asignar técnicos.</p>
+              </div>
+            </div>
+            <button class="btn-primary btn-sm" (click)="crearTallerBase()" [disabled]="isLoading()">
+              Crear Taller Base
+            </button>
+          </div>
+        </ng-template>
         <div class="stats-row">
           <div class="stat">
             <span class="label">Capacidad</span>
@@ -106,28 +121,37 @@
         <p class="subtitle">Ingresa los datos para {{ isEditing() ? 'actualizar' : 'añadir' }} un miembro al equipo.</p>
 
         <form [formGroup]="tecnicoForm" (ngSubmit)="guardarTecnico()">
-          <div class="form-group">
-            <label>Nombre completo</label>
-            <input type="text" formControlName="nombre" #nombreInput placeholder="Ej. Juan Perez">
-            <small class="error" *ngIf="tecnicoForm.get('nombre')?.invalid && tecnicoForm.get('nombre')?.touched">
-              El nombre es obligatorio.
-            </small>
+          <div class="form-group-row">
+            <div class="form-group">
+              <label>Nombre</label>
+              <input type="text" formControlName="nombre" #nombreInput placeholder="Ej. Maria">
+            </div>
+            <div class="form-group">
+              <label>Apellidos</label>
+              <input type="text" formControlName="apellidos" placeholder="Ej. Galindo">
+            </div>
           </div>
 
           <div class="form-group">
-            <label>Teléfono</label>
-            <input type="text" formControlName="telefono" placeholder="Ej. 70001234">
-            <small class="error" *ngIf="tecnicoForm.get('telefono')?.invalid && tecnicoForm.get('telefono')?.touched">
-              El teléfono es obligatorio.
-            </small>
+            <label>Documento de Identidad</label>
+            <input type="text" formControlName="documento_identidad" placeholder="DNI / CI / Pasaporte">
           </div>
 
-          <div class="form-group">
-            <label>Correo electrónico</label>
-            <input type="email" formControlName="email" placeholder="correo@ejemplo.com">
-            <small class="error" *ngIf="tecnicoForm.get('email')?.invalid && tecnicoForm.get('email')?.touched">
-              Ingresa un correo válido.
-            </small>
+          <div class="form-group-row">
+            <div class="form-group">
+              <label>Teléfono</label>
+              <input type="text" formControlName="telefono" placeholder="Ej. 70001234">
+            </div>
+            <div class="form-group">
+              <label>Correo electrónico</label>
+              <input type="email" formControlName="email" placeholder="correo@ejemplo.com">
+            </div>
+          </div>
+
+          <div class="form-group" *ngIf="!isEditing()">
+            <label>Contraseña para el técnico</label>
+            <input type="password" formControlName="password" placeholder="Contraseña de acceso">
+            <small class="helper-text">Esta será su clave para entrar al sistema.</small>
           </div>
 
           <div class="form-group">
@@ -149,8 +173,11 @@
             <button type="button" class="btn-outline" (click)="cancelarEdicion()" *ngIf="isEditing()">
               Cancelar
             </button>
-            <button type="submit" class="btn-primary" [disabled]="tecnicoForm.invalid">
-              {{ isEditing() ? 'Guardar cambios' : 'Registrar técnico' }}
+            <button type="submit" class="btn-primary" [disabled]="tecnicoForm.invalid || isLoading()">
+              <span *ngIf="!isLoading()">{{ isEditing() ? 'Guardar cambios' : 'Registrar técnico' }}</span>
+              <span *ngIf="isLoading()" class="loading-btn">
+                <span class="spinner-small"></span> Procesando...
+              </span>
             </button>
           </div>
         </form>

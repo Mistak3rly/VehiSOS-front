@@ -29,7 +29,7 @@
             <label for="tipoIncidente">Tipo de incidente</label>
             <select id="tipoIncidente" formControlName="tipoIncidente">
               <option value="" disabled selected>Selecciona el tipo de falla</option>
-              <option *ngFor="let type of incidentTypes" [value]="type">{{ type }}</option>
+              <option *ngFor="let type of incidentTypes" [value]="type.id">{{ type.nombre }}</option>
             </select>
             <small class="error" *ngIf="emergencyForm.get('tipoIncidente')?.invalid && emergencyForm.get('tipoIncidente')?.touched">
               El tipo de incidente es obligatorio.
@@ -94,9 +94,12 @@
           <!-- Actions -->
           <div class="form-actions">
             <button type="button" class="btn-outline" (click)="cancelar()">Cancelar</button>
-            <button type="submit" class="btn-primary" [disabled]="emergencyForm.invalid">
-              Enviar emergencia
+            <button type="submit" class="btn-primary" [disabled]="emergencyForm.invalid || isSubmitting">
+              {{ isSubmitting ? 'Enviando...' : 'Enviar emergencia' }}
             </button>
+          </div>
+          <div class="error-message" *ngIf="errorMessage" style="color: red; margin-top: 10px; font-weight: bold;">
+            {{ errorMessage }}
           </div>
         </form>
       </section>

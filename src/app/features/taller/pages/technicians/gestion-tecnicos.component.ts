@@ -2,6 +2,9 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { LogisticaService } from '../../../../core/services/logistica.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { TallerRead, PersonalTallerRead } from '../../../../core/models/api.models';
 
 interface Tecnico {
   id: number;
@@ -24,8 +27,10 @@ export class Vista_gestion_tecnicos implements OnInit {
   tecnicos = signal<Tecnico[]>([]);
   tecnicoForm: FormGroup;
   isEditing = signal(false);
+  isLoading = signal(false);
   editingId = signal<number | null>(null);
-  
+  tallerId: number = 0;
+
   tallerStatus = signal({
     disponible: true,
     capacidad: 5,
@@ -43,66 +48,151 @@ export class Vista_gestion_tecnicos implements OnInit {
 
   disponibilidades = ['Disponible', 'Ocupado', 'No disponible'];
 
-  constructor(private fb: FormBuilder) {
+  constructor(
+    private fb: FormBuilder,
+    private logisticaService: LogisticaService,
+    private authService: AuthService
+  ) {
     this.tecnicoForm = this.fb.group({
       nombre: ['', [Validators.required]],
+      apellidos: ['', [Validators.required]],
+      documento_identidad: ['', [Validators.required]],
       telefono: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
+      password: ['vehisos123', [Validators.required]],
       especialidad: ['', [Validators.required]],
-      disponibilidad: ['Disponible', [Validators.required]],
-      observaciones: ['']
+      disponibilidad: ['Disponible', [Validators.required]]
     });
   }
 
   ngOnInit(): void {
-    this.cargarTecnicos();
+    this.cargarDatosIniciales();
+  }
+
+  cargarDatosIniciales() {
+    this.logisticaService.listTalleres().subscribe({
+      next: (talleres: TallerRead[]) => {
+        if (talleres.length > 0) {
+          this.tallerId = talleres[0].id;
+          console.log('Taller detectado:', this.tallerId);
+          this.cargarTecnicos();
+        } else {
+          console.warn('No se encontraron talleres para este usuario.');
+          // En lugar de un fallback hardcodeado, informamos al usuario
+          // o podríamos ofrecer crear uno automáticamente si es necesario.
+        }
+      },
+      error: (err) => {
+        console.error('Error al cargar taller del usuario.', err);
+        // Fallback preventivo para no bloquear la UI en desarrollo
+        this.tallerId = 1; 
+        this.cargarTecnicos();
+      }
+    });
+  }
+
+  crearTallerBase() {
+    this.isLoading.set(true);
+    this.logisticaService.createTaller({
+      nombre: 'Mi Taller VehiSOS',
+      capacidad_maxima: 5,
+      activo: true,
+      porcentaje_comision: 10
+    }).subscribe({
+      next: (nuevoTaller) => {
+        this.tallerId = nuevoTaller.id;
+        alert('¡Taller creado con éxito! Ahora puedes añadir técnicos.');
+        this.cargarTecnicos();
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        this.isLoading.set(false);
+        alert('No se pudo crear el taller: ' + (err.error?.detail || 'Error de conexión'));
+      }
+    });
   }
 
   cargarTecnicos() {
-    // Simulación de datos
-    const mockData: Tecnico[] = [
-      {
-        id: 1,
-        nombre: 'Carlos Rodriguez',
-        telefono: '77889900',
-        email: 'carlos.r@vehisos.com',
-        especialidad: 'Mecánica general',
-        disponibilidad: 'Ocupado',
-        ultimaActualizacion: 'Hace 5 min'
-      },
-      {
-        id: 2,
-        nombre: 'Mario Gomez',
-        telefono: '66554433',
-        email: 'mario.g@vehisos.com',
-        especialidad: 'Electricidad automotriz',
-        disponibilidad: 'Disponible',
-        ultimaActualizacion: 'Hace 1 hora'
+    if (!this.tallerId) return;
+    this.logisticaService.listPersonal(this.tallerId).subscribe({
+      next: (data: PersonalTallerRead[]) => {
+        const mapeado: Tecnico[] = data.map(p => ({
+          id: p.id,
+          nombre: `Personal #${p.id_usuario}`,
+          telefono: 'N/A',
+          email: 'N/A',
+          especialidad: p.tipo_personal,
+          disponibilidad: p.disponible ? 'Disponible' : 'Ocupado',
+          ultimaActualizacion: new Date(p.fecha_asignacion).toLocaleDateString()
+        }));
+        this.tecnicos.set(mapeado);
       }
-    ];
-    this.tecnicos.set(mockData);
+    });
   }
 
   guardarTecnico() {
+    console.log('Intentando guardar técnico...', this.tecnicoForm.value);
     if (this.tecnicoForm.valid) {
+      if (!this.tallerId) {
+        alert('Error: No se ha detectado un Taller ID válido. Por favor, asegúrate de estar logueado como dueño de taller.');
+        this.isLoading.set(false);
+        return;
+      }
+      this.isLoading.set(true);
       const formValue = this.tecnicoForm.value;
       
       if (this.isEditing()) {
-        this.tecnicos.update(list => list.map(t => 
-          t.id === this.editingId() ? { ...t, ...formValue, ultimaActualizacion: 'Ahora' } : t
-        ));
-        alert('Técnico actualizado correctamente.');
+        this.logisticaService.updatePersonal(this.tallerId, this.editingId()!, {
+          tipo_personal: formValue.especialidad,
+          disponible: formValue.disponibilidad === 'Disponible'
+        }).subscribe({
+          next: () => {
+            this.cargarTecnicos();
+            this.cancelarEdicion();
+            this.isLoading.set(false);
+          },
+          error: (err) => {
+            this.isLoading.set(false);
+            alert(err.error?.detail || 'Error al actualizar el técnico.');
+          }
+        });
       } else {
-        const newTecnico: Tecnico = {
-          id: Date.now(),
-          ...formValue,
-          ultimaActualizacion: 'Recién registrado'
-        };
-        this.tecnicos.update(list => [...list, newTecnico]);
-        alert('Técnico registrado correctamente.');
+        // FLUJO DE REGISTRO COMPLETO:
+        // 1. Crear el usuario real
+        this.authService.register({
+          nombre: formValue.nombre,
+          apellidos: formValue.apellidos,
+          correo: formValue.email,
+          telefono: formValue.telefono,
+          documento_identidad: formValue.documento_identidad,
+          password: formValue.password,
+          activo: true
+        }).subscribe({
+          next: (newUser) => {
+            // 2. Asignar como personal
+            this.logisticaService.addPersonal(this.tallerId, {
+              id_usuario: newUser.id,
+              tipo_personal: formValue.especialidad,
+              disponible: true
+            }).subscribe({
+              next: () => {
+                this.isLoading.set(false);
+                alert(`¡Éxito! El técnico ${newUser.nombre} ${newUser.apellidos} ha sido registrado y guardado en la base de datos.`);
+                this.cargarTecnicos();
+                this.cancelarEdicion();
+              },
+              error: (err) => {
+                this.isLoading.set(false);
+                alert('Usuario creado, pero no se pudo asignar al taller: ' + (err.error?.detail || 'Error desconocido'));
+              }
+            });
+          },
+          error: (err) => {
+            this.isLoading.set(false);
+            alert('Error al crear el usuario del técnico: ' + (err.error?.detail || 'El correo o documento ya existe.'));
+          }
+        });
       }
-      
-      this.cancelarEdicion();
     }
   }
 
@@ -111,17 +201,16 @@ export class Vista_gestion_tecnicos implements OnInit {
     this.editingId.set(tecnico.id);
     this.tecnicoForm.patchValue({
       nombre: tecnico.nombre,
-      telefono: tecnico.telefono,
-      email: tecnico.email,
       especialidad: tecnico.especialidad,
       disponibilidad: tecnico.disponibilidad
     });
+    // Nota: Otros campos como password o documento no se editan aquí por simplicidad
   }
 
   cancelarEdicion() {
     this.isEditing.set(false);
     this.editingId.set(null);
-    this.tecnicoForm.reset({ disponibilidad: 'Disponible' });
+    this.tecnicoForm.reset({ disponibilidad: 'Disponible', password: 'vehisos123' });
   }
 
   cambiarDisponibilidad(tecnico: Tecnico) {
@@ -130,11 +219,14 @@ export class Vista_gestion_tecnicos implements OnInit {
       'Ocupado': 'No disponible',
       'No disponible': 'Disponible'
     };
+
+    const nextDisp = nextStatus[tecnico.disponibilidad];
     
-    this.tecnicos.update(list => list.map(t => 
-      t.id === tecnico.id ? { ...t, disponibilidad: nextStatus[t.disponibilidad], ultimaActualizacion: 'Ahora' } : t
-    ));
-    alert('Disponibilidad del técnico actualizada.');
+    this.logisticaService.updatePersonal(this.tallerId, tecnico.id, {
+      disponible: nextDisp === 'Disponible'
+    }).subscribe(() => {
+      this.cargarTecnicos();
+    });
   }
 
   actualizarDisponibilidadTaller() {
@@ -144,8 +236,8 @@ export class Vista_gestion_tecnicos implements OnInit {
 
   desactivarTecnico(tecnico: Tecnico) {
     if (confirm(`¿Estás seguro de desactivar a ${tecnico.nombre}?`)) {
-      this.tecnicos.update(list => list.filter(t => t.id !== tecnico.id));
-      alert('Técnico desactivado correctamente.');
+      // Aquí se llamaría a un endpoint de eliminación si existiera
+      alert('Funcionalidad de eliminación pendiente de implementación en backend.');
     }
   }
 

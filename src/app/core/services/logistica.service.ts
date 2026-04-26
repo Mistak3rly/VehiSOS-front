@@ -48,6 +48,15 @@ export class LogisticaService {
     return this.http.patch<TallerRead>(`${this.BASE}/talleres/${id}`, payload);
   }
 
+  // ── Admin: Talleres ─────────────────────
+  listAllTalleres(): Observable<TallerRead[]> {
+    return this.http.get<TallerRead[]>(`${this.BASE}/admin/talleres`);
+  }
+
+  updateTallerActivo(id: number, activo: boolean): Observable<TallerRead> {
+    return this.http.patch<TallerRead>(`${this.BASE}/admin/talleres/${id}/activo?activo=${activo}`, {});
+  }
+
   // ── Personal ──────────────────────────────
   listPersonal(tallerId: number): Observable<PersonalTallerRead[]> {
     return this.http.get<PersonalTallerRead[]>(
@@ -116,6 +125,11 @@ export class LogisticaService {
     return this.http.get<ResumenFinancieroRead>(`${this.BASE}/pagos/resumen`, { params });
   }
 
+  // ── Admin: Pagos ─────────────────────────
+  listAllPagos(): Observable<PagoRead[]> {
+    return this.http.get<PagoRead[]>(`${this.BASE}/admin/pagos`);
+  }
+
   // ── Notificaciones ────────────────────────
   listNotificaciones(unreadOnly = false): Observable<NotificacionRead[]> {
     const params = new HttpParams().set('unread_only', unreadOnly);
@@ -129,36 +143,37 @@ export class LogisticaService {
     );
   }
 
-  createTestNotification(payload: NotificacionTestCreate): Observable<NotificacionRead> {
-    return this.http.post<NotificacionRead>(
-      `${this.BASE}/notificaciones/test/manual`,
-      payload
-    );
+  // [CU-013] Gestionar notificaciones y comunicación
+  // Este método permite al sistema identificar eventos y notificar a los actores
+  enviarNotificacionPush(idUsuario: number, mensaje: any): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/api/v1/logistica/notificaciones/test/manual`, {
+      target_user_id: idUsuario,
+      ...mensaje
+    });
   }
 
   // ── WebSocket notificaciones ──────────────
-  /**
-   * Conecta el WebSocket de notificaciones en tiempo real.
-   * Las notificaciones llegan a través del observable `notificacion$`.
-   */
-  connectNotificacionesWs(): void {
+  // [CU-013] Flujo Principal: El usuario recibe la notificación en tiempo real
+  conectarNotificacionesWs() {
     const token = this.auth.getToken();
     if (!token || this.ws) return;
 
+    // Usamos el endpoint configurado en el backend
     const wsUrl = `${environment.apiUrl.replace(/^http/, 'ws')}/api/v1/logistica/ws/notificaciones?token=${token}`;
     this.ws = new WebSocket(wsUrl);
 
     this.ws.onmessage = (event) => {
       try {
-        const data: NotificacionRead = JSON.parse(event.data);
-        this.notificacion$.next(data);
-      } catch {
-        // Mensaje no JSON, ignorar
+        const data = JSON.parse(event.data);
+        this.notificacion$.next(data); // El usuario recibe la notificación [CU-013]
+      } catch (e) {
+        console.error('Error al parsear notificación WS', e);
       }
     };
 
     this.ws.onclose = () => {
       this.ws = null;
+      // Reintento opcional podría ir aquí
     };
   }
 

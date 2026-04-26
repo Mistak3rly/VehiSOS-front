@@ -1,0 +1,124 @@
+<div class="incident-detail-container" *ngIf="data() as d; else loadingTpl">
+  
+  <!-- Visualización de CU11 - Resultados de Priorización -->
+  <header class="urgency-banner" [ngClass]="getUrgencyClass()">
+    <div class="banner-content">
+      <div class="priority-label">
+        <span class="status-dot"></span>
+        Prioridad {{ d.incidente.prioridad?.nombre || 'Normal' }}
+      </div>
+      <h1>{{ d.incidente.titulo }}</h1>
+      <div class="ai-summary">
+        <p>{{ getAIResumen() }}</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="detail-content">
+    <div class="info-grid">
+      
+      <!-- Columna Principal: Evidencias -->
+      <div class="evidence-column">
+        <!-- Visualización de CU10 - Diagnóstico Multimedia -->
+        <section class="card panel-evidencias">
+          <div class="section-header" (click)="showTranscription.set(!showTranscription())">
+            <div class="title-group">
+              <i class="icon-audio"></i>
+              <h2>Transcripción de Audio</h2>
+            </div>
+            <button class="btn-toggle" [class.rotated]="showTranscription()">
+              <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+            </button>
+          </div>
+          
+          <div class="collapsible-content" [class.visible]="showTranscription()">
+            <div class="transcription-box">
+              <p>{{ getTranscription() }}</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="card panel-evidencias">
+          <div class="section-header" (click)="showGallery.set(!showGallery())">
+            <div class="title-group">
+              <i class="icon-image"></i>
+              <h2>Evidencia Visual</h2>
+            </div>
+            <button class="btn-toggle" [class.rotated]="showGallery()">
+              <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+            </button>
+          </div>
+
+          <div class="collapsible-content" [class.visible]="showGallery()">
+            <div class="tags-row" *ngIf="getDamageTags().length > 0">
+              <span class="damage-tag" *ngFor="let tag of getDamageTags()">
+                {{ tag }}
+              </span>
+            </div>
+            
+            <div class="image-gallery">
+              <div class="image-wrapper" *ngFor="let img of getImages()">
+                <img [src]="img.url_archivo" [alt]="img.nombre_archivo">
+              </div>
+              <div class="empty-gallery" *ngIf="getImages().length === 0">
+                <p>No se cargaron imágenes para este incidente.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Visualización de CU12 - Referencia Geográfica de Asignación -->
+        <section class="card panel-mapa">
+          <div class="section-header">
+            <div class="title-group">
+              <i class="icon-map"></i>
+              <h2>Ubicación y Ruta Óptima</h2>
+            </div>
+          </div>
+          <div class="map-container">
+            <!-- Aquí iría el widget de mapa real, por ahora representamos el espacio -->
+            <div class="map-placeholder">
+              <div class="marker origin">Taller</div>
+              <div class="route-line"></div>
+              <div class="marker destination">Incidente</div>
+              <div class="map-info">
+                <strong>Destino:</strong> {{ d.incidente.direccion_textual || d.incidente.referencia_ubicacion }}
+                <br>
+                <small>Coords: {{ d.incidente.latitud }}, {{ d.incidente.longitud }}</small>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Columna Lateral: Datos del Vehículo y Cliente -->
+      <div class="side-column">
+        <section class="card vehicle-card">
+          <h3>Vehículo</h3>
+          <div class="vehicle-info">
+            <div class="main-info">
+              <span class="brand">{{ d.incidente.vehiculo.marca }}</span>
+              <span class="model">{{ d.incidente.vehiculo.modelo }}</span>
+            </div>
+            <span class="plate">{{ d.incidente.vehiculo.placa }}</span>
+          </div>
+        </section>
+
+        <div class="action-footer">
+          <button class="btn-primary-action" (click)="iniciarAtencion()" [disabled]="isUpdating()">
+            <span *ngIf="!isUpdating()">Iniciar Atención</span>
+            <span *ngIf="isUpdating()">Procesando...</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<ng-template #loadingTpl>
+  <div class="loading-full">
+    <div class="spinner"></div>
+    <p>Cargando información estratégica...</p>
+  </div>
+</ng-template>

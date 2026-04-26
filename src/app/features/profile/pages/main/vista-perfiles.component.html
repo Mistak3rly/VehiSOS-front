@@ -83,6 +83,51 @@
         </form>
       </section>
 
+      <!-- Workshop Info Form (CU2, CU3) -->
+      <section class="form-section card" *ngIf="tallerId">
+        <div class="section-header">
+          <span class="material-icons-round">home_repair_service</span>
+          <h2>Información del Taller</h2>
+        </div>
+        <form [formGroup]="tallerForm" (ngSubmit)="guardarDatosTaller()">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nombre del Establecimiento</label>
+              <input type="text" formControlName="nombre">
+            </div>
+            <div class="form-group">
+              <label>NIT / Identificación Fiscal</label>
+              <input type="text" formControlName="nit">
+            </div>
+            <div class="form-group full-width">
+              <label>Dirección Física</label>
+              <input type="text" formControlName="direccion">
+            </div>
+            <div class="form-group">
+              <label>Ciudad</label>
+              <input type="text" formControlName="ciudad">
+            </div>
+            <div class="form-group">
+              <label>Capacidad Máxima (Vehículos)</label>
+              <input type="number" formControlName="capacidad_maxima">
+            </div>
+            <div class="form-group">
+              <label>Latitud</label>
+              <input type="number" formControlName="latitud" step="any">
+            </div>
+            <div class="form-group">
+              <label>Longitud</label>
+              <input type="number" formControlName="longitud" step="any">
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" [disabled]="tallerForm.invalid">
+              Actualizar datos del taller
+            </button>
+          </div>
+        </form>
+      </section>
+
       <!-- Security Form -->
       <section class="form-section card">
         <div class="section-header">

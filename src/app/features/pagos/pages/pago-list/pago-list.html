@@ -1,1 +1,94 @@
-<p>pago-list works!</p>
+<div class="pago-list-container">
+  <!-- [CU-014] Procesar Pago (Demo Flow) -->
+  <section class="card payment-action-card">
+    <div class="action-header">
+      <span class="material-icons-round">payment</span>
+      <div>
+        <h3>Procesar Nuevo Pago</h3>
+        <p>Genera un pago de servicio y calcula la comisión automática.</p>
+      </div>
+    </div>
+    <div class="calculation-row">
+      <div class="calc-item">
+        <label>Precio Base</label>
+        <input type="number" [(ngModel)]="montoServicio" (input)="calcularTotales(montoServicio)">
+      </div>
+      <div class="calc-item">
+        <label>Comisión Plataforma (10%)</label>
+        <div class="read-only-value">${{ montoComision | number:'1.2-2' }}</div>
+      </div>
+      <div class="calc-item total">
+        <label>Total a Cobrar</label>
+        <div class="total-value">${{ montoServicio | number:'1.2-2' }}</div>
+      </div>
+    </div>
+    <button class="btn-primary" (click)="procesarPago()" [disabled]="isLoading() || montoServicio <= 0">
+      {{ isLoading() ? 'Procesando...' : 'Confirmar y Pagar' }}
+    </button>
+  </section>
+
+  <header class="page-header">
+    <div class="header-content">
+      <h1>Liquidaciones y Comisiones</h1>
+      <p>Revisa el balance de tus atenciones y pagos pendientes con la plataforma.</p>
+    </div>
+  </header>
+
+  <!-- Resumen Financiero -->
+  <section class="summary-cards" *ngIf="resumen() as res">
+    <div class="card summary-card">
+      <span class="label">Ingresos Totales</span>
+      <h3>${{ res.total_monto | number:'1.2-2' }}</h3>
+    </div>
+    <div class="card summary-card commission">
+      <span class="label">Comisiones Plataforma</span>
+      <h3>- ${{ res.total_comision | number:'1.2-2' }}</h3>
+    </div>
+    <div class="card summary-card net">
+      <span class="label">Neto Taller</span>
+      <h3>${{ res.total_neto_taller | number:'1.2-2' }}</h3>
+    </div>
+  </section>
+
+  <!-- Historial de Pagos -->
+  <section class="payments-table-section card">
+    <div class="section-header">
+      <h2>Historial de Pagos</h2>
+    </div>
+    
+    <div *ngIf="isLoading()" class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando transacciones...</p>
+    </div>
+    
+    <div class="table-container" *ngIf="!isLoading()">
+      <table>
+        <thead>
+          <tr>
+            <th>ID Incidente</th>
+            <th>Fecha</th>
+            <th>Monto Total</th>
+            <th>Comisión</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let pago of pagos()">
+            <td><span class="incident-id">#{{ pago.id_incidente }}</span></td>
+            <td><span class="date">{{ pago.fecha_creacion | date:'mediumDate' }}</span></td>
+            <td><span class="amount">${{ pago.monto_total | number:'1.2-2' }}</span></td>
+            <td><span class="amount commission">${{ pago.monto_comision | number:'1.2-2' }}</span></td>
+            <td>
+              <span class="status-chip" [ngClass]="getStatusClass(pago.estado_pago)">
+                {{ pago.estado_pago }}
+              </span>
+            </td>
+          </tr>
+          <tr *ngIf="pagos().length === 0">
+            <td colspan="5" class="empty-row">No hay pagos registrados aún.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

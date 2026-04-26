@@ -1,7 +1,9 @@
-import { Component, signal, OnInit } from '@angular/core';
+import { Component, signal, OnInit, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { AuthService } from '../../services/auth.service';
+import { LogisticaService } from '../../services/logistica.service';
 
 interface SubMenuItem {
   title: string;
@@ -25,105 +27,64 @@ interface MenuItem {
   styleUrl: './sidebar.component.scss',
 })
 export class SidebarComponent implements OnInit {
+  private auth = inject(AuthService);
+  private logistica = inject(LogisticaService);
   isCollapsed = signal(false);
   isMobileOpen = signal(false);
-  userRole = signal<string>('Cliente'); // Default for demo
+  unreadCount = signal(0);
+  
+  // Rol derivado reactivamente del servicio de autenticación
+  userRole = computed(() => {
+    const user = this.auth.currentUser();
+    if (user && user.roles && user.roles.length > 0) {
+      return user.roles[0].nombre;
+    }
+    return localStorage.getItem('userRole') || 'Cliente';
+  });
 
   menuItems: MenuItem[] = [
-    // Dashboard redirects based on role
+    // ── CLIENTE ──────────────────────────────────────────
     { title: 'Dashboard', icon: 'dashboard', route: '/dashboard', roles: ['Cliente'] },
-    { title: 'Dashboard', icon: 'dashboard', route: '/admin/dashboard', roles: ['Administrador'] },
-    { title: 'Dashboard', icon: 'dashboard', route: '/taller/dashboard', roles: ['Taller'] },
-    { title: 'Dashboard', icon: 'dashboard', route: '/tecnico/dashboard', roles: ['Técnico'] },
-
-    // CLIENTE MODULES
     {
-      title: 'Vehículos',
-      icon: 'directions_car',
-      roles: ['Cliente'],
+      title: 'Vehículos', icon: 'directions_car', roles: ['Cliente'],
       subItems: [
-        { title: 'Mis vehículos', route: '/vehiculos' },
-        { title: 'Registrar vehículo', route: '/vehiculos/registrar' },
-        { title: 'Historial de vehículos', route: '/vehiculos/historial' },
+        { title: 'Mis vehículos',       route: '/vehiculos' },
+        { title: 'Registrar vehículo',  route: '/cliente/vehiculos/registrar' },
+        { title: 'Historial',           route: '/cliente/vehiculos/historial' },
       ],
     },
     {
-      title: 'Reportar Emergencia',
-      icon: 'emergency',
-      roles: ['Cliente'],
-      route: '/emergencias/reportar'
-    },
-    {
-      title: 'Mis Solicitudes',
-      icon: 'assignment',
-      roles: ['Cliente'],
+      title: 'Emergencias', icon: 'emergency', roles: ['Cliente'],
       subItems: [
-        { title: 'Seguimiento de solicitudes', route: '/solicitudes/seguimiento' },
-        { title: 'Historial', route: '/solicitudes/historial' },
+        { title: 'Reportar Emergencia', route: '/cliente/emergencias/reportar' },
+        { title: 'Seguimiento',         route: '/cliente/solicitudes/seguimiento' },
       ],
     },
 
-    // TALLER MODULES
+    // ── TALLER / OPERADOR ─────────────────────────────────
+    { title: 'Dashboard', icon: 'dashboard', route: '/taller/dashboard', roles: ['Taller', 'Operador', 'Tecnico', 'Operario'] },
     {
-      title: 'Solicitudes',
-      icon: 'assignment',
-      roles: ['Taller'],
+      title: 'Operaciones', icon: 'engineering', roles: ['Taller', 'Operador', 'Tecnico', 'Operario'],
       subItems: [
         { title: 'Gestión de solicitudes', route: '/taller/solicitudes' },
-        { title: 'Historial de atenciones', route: '/taller/historial' },
+        { title: 'Gestionar Técnicos',     route: '/tecnicos' },
+        { title: 'Liquidaciones',          route: '/taller/pagos' },
       ],
     },
 
-    {
-      title: 'Gestionar Técnicos',
-      icon: 'engineering',
-      roles: ['Taller'],
-      subItems: [
-        { title: 'Gestión de técnicos', route: '/tecnicos' },
-        { title: 'Disponibilidad', route: '/tecnicos' },
-      ],
-    },
+    // ── ADMINISTRADOR — ítems directos (sin agrupar) ──────
+    { title: 'Dashboard',              icon: 'dashboard',            route: '/admin/dashboard',          roles: ['Administrador'] },
+    { title: 'Aprobación de Talleres', icon: 'verified',             route: '/admin/talleres/aprobacion', roles: ['Administrador'] },
+    { title: 'Config. Algoritmo',      icon: 'tune',                 route: '/admin/configuracion',       roles: ['Administrador'] },
+    { title: 'Finanzas Globales',      icon: 'account_balance',      route: '/admin/finanzas',            roles: ['Administrador'] },
+    { title: 'Gestión de Usuarios',    icon: 'manage_accounts',      route: '/admin/usuarios',            roles: ['Administrador'] },
+    { title: 'Roles y Permisos',       icon: 'security',             route: '/admin/roles',               roles: ['Administrador'] },
+    { title: 'Auditoría',              icon: 'fact_check',           route: '/admin/auditoria',           roles: ['Administrador'] },
 
-    // TÉCNICO MODULES
-    {
-      title: 'Atención',
-      icon: 'build',
-      roles: ['Técnico'],
-      subItems: [
-        { title: 'Casos Asignados', route: '/tecnico/casos' },
-        { title: 'Análisis de Incidente', route: '/tecnico/analisis' },
-        { title: 'Evidencias', route: '/tecnico/evidencias' },
-        { title: 'Trazabilidad', route: '/tecnico/trazabilidad' },
-      ],
-    },
-
-    // ADMINISTRADOR MODULES
-    {
-      title: 'Administración',
-      icon: 'admin_panel_settings',
-      roles: ['Administrador'],
-      subItems: [
-        { title: 'Usuarios', route: '/admin/usuarios' },
-        { title: 'Talleres', route: '/admin/talleres' },
-        { title: 'Roles y Permisos', route: '/admin/roles' },
-        { title: 'Auditoría', route: '/admin/auditoria' },
-      ],
-    },
-    {
-      title: 'Reportes y Analítica',
-      icon: 'analytics',
-      roles: ['Administrador'],
-      subItems: [
-        { title: 'Trazabilidad Global', route: '/admin/trazabilidad' },
-        { title: 'Reportes del Sistema', route: '/admin/reportes' },
-      ],
-    },
-
-    // SHARED MODULES
-    { title: 'Pagos y Comisiones', icon: 'payments', route: '/pagos', roles: ['Cliente', 'Taller', 'Administrador'] },
-    { title: 'Notificaciones', icon: 'notifications', route: '/notificaciones', roles: ['Cliente', 'Taller', 'Técnico'] },
-    { title: 'Mi Perfil', icon: 'person', route: '/perfil', roles: ['Cliente', 'Taller', 'Administrador', 'Técnico'] },
-    { title: 'Cerrar sesión', icon: 'logout', route: '/login', roles: ['Cliente', 'Taller', 'Administrador', 'Técnico'] },
+    // ── COMPARTIDOS ───────────────────────────────────────
+    { title: 'Mi Perfil',       icon: 'person',        route: '/perfil',          roles: ['Cliente', 'Taller', 'Operador', 'Administrador', 'Tecnico', 'Operario'] },
+    { title: 'Notificaciones',  icon: 'notifications', route: '/notificaciones',  roles: ['Cliente', 'Taller', 'Operador', 'Administrador', 'Tecnico', 'Operario'] },
+    { title: 'Cerrar sesión',   icon: 'logout',        route: '/login',           roles: ['Cliente', 'Taller', 'Operador', 'Administrador', 'Tecnico', 'Operario'] },
   ];
 
   constructor(private router: Router) {
@@ -136,10 +97,17 @@ export class SidebarComponent implements OnInit {
   }
 
   ngOnInit() {
-    const savedRole = localStorage.getItem('userRole');
-    if (savedRole) {
-      this.userRole.set(savedRole);
-    }
+    this.loadUnreadCount();
+    this.logistica.conectarNotificacionesWs(); // Iniciar conexión en tiempo real [CU-013]
+    this.logistica.notificacion$.subscribe(() => {
+      this.unreadCount.update(c => c + 1);
+    });
+  }
+
+  loadUnreadCount() {
+    this.logistica.listNotificaciones(true).subscribe(data => {
+      this.unreadCount.set(data.length);
+    });
   }
 
   toggleSidebar() {
@@ -175,8 +143,7 @@ export class SidebarComponent implements OnInit {
   }
 
   logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('userRole');
+    this.auth.logout();
     this.router.navigate(['/login']);
   }
 }

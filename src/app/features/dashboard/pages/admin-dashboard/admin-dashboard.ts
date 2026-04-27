@@ -6,11 +6,12 @@ import {
   PriorityDistribution,
   AnalisisIARead,
 } from '../../../../core/services/dashboard-ia.service';
+import { MapComponent } from '../../../../core/components/map/map.component';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MapComponent],
   templateUrl: './admin-dashboard.html',
   styleUrl: './admin-dashboard.scss',
 })

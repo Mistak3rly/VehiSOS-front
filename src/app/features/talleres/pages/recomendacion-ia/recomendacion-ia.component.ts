@@ -48,6 +48,12 @@ export class RecomendacionIAComponent implements OnInit {
   provider = signal<string>('local');
   model = signal<string | null>(null);
   isFallback = signal<boolean>(false);
+  geoLocationAttempt = signal<boolean>(false);
+
+  // Filtros dinámicos
+  tiposServicio = signal<string[]>(['Mecánica', 'Electricidad', 'Llantas', 'Pintura', 'Hojalatería']);
+  filtroServicioSeleccionado = signal<string>('Todas');
+  mostrarFiltros = signal<boolean>(false);
 
   // UI
   showDetail = signal<boolean>(false);
@@ -57,24 +63,65 @@ export class RecomendacionIAComponent implements OnInit {
   @ViewChild('googleMap', { static: false }) googleMap!: ElementRef;
   private map: any;
   private markers: any[] = [];
+  private geoTimeoutId: any;
 
   ngOnInit(): void {
-    // Intentar obtener ubicación del usuario
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          this.userLatitude.set(position.coords.latitude);
-          this.userLongitude.set(position.coords.longitude);
-          this.cargarRecomendaciones();
-        },
-        () => {
-          // Si falla, usar defaults y cargar igual
+    // Intentar cargar ubicación guardada en localStorage
+    const savedLat = localStorage.getItem('userLat');
+    const savedLng = localStorage.getItem('userLng');
+
+    if (savedLat && savedLng) {
+      this.userLatitude.set(parseFloat(savedLat));
+      this.userLongitude.set(parseFloat(savedLng));
+      this.geoLocationAttempt.set(true);
+      this.cargarRecomendaciones();
+    } else {
+      // Intentar obtener ubicación del usuario con timeout
+      this.obtenerUbicacionConTimeout();
+    }
+  }
+
+  private obtenerUbicacionConTimeout(): void {
+    if (!navigator.geolocation) {
+      this.cargarRecomendaciones();
+      return;
+    }
+
+    // Timeout de 5 segundos para geolocalización
+    this.geoTimeoutId = setTimeout(() => {
+      if (!this.geoLocationAttempt()) {
+        // Si aún no se obtuvo ubicación, usar default
+        console.warn('Timeout de geolocalización. Usando ubicación por defecto.');
+        this.cargarRecomendaciones();
+      }
+    }, 5000);
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        clearTimeout(this.geoTimeoutId);
+        if (!this.geoLocationAttempt()) {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+
+          // Guardar en localStorage
+          localStorage.setItem('userLat', lat.toString());
+          localStorage.setItem('userLng', lng.toString());
+
+          this.userLatitude.set(lat);
+          this.userLongitude.set(lng);
+          this.geoLocationAttempt.set(true);
           this.cargarRecomendaciones();
         }
-      );
-    } else {
-      this.cargarRecomendaciones();
-    }
+      },
+      (error) => {
+        clearTimeout(this.geoTimeoutId);
+        console.warn('Error de geolocalización:', error);
+        if (!this.geoLocationAttempt()) {
+          this.geoLocationAttempt.set(true);
+          this.cargarRecomendaciones();
+        }
+      }
+    );
   }
 
   cargarRecomendaciones(): void {
@@ -237,6 +284,29 @@ export class RecomendacionIAComponent implements OnInit {
   }
 
   seleccionarTaller(taller: TallerRecomendadoUI): void {
+    // Log de analytics para rastrear qué talleres se seleccionan
+    const analyticsData = {
+      event: 'taller_seleccionado',
+      tallerNombre: taller.name,
+      distancia: taller.distanceKm,
+      rating: taller.rating,
+      provider: this.provider(),
+      isFallback: this.isFallback(),
+      timestamp: new Date().toISOString(),
+      problema: this.issue(),
+      ubicacionUsuario: {
+        lat: this.userLatitude(),
+        lng: this.userLongitude()
+      }
+    };
+
+    // Guardar en localStorage para análisis posterior
+    const analyticsList = JSON.parse(localStorage.getItem('analyticsRecomendaciones') || '[]');
+    analyticsList.push(analyticsData);
+    localStorage.setItem('analyticsRecomendaciones', JSON.stringify(analyticsList));
+
+    console.log('📊 Analytics evento:', analyticsData);
+
     this.selectedWorkshop.set(taller);
     this.showDetail.set(true);
   }
@@ -247,7 +317,24 @@ export class RecomendacionIAComponent implements OnInit {
   }
 
   solicitarAyuda(taller: TallerRecomendadoUI): void {
-    alert(`Solicitud enviada a ${taller.name}. Pronto te contactarán.`);
+    // Preparar solicitud de servicio
+    const solicitud = {
+      tallerID: 0,  // Se obtendría del backend con match de nombre
+      problema: this.issue(),
+      ubicacionUsuario: {
+        lat: this.userLatitude(),
+        lng: this.userLongitude()
+      },
+      tallerSeleccionado: taller.name,
+      estado: 'pendiente',
+      timestamp: new Date().toISOString()
+    };
+
+    // Log de solicitud
+    console.log('📞 Solicitud de ayuda enviada:', solicitud);
+
+    // TODO: Integrar con EmergenciasService.crearSolicitud(solicitud)
+    alert(`✅ Solicitud enviada a ${taller.name}. Te contactarán pronto.`);
   }
 
   recargar(): void {
@@ -256,6 +343,64 @@ export class RecomendacionIAComponent implements OnInit {
 
   cambiarProblema(nuevoProblema: string): void {
     this.issue.set(nuevoProblema);
+    this.cargarRecomendaciones();
+  }
+
+  // Métodos de Ubicación
+  usarMiUbicacion(): void {
+    localStorage.removeItem('userLat');
+    localStorage.removeItem('userLng');
+    this.geoLocationAttempt.set(false);
+    this.obtenerUbicacionConTimeout();
+  }
+
+  cambiarUbicacionManual(latitud: number, longitud: number): void {
+    // Guardar nueva ubicación
+    localStorage.setItem('userLat', latitud.toString());
+    localStorage.setItem('userLng', longitud.toString());
+    this.userLatitude.set(latitud);
+    this.userLongitude.set(longitud);
+    this.geoLocationAttempt.set(true);
+    this.cargarRecomendaciones();
+  }
+
+  buscarUbicacionPorDireccion(direccion: string): void {
+    if (!direccion.trim()) {
+      this.error.set('Por favor ingresa una dirección válida');
+      return;
+    }
+
+    if (!google?.maps?.Geocoder) {
+      this.error.set('Error: Google Maps Geocoder no disponible');
+      return;
+    }
+
+    this.isLoading.set(true);
+    const geocoder = new google.maps.Geocoder();
+
+    geocoder.geocode({ address: direccion }, (results: any[], status: string) => {
+      if (status === 'OK' && results?.[0]) {
+        const location = results[0].geometry.location;
+        this.cambiarUbicacionManual(location.lat(), location.lng());
+      } else {
+        this.error.set(`No se encontró la dirección: ${direccion}`);
+        this.isLoading.set(false);
+      }
+    });
+  }
+
+  // Métodos de Filtros
+  cambiarFiltroServicio(servicio: string): void {
+    this.filtroServicioSeleccionado.set(servicio);
+    this.cargarRecomendaciones();
+  }
+
+  toggleMostrarFiltros(): void {
+    this.mostrarFiltros.set(!this.mostrarFiltros());
+  }
+
+  limpiarFiltros(): void {
+    this.filtroServicioSeleccionado.set('Todas');
     this.cargarRecomendaciones();
   }
 

@@ -57,6 +57,80 @@
     </div>
   }
 
+  <!-- Controles de Ubicación -->
+  <div class="location-controls">
+    <div class="location-header">
+      <h3>📍 Mi Ubicación</h3>
+      <span class="coordinates">Lat: {{ (userLatitude() | number:'1.4') }} · Lng: {{ (userLongitude() | number:'1.4') }}</span>
+    </div>
+    
+    <div class="location-buttons">
+      <button 
+        class="btn-location" 
+        (click)="usarMiUbicacion()"
+        title="Obtener tu ubicación actual usando GPS"
+      >
+        📍 Usar Mi Ubicación
+      </button>
+      <button 
+        class="btn-filters" 
+        (click)="toggleMostrarFiltros()"
+        [class.active]="mostrarFiltros()"
+      >
+        ⚙️ Filtros {{ mostrarFiltros() ? '✓' : '' }}
+      </button>
+    </div>
+
+    <!-- Búsqueda de Ubicación -->
+    <div class="location-search">
+      <input 
+        type="text" 
+        id="locationInput"
+        placeholder="Buscar dirección (Ej: Av. Arce, La Paz)"
+        class="search-input"
+        #locationInput
+      />
+      <button 
+        class="btn-search" 
+        (click)="buscarUbicacionPorDireccion(locationInput.value)"
+        title="Buscar una dirección específica"
+      >
+        🔍 Buscar
+      </button>
+    </div>
+  </div>
+
+  <!-- Filtros Dinámicos -->
+  @if (mostrarFiltros()) {
+    <div class="filters-panel">
+      <div class="filter-header">
+        <h4>🎯 Filtrar por Tipo de Servicio</h4>
+        <button class="btn-clear" (click)="limpiarFiltros()">Limpiar</button>
+      </div>
+      
+      <div class="filter-chips">
+        <button 
+          class="filter-chip" 
+          [class.active]="filtroServicioSeleccionado() === 'Todas'"
+          (click)="cambiarFiltroServicio('Todas')"
+        >
+          ✓ Todos
+        </button>
+        @for (servicio of tiposServicio(); track servicio) {
+          <button 
+            class="filter-chip" 
+            [class.active]="filtroServicioSeleccionado() === servicio"
+            (click)="cambiarFiltroServicio(servicio)"
+          >
+            {{ servicio }}
+          </button>
+        }
+      </div>
+
+      <p class="filter-hint">Filtro seleccionado: <strong>{{ filtroServicioSeleccionado() }}</strong></p>
+    </div>
+  }
+
   <!-- Selector de Problema -->
   <div class="problem-selector">
     <label>¿Qué problema tienes?</label>

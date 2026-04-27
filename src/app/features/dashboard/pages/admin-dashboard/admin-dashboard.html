@@ -105,6 +105,18 @@
     </section>
 
     <!-- ═══════════════════════════════════════
+         MAPA INTERACTIVO DE GOOGLE MAPS
+         ═══════════════════════════════════════ -->
+    <section class="card map-section" *ngIf="data()?.heatmapPoints && data()!.heatmapPoints.length > 0">
+      <div class="panel-header">
+        <span class="material-icons-round">map</span>
+        <h2>Mapa Interactivo de Incidentes</h2>
+        <span class="map-subtitle">visualización geoespacial con Google Maps</span>
+      </div>
+      <app-map [heatmapPoints]="data()!.heatmapPoints"></app-map>
+    </section>
+
+    <!-- ═══════════════════════════════════════
          MAIN GRID
          ═══════════════════════════════════════ -->
     <div class="grid-main">

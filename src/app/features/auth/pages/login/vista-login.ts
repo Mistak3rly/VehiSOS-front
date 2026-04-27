@@ -54,7 +54,13 @@ export class VistaLogin {
         },
         error: (err) => {
           this.isLoading.set(false);
-          this.errorMessage.set(err.error?.detail || 'Error al iniciar sesión. Verifica tus credenciales.');
+          if (err.status === 401) {
+            this.errorMessage.set('Correo/documento o contraseña incorrectos.');
+          } else if (err.status === 422) {
+            this.errorMessage.set('La contraseña debe tener al menos 8 caracteres.');
+          } else {
+            this.errorMessage.set(err.error?.detail || 'Error al iniciar sesión. Verifica tus credenciales.');
+          }
         }
       });
     } else {

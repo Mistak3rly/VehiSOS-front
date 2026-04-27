@@ -97,16 +97,20 @@ export class SidebarComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.loadUnreadCount();
-    this.logistica.conectarNotificacionesWs(); // Iniciar conexión en tiempo real [CU-013]
-    this.logistica.notificacion$.subscribe(() => {
-      this.unreadCount.update(c => c + 1);
-    });
+    if (this.auth.isAuthenticated()) {
+      this.loadUnreadCount();
+      this.logistica.conectarNotificacionesWs(); // Iniciar conexión en tiempo real [CU-013]
+      this.logistica.notificacion$.subscribe(() => {
+        this.unreadCount.update(c => c + 1);
+      });
+    }
   }
 
   loadUnreadCount() {
-    this.logistica.listNotificaciones(true).subscribe(data => {
-      this.unreadCount.set(data.length);
+    if (!this.auth.isAuthenticated()) return;
+    this.logistica.listNotificaciones(true).subscribe({
+      next: (data) => this.unreadCount.set(data.length),
+      error: () => this.unreadCount.set(0)
     });
   }
 

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, forkJoin } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, forkJoin, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { IncidenteRead, AsignacionRead, PrioridadRead } from '../models/api.models';
 
@@ -90,7 +90,9 @@ export class DashboardIAService {
 
   /** Endpoint admin: todos los análisis IA del sistema (nuevo endpoint creado en backend) */
   getAllAnalyses(limit = 100): Observable<AnalisisIARead[]> {
-    return this.http.get<AnalisisIARead[]>(`${this.BASE_ASIGNACION}/analisis?limit=${limit}`);
+    return this.http
+      .get<AnalisisIARead[]>(`${this.BASE_ASIGNACION}/analisis?limit=${limit}`)
+      .pipe(catchError(() => of([])));
   }
 
   // ── Construcción del dashboard ───────────────

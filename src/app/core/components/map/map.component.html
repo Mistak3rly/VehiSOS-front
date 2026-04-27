@@ -1,0 +1,57 @@
+<div class="map-wrapper">
+  <!-- LOADING STATE -->
+  <div class="map-loading" *ngIf="isLoading()">
+    <span class="material-icons-round">location_searching</span>
+    <p>Cargando mapa interactivo…</p>
+  </div>
+
+  <!-- ERROR STATE -->
+  <div class="map-error" *ngIf="hasError() && !isLoading()">
+    <span class="material-icons-round">location_off</span>
+    <p>No se pudo cargar el mapa. Verifica tu conexión.</p>
+  </div>
+
+  <!-- MAP CONTAINER -->
+  <div class="map-container" #mapContainer></div>
+
+  <!-- CONTROLS -->
+  <div class="map-controls">
+    <button
+      class="control-btn"
+      (click)="toggleHeatmap()"
+      title="Alternar mapa de calor"
+      aria-label="Alternar mapa de calor"
+    >
+      <span class="material-icons-round">thermostat</span>
+    </button>
+    <button
+      class="control-btn"
+      (click)="resetMap()"
+      title="Centrar mapa"
+      aria-label="Centrar mapa"
+    >
+      <span class="material-icons-round">center_focus_strong</span>
+    </button>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="map-legend">
+    <h4>Prioridades</h4>
+    <div class="legend-item">
+      <span class="pin" style="background: #dc2626;"></span>
+      <span>Crítica</span>
+    </div>
+    <div class="legend-item">
+      <span class="pin" style="background: #ea580c;"></span>
+      <span>Alta</span>
+    </div>
+    <div class="legend-item">
+      <span class="pin" style="background: #eab308;"></span>
+      <span>Media</span>
+    </div>
+    <div class="legend-item">
+      <span class="pin" style="background: #22c55e;"></span>
+      <span>Baja</span>
+    </div>
+  </div>
+</div>

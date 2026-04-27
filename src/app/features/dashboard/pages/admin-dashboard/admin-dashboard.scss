@@ -338,9 +338,45 @@
       vertical-align: middle;
       &.mono { font-family: monospace; color: #718096; }
     }
-
-    tr:last-child td { border-bottom: none; }
   }
+
+  // ── MAP SECTION ─────────────────────────────
+  .map-section {
+    margin-bottom: 2rem;
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      margin-bottom: 1.5rem;
+
+      span { color: #667eea; font-size: 1.8rem; }
+
+      h2 {
+        flex: 1;
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #1a202c;
+      }
+
+      .map-subtitle {
+        font-size: 0.75rem;
+        color: #718096;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 500;
+        margin-left: auto;
+      }
+    }
+
+    app-map {
+      display: block;
+      width: 100%;
+    }
+  }
+
+  tr:last-child td { border-bottom: none; }
 
   .tag {
     display: inline-block;

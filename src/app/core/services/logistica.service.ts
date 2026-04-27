@@ -28,6 +28,11 @@ export class LogisticaService {
   /** Emite cada vez que llega una notificación nueva por WebSocket */
   readonly notificacion$ = new Subject<NotificacionRead>();
   private ws: WebSocket | null = null;
+  private wsRetryDelay = 1000;
+  private wsRetryCount = 0;
+  private readonly WS_MAX_RETRIES = 5;
+  private readonly WS_MAX_DELAY = 30000;
+  private wsRetryTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(private http: HttpClient, private auth: AuthService) {}
 
@@ -158,27 +163,45 @@ export class LogisticaService {
     const token = this.auth.getToken();
     if (!token || this.ws) return;
 
-    // Usamos el endpoint configurado en el backend
     const wsUrl = `${environment.apiUrl.replace(/^http/, 'ws')}/api/v1/logistica/ws/notificaciones?token=${token}`;
     this.ws = new WebSocket(wsUrl);
+
+    this.ws.onopen = () => {
+      this.wsRetryDelay = 1000;
+      this.wsRetryCount = 0;
+    };
 
     this.ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        this.notificacion$.next(data); // El usuario recibe la notificación [CU-013]
+        this.notificacion$.next(data);
       } catch (e) {
         console.error('Error al parsear notificación WS', e);
       }
     };
 
+    this.ws.onerror = () => {
+      // El evento close se dispara después del error — el reintento se maneja allí
+    };
+
     this.ws.onclose = () => {
       this.ws = null;
-      // Reintento opcional podría ir aquí
+      if (this.wsRetryCount >= this.WS_MAX_RETRIES) return;
+      this.wsRetryCount++;
+      this.wsRetryTimer = setTimeout(() => {
+        this.wsRetryDelay = Math.min(this.wsRetryDelay * 2, this.WS_MAX_DELAY);
+        this.conectarNotificacionesWs();
+      }, this.wsRetryDelay);
     };
   }
 
-  /** Cierra la conexión WebSocket */
+  /** Cierra la conexión WebSocket y cancela reintentos pendientes */
   disconnectNotificacionesWs(): void {
+    if (this.wsRetryTimer !== null) {
+      clearTimeout(this.wsRetryTimer);
+      this.wsRetryTimer = null;
+    }
+    this.wsRetryCount = this.WS_MAX_RETRIES; // evita que onclose reintente
     this.ws?.close();
     this.ws = null;
   }

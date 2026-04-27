@@ -1,6 +1,7 @@
 export const environment = {
-  production: true,
-  apiUrl: 'https://vehisos-back.onrender.com',   // Base URL del backend FastAPI (sin /api/v1)
+
+  production: false,
+  apiUrl: 'http://localhost:8000/api/v1',   // Base URL del backend FastAPI (sin /api/v1) - apuntando al backend local para desarrollo
   wsUrl: 'ws://localhost:8000',       // Base URL WebSocket
   googleMapsApiKey: 'AIzaSyBV8ErOgwiXB7jKfQO7I61pbhdwDCVPM-Q',
 };

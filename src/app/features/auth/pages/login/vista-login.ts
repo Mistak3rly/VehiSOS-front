@@ -47,14 +47,20 @@ export class VistaLogin {
           let redirectUrl = '/dashboard';
 
           if (role === 'administrador' || role === 'admin') redirectUrl = '/admin/dashboard';
-          else if (role === 'taller') redirectUrl = '/taller/dashboard';
+          else if (role === 'taller' || role === 'operador') redirectUrl = '/taller/dashboard';
           else if (role === 'técnico' || role === 'tecnico') redirectUrl = '/tecnico/dashboard';
 
           this.router.navigate([redirectUrl]);
         },
         error: (err) => {
           this.isLoading.set(false);
-          this.errorMessage.set(err.error?.detail || 'Error al iniciar sesión. Verifica tus credenciales.');
+          if (err.status === 401) {
+            this.errorMessage.set('Correo/documento o contraseña incorrectos.');
+          } else if (err.status === 422) {
+            this.errorMessage.set('La contraseña debe tener al menos 8 caracteres.');
+          } else {
+            this.errorMessage.set(err.error?.detail || 'Error al iniciar sesión. Verifica tus credenciales.');
+          }
         }
       });
     } else {

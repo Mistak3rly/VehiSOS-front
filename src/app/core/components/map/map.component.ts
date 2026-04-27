@@ -8,11 +8,13 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Loader } from '@googlemaps/js-api-loader';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../../../environments/environment';
 import { HeatmapPoint } from '../../services/dashboard-ia.service';
 
+declare var google: any;
+
 interface MarkerData extends HeatmapPoint {
-  marker?: google.maps.marker.AdvancedMarkerElement;
+  marker?: any;
 }
 
 @Component({
@@ -25,16 +27,16 @@ interface MarkerData extends HeatmapPoint {
 export class MapComponent implements OnInit {
   @ViewChild('mapContainer') mapContainer!: ElementRef<HTMLDivElement>;
 
-  @Input() heatmapPoints = signal<HeatmapPoint[]>([]);
+  @Input() heatmapPoints: HeatmapPoint[] = [];
   @Input() center = { lat: -17.783, lng: -63.182 }; // Centro Bolivia/Cochabamba
   @Input() zoom = 13;
 
   isLoading = signal(true);
   hasError = signal(false);
-  map!: google.maps.Map;
+  map!: any;
   markers: MarkerData[] = [];
-  heatmapLayer!: google.maps.visualization.HeatmapLayer;
-  infoWindow?: google.maps.InfoWindow;
+  heatmapLayer!: any;
+  infoWindow?: any;
 
   async ngOnInit() {
     await this.initializeMap();
@@ -80,11 +82,11 @@ export class MapComponent implements OnInit {
   }
 
   private setupHeatmap() {
-    if (!this.map || this.heatmapPoints().length === 0) return;
+    if (!this.map || this.heatmapPoints.length === 0) return;
 
     const { visualization } = google.maps;
 
-    const heatmapData = this.heatmapPoints().map(p => 
+    const heatmapData = this.heatmapPoints.map(p => 
       new google.maps.LatLng(p.lat, p.lng)
     );
 
@@ -105,7 +107,7 @@ export class MapComponent implements OnInit {
 
     this.infoWindow = new google.maps.InfoWindow();
 
-    for (const point of this.heatmapPoints()) {
+    for (const point of this.heatmapPoints) {
       const pinColor = this.getPinColor(point.prioridad);
       const pinElement = new PinElement({
         background: pinColor,
@@ -121,7 +123,7 @@ export class MapComponent implements OnInit {
       });
 
       marker.addEventListener('click', () => {
-        this.showIncidentInfo(point, marker.position as google.maps.LatLngLiteral);
+        this.showIncidentInfo(point, marker.position as any);
       });
 
       this.markers.push({ ...point, marker });
@@ -130,7 +132,7 @@ export class MapComponent implements OnInit {
 
   private showIncidentInfo(
     point: HeatmapPoint,
-    position: google.maps.LatLngLiteral
+    position: any
   ) {
     const contentHtml = `
       <div class="incident-info">

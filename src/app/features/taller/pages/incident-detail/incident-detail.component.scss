@@ -339,3 +339,173 @@
 }
 
 @keyframes spin { 100% { transform: rotate(360deg); } }
+
+// ── Sección Registrar Cobro ──────────────────
+.cobro-card {
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1.5rem;
+  }
+
+  .cobro-hint {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+  }
+
+  .btn-cobro {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1.2rem;
+    background: var(--primary-red);
+    color: white;
+    border: none;
+    border-radius: 999px;
+    font-size: 1rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.3s;
+    &:hover { background: #7a000a; transform: translateY(-2px); }
+  }
+}
+
+.cobro-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    textarea, input[type="number"] {
+      padding: 0.9rem 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      resize: vertical;
+      transition: border-color 0.2s;
+      &:focus { border-color: var(--primary-red); outline: none; }
+    }
+  }
+
+  .cobro-preview {
+    background: var(--bg-smoke);
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    .preview-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.95rem;
+      color: var(--text-dark);
+      &.commission strong { color: var(--primary-red); }
+      &.net {
+        border-top: 2px solid #e2e8f0;
+        padding-top: 0.75rem;
+        strong { color: #00b341; font-size: 1.1rem; }
+      }
+    }
+  }
+
+  .cobro-actions {
+    display: flex;
+    gap: 1rem;
+
+    .btn-cancel {
+      flex: 1;
+      padding: 1rem;
+      background: transparent;
+      border: 2px solid #e2e8f0;
+      border-radius: 999px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      &:hover:not(:disabled) { border-color: #94a3b8; }
+      &:disabled { opacity: 0.5; cursor: not-allowed; }
+    }
+
+    .btn-confirm {
+      flex: 2;
+      padding: 1rem;
+      background: var(--primary-red);
+      color: white;
+      border: none;
+      border-radius: 999px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.3s;
+      &:hover:not(:disabled) { background: #7a000a; }
+      &:disabled { opacity: 0.5; cursor: not-allowed; }
+    }
+  }
+}
+
+.cobro-confirmado {
+  text-align: center;
+
+  .cobro-icon {
+    .material-icons-round {
+      font-size: 3rem;
+      color: #00b341;
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text-dark);
+    margin-bottom: 1.5rem;
+  }
+
+  .cobro-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.95rem;
+
+    .cobro-label { color: var(--text-muted); }
+    .cobro-value { font-weight: 800; }
+    .cobro-value.commission { color: var(--primary-red); }
+
+    &.net {
+      border-bottom: none;
+      .cobro-value.net { color: #00b341; font-size: 1.1rem; }
+    }
+  }
+
+  .cobro-estado {
+    display: inline-block;
+    margin-top: 1.25rem;
+    padding: 0.5rem 1.25rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    &.pendiente { background: #fff3e0; color: #ef6c00; }
+  }
+}

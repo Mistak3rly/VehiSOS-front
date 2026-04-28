@@ -27,8 +27,7 @@ export const routes: Routes = [
   { path: 'login', component: VistaLogin },
   { path: 'register', component: Register },
   { path: 'forgot-password', component: ForgotPassword },
-  { path: 'dashboard', component: DashboardComponent },
-  
+
   // ADMIN ROUTES
   { path: 'admin/dashboard', component: AdminDashboard },
   { path: 'admin/talleres/aprobacion', component: WorkshopApproval },
@@ -37,22 +36,25 @@ export const routes: Routes = [
   { path: 'admin/usuarios', component: UserManagement },
   { path: 'admin/roles', component: RolesPermissions },
   { path: 'admin/auditoria', component: AuditLogs },
-  
-  //OPERARIO ROUTES
+
+  // TALLER + TECNICO ROUTES (mismo dashboard; tecnico no ve "Gestionar Técnicos" en sidebar)
   { path: 'taller/dashboard', component: TallerDashboardComponent },
   { path: 'taller/solicitudes', component: VistaGestionSolicitudes },
   { path: 'taller/solicitudes/:id', component: DetalleIncidenteComponent },
   { path: 'taller/pagos', component: PagoList },
-  { path: 'perfil', component: VistaPerfiles },
-  { path: 'vehiculos', component: VistaVehiculos },
+  { path: 'tecnicos', component: Vista_gestion_tecnicos },
 
-  //CLIENTE ROUTES
+  // CLIENTE ROUTES
+  { path: 'dashboard', component: DashboardComponent },
   { path: 'cliente/vehiculos/registrar', component: Formulario_Vehiculo },
   { path: 'cliente/vehiculos/historial', component: HistorialVehiculos },
   { path: 'cliente/emergencias/reportar', component: VistaReportarEmergencia },
   { path: 'cliente/solicitudes/seguimiento', component: VistaSeguimientoSolicitudes },
   { path: 'cliente/talleres/recomendacion-ia', component: RecomendacionIAComponent },
-  { path: 'tecnicos', component: Vista_gestion_tecnicos },
 
-  { path: '', redirectTo: 'login', pathMatch: 'full' }
+  // SHARED ROUTES
+  { path: 'perfil', component: VistaPerfiles },
+  { path: 'vehiculos', component: VistaVehiculos },
+
+  { path: '', redirectTo: 'login', pathMatch: 'full' },
 ];

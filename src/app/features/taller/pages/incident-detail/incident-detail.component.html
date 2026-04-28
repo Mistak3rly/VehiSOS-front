@@ -104,6 +104,79 @@
           </div>
         </section>
 
+        <!-- Pago ya registrado -->
+        <section class="card cobro-confirmado" *ngIf="pagoRegistrado() as pago">
+          <div class="cobro-icon">
+            <span class="material-icons-round">check_circle</span>
+          </div>
+          <h3>Cobro Registrado</h3>
+          <div class="cobro-row">
+            <span class="cobro-label">Monto total</span>
+            <span class="cobro-value">${{ pago.monto_total | number:'1.2-2' }}</span>
+          </div>
+          <div class="cobro-row">
+            <span class="cobro-label">Comisión VehiSOS (10%)</span>
+            <span class="cobro-value commission">- ${{ pago.monto_comision | number:'1.2-2' }}</span>
+          </div>
+          <div class="cobro-row net">
+            <span class="cobro-label">Neto referencial</span>
+            <span class="cobro-value net">
+              ${{ (pago.monto_total - pago.monto_comision) | number:'1.2-2' }}
+            </span>
+          </div>
+          <span class="cobro-estado pendiente">Pendiente de pago por el cliente</span>
+        </section>
+
+        <!-- Formulario de cobro -->
+        <section class="card cobro-card" *ngIf="!pagoRegistrado()">
+          <h3>Registrar Cobro</h3>
+
+          <div *ngIf="!showCobroForm()">
+            <p class="cobro-hint">Registra el diagnóstico y el costo del servicio para generar el cobro al cliente.</p>
+            <button class="btn-cobro" (click)="showCobroForm.set(true)">
+              <span class="material-icons-round">receipt_long</span>
+              Registrar cobro
+            </button>
+          </div>
+
+          <div class="cobro-form" *ngIf="showCobroForm()">
+            <div class="form-field">
+              <label>Diagnóstico del servicio *</label>
+              <textarea [(ngModel)]="cobro.diagnostico" placeholder="Describe el problema encontrado y el trabajo realizado..." rows="3"></textarea>
+            </div>
+            <div class="form-field">
+              <label>Observaciones técnicas</label>
+              <textarea [(ngModel)]="cobro.observaciones" placeholder="Notas adicionales (opcional)..." rows="2"></textarea>
+            </div>
+            <div class="form-field">
+              <label>Costo del servicio ($) *</label>
+              <input type="number" [(ngModel)]="cobro.costo_servicio" min="0.01" step="0.01" placeholder="0.00">
+            </div>
+            <div class="cobro-preview" *ngIf="cobro.costo_servicio > 0">
+              <div class="preview-row">
+                <span>Monto total</span>
+                <strong>${{ cobro.costo_servicio | number:'1.2-2' }}</strong>
+              </div>
+              <div class="preview-row commission">
+                <span>Comisión VehiSOS (10%)</span>
+                <strong>- ${{ cobro.costo_servicio * 0.10 | number:'1.2-2' }}</strong>
+              </div>
+              <div class="preview-row net">
+                <span>Neto referencial</span>
+                <strong>${{ cobro.costo_servicio * 0.90 | number:'1.2-2' }}</strong>
+              </div>
+            </div>
+            <div class="cobro-actions">
+              <button class="btn-cancel" (click)="showCobroForm.set(false)" [disabled]="isRegistrandoCobro()">Cancelar</button>
+              <button class="btn-confirm"
+                (click)="registrarCobro()"
+                [disabled]="isRegistrandoCobro() || cobro.costo_servicio <= 0 || !cobro.diagnostico.trim()">
+                {{ isRegistrandoCobro() ? 'Registrando...' : 'Confirmar cobro' }}
+              </button>
+            </div>
+          </div>
+        </section>
+
         <div class="action-footer">
           <button class="btn-primary-action" (click)="iniciarAtencion()" [disabled]="isUpdating()">
             <span *ngIf="!isUpdating()">Iniciar Atención</span>

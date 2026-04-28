@@ -297,3 +297,66 @@ $shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
     h1 { font-size: 1.8rem; }
   }
 }
+
+// Taller/Técnico dashboard extras
+.dash-btn {
+  background: $primary-red;
+  color: #fff;
+  border: none;
+  padding: 0.45rem 1rem;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+  &:hover { background: $dark-red; }
+}
+
+.empty-list {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  .material-icons-round { font-size: 2.5rem; color: #ccc; display: block; margin-bottom: 0.5rem; }
+  p { color: $text-secondary; font-size: 0.9rem; margin: 0; }
+}
+
+.tecnico-status {
+  padding: 0.5rem 0;
+
+  .status-self {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+
+    .status-avatar {
+      width: 48px;
+      height: 48px;
+      background: $primary-red;
+      color: #fff;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .status-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      strong { font-size: 1rem; color: $text-dark; }
+    }
+  }
+
+  .status-hint {
+    font-size: 0.85rem;
+    color: $text-secondary;
+    background: #F8F1F1;
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    margin: 0;
+  }
+}

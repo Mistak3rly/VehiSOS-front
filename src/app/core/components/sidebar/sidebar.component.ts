@@ -44,9 +44,9 @@ export class SidebarComponent implements OnInit {
 
   menuItems: MenuItem[] = [
     // ── CLIENTE ──────────────────────────────────────────
-    { title: 'Dashboard', icon: 'dashboard', route: '/dashboard', roles: ['Cliente'] },
+    { title: 'Dashboard', icon: 'dashboard', route: '/dashboard', roles: ['cliente'] },
     {
-      title: 'Vehículos', icon: 'directions_car', roles: ['Cliente'],
+      title: 'Vehículos', icon: 'directions_car', roles: ['cliente'],
       subItems: [
         { title: 'Mis vehículos',       route: '/vehiculos' },
         { title: 'Registrar vehículo',  route: '/cliente/vehiculos/registrar' },
@@ -54,37 +54,46 @@ export class SidebarComponent implements OnInit {
       ],
     },
     {
-      title: 'Emergencias', icon: 'emergency', roles: ['Cliente'],
+      title: 'Emergencias', icon: 'emergency', roles: ['cliente'],
       subItems: [
         { title: 'Reportar Emergencia', route: '/cliente/emergencias/reportar' },
         { title: 'Seguimiento',         route: '/cliente/solicitudes/seguimiento' },
       ],
     },
 
-    // ── TALLER / OPERADOR ─────────────────────────────────
-    { title: 'Dashboard', icon: 'dashboard', route: '/taller/dashboard', roles: ['Taller', 'Operador', 'Tecnico', 'Operario'] },
+    // ── TALLER ────────────────────────────────────────────
+    { title: 'Dashboard', icon: 'dashboard', route: '/taller/dashboard', roles: ['taller'] },
     {
-      title: 'Operaciones', icon: 'engineering', roles: ['Taller', 'Operador', 'Tecnico', 'Operario'],
+      title: 'Operaciones', icon: 'engineering', roles: ['taller'],
       subItems: [
         { title: 'Gestión de solicitudes', route: '/taller/solicitudes' },
         { title: 'Gestionar Técnicos',     route: '/tecnicos' },
-        { title: 'Liquidaciones',          route: '/taller/pagos' },
+        { title: 'Pagos',                  route: '/taller/pagos' },
       ],
     },
 
-    // ── ADMINISTRADOR — ítems directos (sin agrupar) ──────
-    { title: 'Dashboard',              icon: 'dashboard',            route: '/admin/dashboard',          roles: ['Administrador'] },
-    { title: 'Aprobación de Talleres', icon: 'verified',             route: '/admin/talleres/aprobacion', roles: ['Administrador'] },
-    { title: 'Config. Algoritmo',      icon: 'tune',                 route: '/admin/configuracion',       roles: ['Administrador'] },
-    { title: 'Finanzas Globales',      icon: 'account_balance',      route: '/admin/finanzas',            roles: ['Administrador'] },
-    { title: 'Gestión de Usuarios',    icon: 'manage_accounts',      route: '/admin/usuarios',            roles: ['Administrador'] },
-    { title: 'Roles y Permisos',       icon: 'security',             route: '/admin/roles',               roles: ['Administrador'] },
-    { title: 'Auditoría',              icon: 'fact_check',           route: '/admin/auditoria',           roles: ['Administrador'] },
+    // ── TÉCNICO (mismo dashboard taller, sin gestionar técnicos) ──
+    { title: 'Dashboard', icon: 'dashboard', route: '/taller/dashboard', roles: ['tecnico'] },
+    {
+      title: 'Operaciones', icon: 'engineering', roles: ['tecnico'],
+      subItems: [
+        { title: 'Gestión de solicitudes', route: '/taller/solicitudes' },
+        { title: 'Pagos',                  route: '/taller/pagos' },
+      ],
+    },
+
+    // ── ADMINISTRADOR ─────────────────────────────────────
+    { title: 'Dashboard',              icon: 'dashboard',            route: '/admin/dashboard',          roles: ['admin', 'administrador'] },
+    { title: 'Aprobación de Talleres', icon: 'verified',             route: '/admin/talleres/aprobacion', roles: ['admin', 'administrador'] },
+    { title: 'Config. Algoritmo',      icon: 'tune',                 route: '/admin/configuracion',       roles: ['admin', 'administrador'] },
+    { title: 'Finanzas Globales',      icon: 'account_balance',      route: '/admin/finanzas',            roles: ['admin', 'administrador'] },
+    { title: 'Gestión de Usuarios',    icon: 'manage_accounts',      route: '/admin/usuarios',            roles: ['admin', 'administrador'] },
+    { title: 'Roles y Permisos',       icon: 'security',             route: '/admin/roles',               roles: ['admin', 'administrador'] },
+    { title: 'Auditoría',              icon: 'fact_check',           route: '/admin/auditoria',           roles: ['admin', 'administrador'] },
 
     // ── COMPARTIDOS ───────────────────────────────────────
-    { title: 'Mi Perfil',       icon: 'person',        route: '/perfil',          roles: ['Cliente', 'Taller', 'Operador', 'Administrador', 'Tecnico', 'Operario'] },
-    { title: 'Notificaciones',  icon: 'notifications', route: '/notificaciones',  roles: ['Cliente', 'Taller', 'Operador', 'Administrador', 'Tecnico', 'Operario'] },
-    { title: 'Cerrar sesión',   icon: 'logout',        route: '/login',           roles: ['Cliente', 'Taller', 'Operador', 'Administrador', 'Tecnico', 'Operario'] },
+    { title: 'Mi Perfil',       icon: 'person',        route: '/perfil',         roles: ['cliente', 'taller', 'admin', 'administrador', 'tecnico'] },
+    { title: 'Notificaciones',  icon: 'notifications', route: '/notificaciones', roles: ['cliente', 'taller', 'admin', 'administrador', 'tecnico'] },
   ];
 
   constructor(private router: Router) {
@@ -130,20 +139,8 @@ export class SidebarComponent implements OnInit {
 
   isItemVisible(item: MenuItem): boolean {
     if (!item.roles) return true;
-    
-    // Normalizar el rol del usuario actual
-    let currentUserRole = this.userRole().toLowerCase();
-    if (currentUserRole === 'admin') {
-      currentUserRole = 'administrador';
-    }
-
-    // Normalizar los roles requeridos para este ítem
-    const requiredRoles = item.roles.map(r => {
-      const lower = r.toLowerCase();
-      return lower === 'admin' ? 'administrador' : lower;
-    });
-
-    return requiredRoles.includes(currentUserRole);
+    const currentRole = this.userRole().toLowerCase();
+    return item.roles.map(r => r.toLowerCase()).includes(currentRole);
   }
 
   logout() {

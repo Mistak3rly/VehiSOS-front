@@ -39,6 +39,14 @@ export class AuthService {
     return this.http.post<UserReadDetail>(`${this.BASE}/register`, payload);
   }
 
+  registerTecnico(payload: UserCreate): Observable<UserReadDetail> {
+    return this.http.post<UserReadDetail>(`${this.BASE}/tecnicos/register`, payload);
+  }
+
+  listTecnicos(): Observable<UserReadDetail[]> {
+    return this.http.get<UserReadDetail[]>(`${this.BASE}/tecnicos`);
+  }
+
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -113,8 +121,10 @@ export class AuthService {
     const token = localStorage.getItem('token');
     const userJson = localStorage.getItem('user');
     if (token && userJson) {
-      this.currentUser.set(JSON.parse(userJson));
-      this.isAuthenticated.set(true);
+      try {
+        this.currentUser.set(JSON.parse(userJson));
+        this.isAuthenticated.set(true);
+      } catch { /* ignore */ }
     }
   }
 }

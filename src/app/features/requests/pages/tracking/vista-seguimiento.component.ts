@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { EmergenciasService } from '../../../../core/services/emergencias.service';
 import { InteligenciaService } from '../../../../core/services/inteligencia.service';
+import { LogisticaService } from '../../../../core/services/logistica.service';
+import { PagoRead } from '../../../../core/models/api.models';
 
 interface Solicitud {
   id: string;
@@ -34,6 +36,10 @@ export class VistaSeguimientoSolicitudes implements OnInit {
   viewMode = signal<'list' | 'detail'>('list');
   isLoading = signal(false);
   
+  // Pago del servicio
+  pagoServicio = signal<PagoRead | null>(null);
+  loadingPago = signal(false);
+
   // Variables modal calificación (CU15)
   showRatingModal = false;
   ratingValue = 0;
@@ -41,7 +47,8 @@ export class VistaSeguimientoSolicitudes implements OnInit {
 
   constructor(
     private emergenciasService: EmergenciasService,
-    private inteligenciaService: InteligenciaService
+    private inteligenciaService: InteligenciaService,
+    private logisticaService: LogisticaService
   ) {}
 
   ngOnInit(): void {
@@ -77,21 +84,30 @@ export class VistaSeguimientoSolicitudes implements OnInit {
   verDetalleSolicitud(solicitud: Solicitud) {
     this.solicitudSeleccionada.set(solicitud);
     this.viewMode.set('detail');
+    this.pagoServicio.set(null);
     
     // Cargar trazabilidad real
     this.inteligenciaService.getTrazabilidad(solicitud.incidenteId).subscribe({
       next: (traz) => {
-        // Mapear historial a formato UI
         const historialUi = traz.incidente.historial?.map((h: any) => ({
           evento: h.tipo_evento,
           fecha: new Date(h.fecha_creacion).toLocaleTimeString(),
           completado: true
         })) || [];
-        
-        // Actualizar datos del detalle
         solicitud.trazabilidad = historialUi;
         this.solicitudSeleccionada.set({ ...solicitud });
       }
+    });
+
+    // Cargar pago del servicio
+    this.loadingPago.set(true);
+    this.logisticaService.pagosPorCliente().subscribe({
+      next: (pagos) => {
+        const pago = pagos.find(p => p.id_incidente === solicitud.incidenteId) ?? null;
+        this.pagoServicio.set(pago);
+        this.loadingPago.set(false);
+      },
+      error: () => this.loadingPago.set(false)
     });
   }
 

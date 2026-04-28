@@ -23,16 +23,47 @@
       <p class="subtitle">Regístrate para acceder a asistencia vehicular y gestionar tus emergencias.</p>
 
       <form [formGroup]="registerForm" (ngSubmit)="submitRegister()" class="register-form">
+        <!-- Selección de Rol -->
+        <div class="form-group">
+          <label>Registrarse como</label>
+          <div class="rol-selector">
+            <label class="rol-option" [class.active]="rolSeleccionado === 'cliente'">
+              <input type="radio" formControlName="rol" value="cliente" (change)="onRolChange()">
+              <span class="rol-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor">
+                  <path d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Z"/>
+                </svg>
+              </span>
+              <span class="rol-label">Cliente</span>
+              <span class="rol-desc">Solicita asistencia vehicular</span>
+            </label>
+            <label class="rol-option" [class.active]="rolSeleccionado === 'taller'">
+              <input type="radio" formControlName="rol" value="taller" (change)="onRolChange()">
+              <span class="rol-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor">
+                  <path d="M756-120 537-339l84-84 219 219-84 84Zm-552 0-84-84 276-276-68-68-28 28-51-51v82l-28 28-121-121 28-28h82l-50-50 142-142q20-20 43-29t47-9q24 0 47 9t43 29l-92 92 50 50-28 28 68 68 90-90q-4-11-6.5-23T386-760q0-55 38.5-93.5T518-892q18 0 33.5 4.5T581-875l-105 105 74 74 105-105q8 15 12.5 30.5T672-737q0 55-38.5 93.5T534-604q-11 0-23-2t-23-7L204-120Z"/>
+                </svg>
+              </span>
+              <span class="rol-label">Taller</span>
+              <span class="rol-desc">Ofrece servicios mecánicos</span>
+            </label>
+          </div>
+        </div>
+
         <!-- Nombre Completo -->
         <div class="form-group">
-          <label for="nombreCompleto">Nombre completo</label>
+          <label for="nombreCompleto">{{ rolSeleccionado === 'taller' ? 'Nombre del taller' : 'Nombre completo' }}</label>
           <div class="input-container">
             <svg class="field-icon" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20" fill="currentColor">
               <path d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Z"/>
             </svg>
-            <input type="text" id="nombreCompleto" formControlName="nombreCompleto" placeholder="Ej. Juan Pérez" [class.invalid]="isFieldInvalid('nombreCompleto')">
+            <input type="text" id="nombreCompleto" formControlName="nombreCompleto"
+              [placeholder]="rolSeleccionado === 'taller' ? 'Ej. Taller Mecánico Central' : 'Ej. Juan Pérez'"
+              [class.invalid]="isFieldInvalid('nombreCompleto')">
           </div>
-          <span class="error-msg" *ngIf="isFieldInvalid('nombreCompleto')">El nombre es obligatorio</span>
+          <span class="error-msg" *ngIf="isFieldInvalid('nombreCompleto')">
+            {{ rolSeleccionado === 'taller' ? 'El nombre del taller es obligatorio' : 'El nombre es obligatorio' }}
+          </span>
         </div>
 
         <!-- Email -->
@@ -59,16 +90,55 @@
           <span class="error-msg" *ngIf="isFieldInvalid('telefono')">El teléfono es obligatorio</span>
         </div>
 
-        <!-- Documento Identidad -->
+        <!-- Campos exclusivos para Taller: Nombre y CI del dueño -->
+        <ng-container *ngIf="rolSeleccionado === 'taller'">
+          <div class="form-group">
+            <label for="nombreDueno">Nombre completo del dueño</label>
+            <div class="input-container">
+              <svg class="field-icon" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20" fill="currentColor">
+                <path d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Z"/>
+              </svg>
+              <input type="text" id="nombreDueno" formControlName="nombreDueno"
+                placeholder="Ej. Juan Pérez García"
+                [class.invalid]="isFieldInvalid('nombreDueno')">
+            </div>
+            <span class="error-msg" *ngIf="isFieldInvalid('nombreDueno')">El nombre del dueño es obligatorio</span>
+          </div>
+
+          <div class="form-group">
+            <label for="ciDueno">CI del dueño</label>
+            <div class="input-container">
+              <svg class="field-icon" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20" fill="currentColor">
+                <path d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Z"/>
+              </svg>
+              <input type="text" id="ciDueno" formControlName="ciDueno"
+                placeholder="Ej. 12345678"
+                [class.invalid]="isFieldInvalid('ciDueno')">
+            </div>
+            <span class="error-msg" *ngIf="isFieldInvalid('ciDueno')">El CI del dueño es obligatorio</span>
+          </div>
+        </ng-container>
+
+        <!-- Documento Identidad / NIT -->
         <div class="form-group">
-          <label for="documentoIdentidad">Documento de Identidad</label>
+          <label for="documentoIdentidad">{{ rolSeleccionado === 'taller' ? 'NIT del Taller' : 'Documento de Identidad' }}</label>
           <div class="input-container">
-            <svg class="field-icon" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20" fill="currentColor">
+            <svg *ngIf="rolSeleccionado !== 'taller'" class="field-icon" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20" fill="currentColor">
               <path d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Z"/>
             </svg>
-            <input type="text" id="documentoIdentidad" formControlName="documentoIdentidad" placeholder="Ej. 12345678" [class.invalid]="isFieldInvalid('documentoIdentidad')">
+            <svg *ngIf="rolSeleccionado === 'taller'" class="field-icon" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20" fill="currentColor">
+              <path d="M160-120q-33 0-56.5-23.5T80-200v-560q0-33 23.5-56.5T160-840h640q33 0 56.5 23.5T880-760v560q0 33-23.5 56.5T800-120H160Zm0-80h640v-560H160v560Zm80-80h480v-80H240v80Zm0-160h480v-80H240v80Zm0-160h480v-80H240v80Z"/>
+            </svg>
+            <input
+              type="text"
+              id="documentoIdentidad"
+              formControlName="documentoIdentidad"
+              [placeholder]="rolSeleccionado === 'taller' ? 'Ej. 1234567890' : 'Ej. 12345678'"
+              [class.invalid]="isFieldInvalid('documentoIdentidad')">
           </div>
-          <span class="error-msg" *ngIf="isFieldInvalid('documentoIdentidad')">El documento es obligatorio</span>
+          <span class="error-msg" *ngIf="isFieldInvalid('documentoIdentidad')">
+            {{ rolSeleccionado === 'taller' ? 'El NIT es obligatorio' : 'El documento es obligatorio' }}
+          </span>
         </div>
 
         <!-- Password -->
@@ -128,8 +198,9 @@
           <path d="m424-296 282-282-56-56-226 226-114-114-56 56 170 170Zm56 216q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Z"/>
         </svg>
       </div>
-      <h2>Cuenta creada exitosamente</h2>
-      <p>Tu cuenta ha sido activada correctamente.</p>
+      <h2>¡Cuenta creada exitosamente!</h2>
+      <p *ngIf="rolSeleccionado === 'taller'">Tu cuenta de taller ha sido creada. Ya puedes iniciar sesión y registrar a tus técnicos.</p>
+      <p *ngIf="rolSeleccionado !== 'taller'">Tu cuenta ha sido activada correctamente. Ya puedes solicitar asistencia vehicular.</p>
       <button class="modal-btn" (click)="closeSuccess()">Continuar</button>
     </div>
   </div>

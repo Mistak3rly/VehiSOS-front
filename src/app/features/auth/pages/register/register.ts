@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { UserCreate } from '../../../../core/models/api.models';
 
@@ -19,15 +19,21 @@ export class Register {
   errorMessage = signal('');
 
   constructor(
-    private fb: FormBuilder, 
+    private fb: FormBuilder,
     private router: Router,
+    private route: ActivatedRoute,
     private authService: AuthService
   ) {
+    const rolInicial = this.route.snapshot.queryParamMap.get('rol') || 'cliente';
     this.registerForm = this.fb.group({
+      rol: [rolInicial, [Validators.required]],
       nombreCompleto: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
       telefono: ['', [Validators.required]],
       documentoIdentidad: ['', [Validators.required]],
+      // Campos exclusivos para taller
+      nombreDueno: [''],
+      ciDueno: [''],
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', [Validators.required]],
       terms: [false, [Validators.requiredTrue]]
@@ -37,7 +43,6 @@ export class Register {
   passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
     const password = control.get('password');
     const confirmPassword = control.get('confirmPassword');
-
     if (password && confirmPassword && password.value !== confirmPassword.value) {
       confirmPassword.setErrors({ passwordMismatch: true });
       return { passwordMismatch: true };
@@ -50,25 +55,58 @@ export class Register {
     return !!(field && field.invalid && (field.dirty || field.touched));
   }
 
+  get rolSeleccionado(): string {
+    return this.registerForm.get('rol')?.value || 'cliente';
+  }
+
+  onRolChange(): void {
+    this.registerForm.get('documentoIdentidad')?.reset();
+    const esTaller = this.rolSeleccionado === 'taller';
+    const nombreDueno = this.registerForm.get('nombreDueno');
+    const ciDueno = this.registerForm.get('ciDueno');
+    if (esTaller) {
+      nombreDueno?.setValidators([Validators.required]);
+      ciDueno?.setValidators([Validators.required]);
+    } else {
+      nombreDueno?.clearValidators();
+      ciDueno?.clearValidators();
+    }
+    nombreDueno?.reset();
+    ciDueno?.reset();
+    nombreDueno?.updateValueAndValidity();
+    ciDueno?.updateValueAndValidity();
+  }
+
   submitRegister() {
     if (this.registerForm.valid) {
       this.isLoading.set(true);
       this.errorMessage.set('');
-      
+
       const formValue = this.registerForm.value;
-      
-      // Separar nombre y apellidos simplificado (primer palabra es nombre, resto apellidos)
-      const partesNombre = formValue.nombreCompleto.trim().split(' ');
-      const nombre = partesNombre[0];
-      const apellidos = partesNombre.length > 1 ? partesNombre.slice(1).join(' ') : 'Sin apellido';
+      let nombre: string;
+      let apellidos: string;
+
+      if (formValue.rol === 'taller') {
+        nombre = formValue.nombreCompleto.trim();
+        apellidos = 'Taller';
+      } else {
+        const partesNombre = formValue.nombreCompleto.trim().split(' ');
+        nombre = partesNombre[0];
+        apellidos = partesNombre.length > 1 ? partesNombre.slice(1).join(' ') : 'Sin apellido';
+      }
 
       const payload: UserCreate = {
-        nombre: nombre,
-        apellidos: apellidos,
+        nombre,
+        apellidos,
         correo: formValue.email,
         telefono: formValue.telefono,
         documento_identidad: formValue.documentoIdentidad,
-        password: formValue.password
+        password: formValue.password,
+        rol: formValue.rol as 'cliente' | 'taller',
+        ...(formValue.rol === 'taller' && {
+          nombre_dueno: formValue.nombreDueno,
+          ci_dueno: formValue.ciDueno,
+        }),
       };
 
       this.authService.register(payload).subscribe({

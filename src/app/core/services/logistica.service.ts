@@ -15,6 +15,7 @@ import {
   AsignacionRespuestaRequest,
   PagoCreate,
   PagoRead,
+  RegistrarCobroTecnicoRequest,
   ResumenFinancieroRead,
   NotificacionRead,
   NotificacionTestCreate,
@@ -116,6 +117,14 @@ export class LogisticaService {
   // ── Pagos ─────────────────────────────────
   registrarPago(payload: PagoCreate): Observable<PagoRead> {
     return this.http.post<PagoRead>(`${this.BASE}/pagos`, payload);
+  }
+
+  registrarCobroTecnico(payload: RegistrarCobroTecnicoRequest): Observable<PagoRead> {
+    return this.http.post<PagoRead>(`${this.BASE}/pagos/tecnico/cobro`, payload);
+  }
+
+  pagosPorCliente(): Observable<PagoRead[]> {
+    return this.http.get<PagoRead[]>(`${this.BASE}/pagos/cliente`);
   }
 
   historialPagos(tallerId?: number): Observable<PagoRead[]> {

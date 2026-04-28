@@ -138,6 +138,52 @@
             </div>
           </div>
         </section>
+
+        <!-- Pago del servicio -->
+        <section class="card pago-card">
+          <h3>
+            <span class="material-icons-round">receipt_long</span>
+            Pago del Servicio
+          </h3>
+
+          <div class="pago-loading" *ngIf="loadingPago()">
+            <div class="mini-spinner"></div>
+            <span>Verificando pago...</span>
+          </div>
+
+          <ng-container *ngIf="!loadingPago()">
+            <div class="pago-detalle" *ngIf="pagoServicio() as pago; else sinCobro">
+              <div class="pago-row">
+                <span class="pago-label">Costo del servicio</span>
+                <span class="pago-value total">${{ pago.monto_total | number:'1.2-2' }}</span>
+              </div>
+              <div class="pago-row" *ngIf="pago.metodo_pago">
+                <span class="pago-label">Método de pago</span>
+                <span class="pago-value">{{ pago.metodo_pago }}</span>
+              </div>
+              <div class="pago-row">
+                <span class="pago-label">Estado</span>
+                <span class="pago-estado" [ngClass]="'estado-' + pago.estado_pago">
+                  {{ pago.estado_pago === 'pagado' ? 'Confirmado' : pago.estado_pago === 'pendiente' ? 'Pendiente de pago' : pago.estado_pago }}
+                </span>
+              </div>
+              <div class="pago-row" *ngIf="pago.fecha_pago">
+                <span class="pago-label">Fecha de pago</span>
+                <span class="pago-value">{{ pago.fecha_pago | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <div class="comprobante" *ngIf="pago.estado_pago === 'pagado'">
+                <span class="material-icons-round">verified</span>
+                Pago confirmado — Comprobante disponible
+              </div>
+            </div>
+            <ng-template #sinCobro>
+              <div class="pago-sin-cobro">
+                <span class="material-icons-round">hourglass_empty</span>
+                <p>El técnico aún no ha registrado el cobro del servicio.</p>
+              </div>
+            </ng-template>
+          </ng-container>
+        </section>
       </div>
     </div>
   </div>

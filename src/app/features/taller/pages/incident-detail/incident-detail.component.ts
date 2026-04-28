@@ -1,14 +1,16 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { InteligenciaService } from '../../../../core/services/inteligencia.service';
 import { EmergenciasService } from '../../../../core/services/emergencias.service';
-import { TrazabilidadCombinadaResponse } from '../../../../core/models/api.models';
+import { LogisticaService } from '../../../../core/services/logistica.service';
+import { TrazabilidadCombinadaResponse, PagoRead } from '../../../../core/models/api.models';
 
 @Component({
   selector: 'app-incident-detail',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './incident-detail.component.html',
   styleUrls: ['./incident-detail.component.scss']
 })
@@ -17,6 +19,7 @@ export class DetalleIncidenteComponent implements OnInit {
   private router = inject(Router);
   private inteligenciaService = inject(InteligenciaService);
   private emergenciasService = inject(EmergenciasService);
+  private logisticaService = inject(LogisticaService);
 
   incidenteId = signal<number | null>(null);
   data = signal<TrazabilidadCombinadaResponse | null>(null);
@@ -26,6 +29,12 @@ export class DetalleIncidenteComponent implements OnInit {
   // Paneles colapsables
   showTranscription = signal(true);
   showGallery = signal(true);
+
+  // Sección Registrar Cobro
+  showCobroForm = signal(false);
+  cobro = { diagnostico: '', observaciones: '', costo_servicio: 0 };
+  isRegistrandoCobro = signal(false);
+  pagoRegistrado = signal<PagoRead | null>(null);
 
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
@@ -90,6 +99,29 @@ export class DetalleIncidenteComponent implements OnInit {
       error: (err) => {
         console.error('Error updating status:', err);
         this.isUpdating.set(false);
+      }
+    });
+  }
+
+  registrarCobro() {
+    if (!this.incidenteId() || this.cobro.costo_servicio <= 0 || !this.cobro.diagnostico.trim()) return;
+    this.isRegistrandoCobro.set(true);
+
+    this.logisticaService.registrarCobroTecnico({
+      id_incidente: this.incidenteId()!,
+      diagnostico: this.cobro.diagnostico,
+      observaciones: this.cobro.observaciones || undefined,
+      costo_servicio: this.cobro.costo_servicio,
+    }).subscribe({
+      next: (pago) => {
+        this.pagoRegistrado.set(pago);
+        this.isRegistrandoCobro.set(false);
+        this.showCobroForm.set(false);
+      },
+      error: (err) => {
+        console.error('Error registrando cobro:', err);
+        this.isRegistrandoCobro.set(false);
+        alert('Error al registrar cobro: ' + (err.error?.detail || 'Intente nuevamente.'));
       }
     });
   }

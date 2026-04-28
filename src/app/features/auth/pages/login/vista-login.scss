@@ -235,14 +235,48 @@ $shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   margin-top: 1.5rem;
   font-size: 0.9rem;
   color: $text-secondary;
+  text-align: center;
 
-  a {
-    color: $primary-red;
-    text-decoration: none;
-    font-weight: 700;
+  .register-options {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
 
-    &:hover {
-      text-decoration: underline;
+    .register-link {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.65rem 0.5rem;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+
+      &.cliente {
+        color: $primary-red;
+        border-color: rgba($primary-red, 0.3);
+        background-color: rgba($primary-red, 0.04);
+
+        &:hover {
+          background-color: rgba($primary-red, 0.1);
+          border-color: $primary-red;
+        }
+      }
+
+      &.taller {
+        color: $dark-red;
+        border-color: rgba($dark-red, 0.3);
+        background-color: rgba($dark-red, 0.04);
+
+        &:hover {
+          background-color: rgba($dark-red, 0.1);
+          border-color: $dark-red;
+        }
+      }
     }
   }
 }

@@ -39,6 +39,9 @@ export interface UserReadDetail {
   fecha_creacion: string;
   fecha_actualizacion: string;
   roles: RoleRead[];
+  nombre_dueno: string | null;
+  ci_dueno: string | null;
+  taller_id: number | null;
 }
 
 export interface UserCreate {
@@ -50,6 +53,9 @@ export interface UserCreate {
   activo?: boolean;
   password: string;
   role_ids?: number[];
+  rol?: 'cliente' | 'taller';
+  nombre_dueno?: string;
+  ci_dueno?: string;
 }
 
 export interface UserUpdate {
@@ -425,6 +431,10 @@ export interface PersonalTallerRead {
   latitud_actual: number | null;
   longitud_actual: number | null;
   fecha_asignacion: string;
+  nombre_usuario: string | null;
+  apellidos_usuario: string | null;
+  telefono_usuario: string | null;
+  correo_usuario: string | null;
 }
 
 export interface PersonalTallerCreate {
@@ -503,6 +513,13 @@ export interface PagoRead {
   metodo_pago: string | null;
   fecha_pago: string | null;
   fecha_creacion: string;
+}
+
+export interface RegistrarCobroTecnicoRequest {
+  id_incidente: number;
+  diagnostico: string;
+  observaciones?: string;
+  costo_servicio: number;
 }
 
 export interface ResumenFinancieroRead {

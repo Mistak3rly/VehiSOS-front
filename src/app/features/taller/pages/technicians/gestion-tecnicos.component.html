@@ -1,68 +1,73 @@
-<div class="gestion-tecnicos-container">
-  <!-- Header -->
-  <header class="page-header">
-    <div class="header-content">
-      <h1>Gestión de técnicos</h1>
-      <p>Administra tu equipo técnico y su disponibilidad para atender solicitudes.</p>
-    </div>
-  </header>
+<div class="gt-page">
 
-  <div class="main-grid">
-    <!-- Left Column: List and Workshop Status -->
-    <div class="content-column">
-      <!-- Workshop Status Card -->
-      <section class="card status-card" [class.offline]="!tallerStatus().disponible">
-        <div class="status-info" *ngIf="tallerId !== 0; else noTaller">
-          <div class="title-group">
-            <span class="material-icons-round icon">store</span>
-            <div>
-              <h3>Estado General del Taller</h3>
-              <p>{{ tallerStatus().disponible ? 'Activo y recibiendo emergencias' : 'Cerrado temporalmente' }}</p>
-            </div>
-          </div>
-          <div class="toggle-action">
-            <label class="switch">
-              <input type="checkbox" [checked]="tallerStatus().disponible" (change)="actualizarDisponibilidadTaller()">
-              <span class="slider round"></span>
-            </label>
-            <span class="status-label">{{ tallerStatus().disponible ? 'Disponible' : 'No disponible' }}</span>
+  <!-- Header -->
+  <div class="gt-header">
+    <div>
+      <h1>Gestión de Técnicos</h1>
+      <p>Administra tu equipo y su disponibilidad.</p>
+    </div>
+  </div>
+
+  <!-- Alertas -->
+  <div class="gt-alert success" *ngIf="successMsg()">
+    <span class="material-icons-round">check_circle</span> {{ successMsg() }}
+  </div>
+  <div class="gt-alert error" *ngIf="errorMsg()">
+    <span class="material-icons-round">error</span> {{ errorMsg() }}
+  </div>
+
+  <!-- Sin taller -->
+  <div class="gt-empty-taller" *ngIf="tallerId() === 0">
+    <span class="material-icons-round">store</span>
+    <h3>No tienes un taller registrado</h3>
+    <p>Necesitas crear un taller para poder gestionar técnicos.</p>
+    <button class="btn-primary" (click)="crearTallerBase()" [disabled]="isLoading()">
+      {{ isLoading() ? 'Creando...' : 'Crear taller base' }}
+    </button>
+  </div>
+
+  <div class="gt-grid" *ngIf="tallerId() !== 0">
+
+    <!-- Columna izquierda: lista -->
+    <div class="gt-left">
+
+      <!-- Estado del taller -->
+      <div class="gt-status-card">
+        <div class="gt-status-row">
+          <span class="material-icons-round">store</span>
+          <div>
+            <strong>Estado del Taller</strong>
+            <span>{{ tallerStatus().disponible ? 'Activo' : 'Cerrado' }}</span>
           </div>
         </div>
-        
-        <ng-template #noTaller>
-          <div class="status-info no-taller">
-            <div class="title-group">
-              <span class="material-icons-round icon warn">warning</span>
-              <div>
-                <h3>Taller no configurado</h3>
-                <p>Necesitas un taller para asignar técnicos.</p>
-              </div>
-            </div>
-            <button class="btn-primary btn-sm" (click)="crearTallerBase()" [disabled]="isLoading()">
-              Crear Taller Base
-            </button>
-          </div>
-        </ng-template>
-        <div class="stats-row">
-          <div class="stat">
+        <div class="gt-stats">
+          <div class="gt-stat">
             <span class="label">Capacidad</span>
             <span class="value">{{ tallerStatus().capacidad }} técnicos</span>
           </div>
-          <div class="stat">
-            <span class="label">Activas</span>
-            <span class="value">{{ tallerStatus().solicitudesActivas }} solicitudes</span>
+          <div class="gt-stat">
+            <span class="label">Registrados</span>
+            <span class="value">{{ tecnicos().length }}</span>
           </div>
         </div>
-      </section>
+      </div>
 
-      <!-- Technicians List -->
-      <section class="list-section card">
-        <div class="section-header">
+      <!-- Lista de técnicos -->
+      <div class="gt-card">
+        <div class="gt-card-header">
           <h2>Equipo Técnico</h2>
+          <span class="gt-badge">{{ tecnicos().length }}</span>
         </div>
 
-        <div class="table-responsive" *ngIf="tecnicos().length > 0; else emptyState">
-          <table class="tecnicos-table">
+        <!-- Vacío -->
+        <div class="gt-empty" *ngIf="tecnicos().length === 0">
+          <span class="material-icons-round">engineering</span>
+          <p>Aún no hay técnicos registrados.</p>
+        </div>
+
+        <!-- Tabla desktop -->
+        <div class="gt-table-wrap" *ngIf="tecnicos().length > 0">
+          <table class="gt-table">
             <thead>
               <tr>
                 <th>Técnico</th>
@@ -74,27 +79,27 @@
             <tbody>
               <tr *ngFor="let t of tecnicos()">
                 <td>
-                  <div class="user-cell">
-                    <div class="avatar">{{ t.nombre.charAt(0) }}</div>
-                    <div class="info">
-                      <span class="name">{{ t.nombre }}</span>
-                      <span class="phone">{{ t.telefono }}</span>
+                  <div class="gt-user">
+                    <div class="gt-avatar">{{ inicial(t) }}</div>
+                    <div class="gt-user-info">
+                      <span class="gt-name">{{ nombreCompleto(t) }}</span>
+                      <span class="gt-sub">{{ t.telefono_usuario || t.correo_usuario || '—' }}</span>
                     </div>
                   </div>
                 </td>
-                <td><span class="spec-tag">{{ t.especialidad }}</span></td>
+                <td><span class="gt-spec">{{ t.tipo_personal }}</span></td>
                 <td>
-                  <span class="status-chip" [ngClass]="getEstadoClass(t.disponibilidad)" (click)="cambiarDisponibilidad(t)">
-                    {{ t.disponibilidad }}
-                  </span>
-                  <div class="last-update">{{ t.ultimaActualizacion }}</div>
+                  <button class="gt-chip" [class.disponible]="t.disponible" [class.ocupado]="!t.disponible"
+                    (click)="cambiarDisponibilidad(t)">
+                    {{ t.disponible ? 'Disponible' : 'Ocupado' }}
+                  </button>
                 </td>
                 <td>
-                  <div class="actions">
-                    <button class="btn-icon" (click)="editarTecnico(t)" title="Editar">
+                  <div class="gt-actions">
+                    <button class="gt-btn-icon" (click)="editarTecnico(t)" title="Editar">
                       <span class="material-icons-round">edit</span>
                     </button>
-                    <button class="btn-icon delete" (click)="desactivarTecnico(t)" title="Eliminar">
+                    <button class="gt-btn-icon del" (click)="desactivarTecnico(t)" title="Eliminar">
                       <span class="material-icons-round">delete_outline</span>
                     </button>
                   </div>
@@ -104,84 +109,115 @@
           </table>
         </div>
 
-        <ng-template #emptyState>
-          <div class="empty-state">
-            <span class="material-icons-round icon">engineering</span>
-            <p>Aún no tienes técnicos registrados.</p>
-            <button class="btn-text" (click)="nombreInput.focus()">Registrar primer técnico</button>
+        <!-- Tarjetas móvil -->
+        <div class="gt-cards-mobile" *ngIf="tecnicos().length > 0">
+          <div class="gt-tecnico-card" *ngFor="let t of tecnicos()">
+            <div class="gt-tc-top">
+              <div class="gt-user">
+                <div class="gt-avatar">{{ inicial(t) }}</div>
+                <div class="gt-user-info">
+                  <span class="gt-name">{{ nombreCompleto(t) }}</span>
+                  <span class="gt-sub">{{ t.tipo_personal }}</span>
+                </div>
+              </div>
+              <button class="gt-chip" [class.disponible]="t.disponible" [class.ocupado]="!t.disponible"
+                (click)="cambiarDisponibilidad(t)">
+                {{ t.disponible ? 'Disponible' : 'Ocupado' }}
+              </button>
+            </div>
+            <div class="gt-tc-info">
+              <span>{{ t.telefono_usuario || '—' }}</span>
+              <span>{{ t.correo_usuario || '—' }}</span>
+            </div>
+            <div class="gt-tc-actions">
+              <button class="gt-btn-icon" (click)="editarTecnico(t)">
+                <span class="material-icons-round">edit</span>
+              </button>
+              <button class="gt-btn-icon del" (click)="desactivarTecnico(t)">
+                <span class="material-icons-round">delete_outline</span>
+              </button>
+            </div>
           </div>
-        </ng-template>
-      </section>
+        </div>
+      </div>
     </div>
 
-    <!-- Right Column: Form -->
-    <div class="form-column">
-      <section class="card form-card">
+    <!-- Columna derecha: formulario -->
+    <div class="gt-right">
+      <div class="gt-card gt-form-card">
         <h3>{{ isEditing() ? 'Editar Técnico' : 'Registrar Técnico' }}</h3>
-        <p class="subtitle">Ingresa los datos para {{ isEditing() ? 'actualizar' : 'añadir' }} un miembro al equipo.</p>
+        <p class="gt-form-sub">{{ isEditing() ? 'Actualiza los datos del técnico.' : 'Añade un nuevo miembro al equipo.' }}</p>
 
         <form [formGroup]="tecnicoForm" (ngSubmit)="guardarTecnico()">
-          <div class="form-group-row">
-            <div class="form-group">
-              <label>Nombre</label>
-              <input type="text" formControlName="nombre" #nombreInput placeholder="Ej. Maria">
-            </div>
-            <div class="form-group">
-              <label>Apellidos</label>
-              <input type="text" formControlName="apellidos" placeholder="Ej. Galindo">
-            </div>
-          </div>
 
-          <div class="form-group">
-            <label>Documento de Identidad</label>
-            <input type="text" formControlName="documento_identidad" placeholder="DNI / CI / Pasaporte">
-          </div>
-
-          <div class="form-group-row">
-            <div class="form-group">
-              <label>Teléfono</label>
-              <input type="text" formControlName="telefono" placeholder="Ej. 70001234">
+          <div class="gt-row-2">
+            <div class="gt-field">
+              <label>Nombre *</label>
+              <input type="text" formControlName="nombre" placeholder="Ej. María"
+                [class.invalid]="tecnicoForm.get('nombre')?.invalid && tecnicoForm.get('nombre')?.touched">
             </div>
-            <div class="form-group">
-              <label>Correo electrónico</label>
-              <input type="email" formControlName="email" placeholder="correo@ejemplo.com">
+            <div class="gt-field">
+              <label>Apellidos *</label>
+              <input type="text" formControlName="apellidos" placeholder="Ej. Galindo"
+                [class.invalid]="tecnicoForm.get('apellidos')?.invalid && tecnicoForm.get('apellidos')?.touched">
             </div>
           </div>
 
-          <div class="form-group" *ngIf="!isEditing()">
-            <label>Contraseña para el técnico</label>
-            <input type="password" formControlName="password" placeholder="Contraseña de acceso">
-            <small class="helper-text">Esta será su clave para entrar al sistema.</small>
+          <div class="gt-field" *ngIf="!isEditing()">
+            <label>CI / Documento *</label>
+            <input type="text" formControlName="documento_identidad" placeholder="Ej. 12345678"
+              [class.invalid]="tecnicoForm.get('documento_identidad')?.invalid && tecnicoForm.get('documento_identidad')?.touched">
           </div>
 
-          <div class="form-group">
-            <label>Especialidad</label>
-            <select formControlName="especialidad">
-              <option value="" disabled selected>Selecciona una especialidad</option>
-              <option *ngFor="let esp of especialidades" [value]="esp">{{ esp }}</option>
+          <div class="gt-row-2" *ngIf="!isEditing()">
+            <div class="gt-field">
+              <label>Teléfono *</label>
+              <input type="tel" formControlName="telefono" placeholder="Ej. 70001234">
+            </div>
+            <div class="gt-field">
+              <label>Correo *</label>
+              <input type="email" formControlName="email" placeholder="correo@ejemplo.com"
+                [class.invalid]="tecnicoForm.get('email')?.invalid && tecnicoForm.get('email')?.touched">
+            </div>
+          </div>
+
+          <div class="gt-field" *ngIf="!isEditing()">
+            <label>Contraseña *</label>
+            <input type="password" formControlName="password" placeholder="Mínimo 8 caracteres"
+              [class.invalid]="tecnicoForm.get('password')?.invalid && tecnicoForm.get('password')?.touched">
+            <small>Esta será su clave de acceso al sistema.</small>
+          </div>
+
+          <div class="gt-field">
+            <label>Especialidad *</label>
+            <select formControlName="especialidad"
+              [class.invalid]="tecnicoForm.get('especialidad')?.invalid && tecnicoForm.get('especialidad')?.touched">
+              <option value="" disabled>Selecciona una especialidad</option>
+              <option *ngFor="let e of especialidades" [value]="e">{{ e }}</option>
             </select>
           </div>
 
-          <div class="form-group">
-            <label>Disponibilidad inicial</label>
+          <div class="gt-field">
+            <label>Disponibilidad</label>
             <select formControlName="disponibilidad">
-              <option *ngFor="let disp of disponibilidades" [value]="disp">{{ disp }}</option>
+              <option value="true">Disponible</option>
+              <option value="false">Ocupado</option>
             </select>
           </div>
 
-          <div class="form-actions">
+          <div class="gt-form-actions">
             <button type="button" class="btn-outline" (click)="cancelarEdicion()" *ngIf="isEditing()">
               Cancelar
             </button>
-            <button type="submit" class="btn-primary" [disabled]="tecnicoForm.invalid || isLoading()">
+            <button type="submit" class="btn-primary" [disabled]="isLoading()">
               <span *ngIf="!isLoading()">{{ isEditing() ? 'Guardar cambios' : 'Registrar técnico' }}</span>
-              <span *ngIf="isLoading()" class="loading-btn">
-                <span class="spinner-small"></span> Procesando...
-              </span>
+              <span *ngIf="isLoading()">Procesando...</span>
             </button>
           </div>
+
         </form>
-      </section>
+      </div>
     </div>
+
   </div>
 </div>

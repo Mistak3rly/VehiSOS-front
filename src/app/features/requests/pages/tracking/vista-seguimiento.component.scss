@@ -173,3 +173,101 @@ $shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   transition: all 0.2s;
   &:hover { background-color: $dark-red; transform: translateY(-2px); }
 }
+
+// ── Sección Pago del Servicio ────────────────
+.pago-card {
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: $text-dark;
+    margin-bottom: 1.5rem;
+
+    .material-icons-round { color: $primary-red; font-size: 1.4rem; }
+  }
+
+  .pago-loading {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: $text-secondary;
+    font-size: 0.9rem;
+
+    .mini-spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid #eee;
+      border-top: 3px solid $primary-red;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+  }
+
+  .pago-detalle {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .pago-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid #f1f5f9;
+
+    &:last-child { border-bottom: none; }
+
+    .pago-label {
+      color: $text-secondary;
+      font-size: 0.9rem;
+    }
+
+    .pago-value {
+      font-weight: 700;
+      font-size: 0.95rem;
+      &.total { font-size: 1.2rem; color: $text-dark; }
+    }
+
+    .pago-estado {
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+
+      &.estado-pendiente { background: #fff3e0; color: #ef6c00; }
+      &.estado-pagado    { background: #e8f5e9; color: #2e7d32; }
+      &.estado-fallido   { background: #ffebee; color: #c62828; }
+    }
+  }
+
+  .comprobante {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: #e8f5e9;
+    border-radius: 10px;
+    color: #2e7d32;
+    font-size: 0.85rem;
+    font-weight: 700;
+
+    .material-icons-round { font-size: 1.1rem; }
+  }
+
+  .pago-sin-cobro {
+    text-align: center;
+    padding: 2rem 0;
+    color: $text-secondary;
+
+    .material-icons-round { font-size: 2.5rem; opacity: 0.3; display: block; margin-bottom: 0.75rem; }
+    p { font-size: 0.9rem; margin: 0; }
+  }
+}
+
+@keyframes spin { 100% { transform: rotate(360deg); } }

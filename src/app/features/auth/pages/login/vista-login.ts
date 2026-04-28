@@ -47,7 +47,7 @@ export class VistaLogin {
           let redirectUrl = '/dashboard';
 
           if (role === 'administrador' || role === 'admin') redirectUrl = '/admin/dashboard';
-          else if (role === 'taller') redirectUrl = '/taller/dashboard';
+          else if (role === 'taller' || role === 'operador') redirectUrl = '/taller/dashboard';
           else if (role === 'técnico' || role === 'tecnico') redirectUrl = '/tecnico/dashboard';
 
           this.router.navigate([redirectUrl]);

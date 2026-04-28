@@ -71,6 +71,7 @@ export interface AuthResponse {
   access_token: string;
   token_type: string;
   user: UserReadDetail;
+  taller_id?: number;
 }
 
 export interface AssignRoleRequest {
@@ -533,4 +534,102 @@ export interface NotificacionTestCreate {
   canal?: 'in_app' | 'push' | 'email' | 'sms';
   id_incidente?: number;
   target_user_id?: number;
+}
+
+// ─────────────────────────────────────────────
+//  SISTEMA IA - DESEMPEÑO Y ESPECIALIDADES
+// ─────────────────────────────────────────────
+
+export interface DesempenoTallerRead {
+  id: number;
+  id_taller: number;
+  id_incidente: number | null;
+  tiempo_respuesta_minutos: number | null;
+  tiempo_reparacion_minutos: number | null;
+  tasa_exito: boolean | null;
+  cliente_satisfecho: boolean | null;
+  calificacion_cliente: number | null;
+  comentarios_cliente: string | null;
+  costo_servicio: number | null;
+  costo_repuestos: number | null;
+  fecha_creacion: string;
+  fecha_actualizacion: string;
+}
+
+export interface DesempenoTallerCreate {
+  id_taller: number;
+  id_incidente?: number;
+  tiempo_respuesta_minutos?: number;
+  tiempo_reparacion_minutos?: number;
+  tasa_exito?: boolean;
+  cliente_satisfecho?: boolean;
+  calificacion_cliente?: number;
+  comentarios_cliente?: string;
+  costo_servicio?: number;
+  costo_repuestos?: number;
+}
+
+export interface EspecialidadVehiculoRead {
+  id: number;
+  id_taller: number;
+  tipo_vehiculo: string;
+  marca: string | null;
+  modelo: string | null;
+  reparaciones_exitosas: number;
+  calificacion_promedio: number | null;
+  dias_sin_falla: number | null;
+  fecha_creacion: string;
+}
+
+export interface EspecialidadVehiculoCreate {
+  id_taller: number;
+  tipo_vehiculo: string;
+  marca?: string;
+  modelo?: string;
+  reparaciones_exitosas?: number;
+  calificacion_promedio?: number;
+  dias_sin_falla?: number;
+}
+
+export interface FeedbackAsignacion {
+  id_taller_asignado: number;
+  satisfaccion_cliente: number;
+  recomendacion_aceptada: boolean;
+  comentarios?: string;
+}
+
+export interface WorkshopPerformanceMetrics {
+  id_taller: number;
+  total_servicios: number;
+  calificacion_promedio: number | null;
+  tiempo_promedio_reparacion_minutos: number | null;
+  gasto_total: number;
+}
+
+export interface EspecialidadStats {
+  tipo_vehiculo: string;
+  marca: string | null;
+  exitosas: number;
+  rating: number | null;
+  dias_sin_falla: number | null;
+}
+
+export interface DashboardAnalisisResponse {
+  total_talleres: number;
+  talleres_activos: number;
+  rating_promedio_sistema: number;
+  total_servicios_registrados: number;
+  talleres_top: WorkshopPerformanceMetrics[];
+  especialidades_demandadas: {
+    tipo_vehiculo: string;
+    count: number;
+    rating_promedio: number;
+  }[];
+}
+
+export interface AsignacionMultipleCandidatos {
+  incidente_id: number;
+  talleres: number[];
+  max_intentos?: number;
+  timeout_respuesta_minutos?: number;
 }

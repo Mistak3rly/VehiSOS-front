@@ -418,3 +418,33 @@
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.4; }
 }
+
+// ── ANALYTICS SECTION ──────────────────────────
+.analytics-section {
+  margin-top: 2rem;
+
+  .analytics-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    gap: 1rem;
+    color: #a0aec0;
+
+    p {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+  }
+
+  .analytics-subtitle {
+    font-size: 0.85rem;
+    color: #a0aec0;
+    font-weight: 400;
+  }
+}
+
+.map-section {
+  margin: 2rem 0;
+}

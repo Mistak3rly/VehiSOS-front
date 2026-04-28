@@ -1,13 +1,13 @@
 <div class="dashboard-container">
   <header class="dashboard-header">
     <div class="welcome">
-      <h1>{{ esTecnico ? 'Panel de Técnico' : 'Gestión de Taller' }}</h1>
-      <p>{{ esTecnico ? 'Tus casos asignados y estado de servicio.' : 'Control operativo y despacho de servicios VehiSOS.' }}</p>
+      <h1>{{ esTecnico() ? 'Panel de Técnico' : 'Gestión de Taller' }}</h1>
+      <p>{{ esTecnico() ? 'Tus casos asignados y estado de servicio.' : 'Control operativo y despacho de servicios VehiSOS.' }}</p>
     </div>
   </header>
 
   <section class="stats-grid">
-    <div class="stat-card" *ngFor="let stat of stats" [class]="stat.color">
+    <div class="stat-card" *ngFor="let stat of stats()" [class]="stat.color">
       <div class="stat-icon">
         <span class="material-icons-round">{{ stat.icon }}</span>
       </div>
@@ -22,7 +22,7 @@
     <!-- Solicitudes disponibles (taller y técnico) -->
     <section class="activity-section card">
       <div class="section-header">
-        <h2>{{ esTecnico ? 'Solicitudes Disponibles' : 'Próximas Atenciones' }}</h2>
+        <h2>{{ esTecnico() ? 'Solicitudes Disponibles' : 'Próximas Atenciones' }}</h2>
       </div>
       <div class="activity-list" *ngIf="pendingServices.length > 0; else noServices">
         <div class="activity-item" *ngFor="let service of pendingServices">
@@ -44,15 +44,15 @@
     <!-- Técnicos (solo taller) / Mi estado (técnico) -->
     <section class="activity-section card">
       <div class="section-header">
-        <h2>{{ esTecnico ? 'Mi Estado' : 'Disponibilidad de Técnicos' }}</h2>
+        <h2>{{ esTecnico() ? 'Mi Estado' : 'Disponibilidad de Técnicos' }}</h2>
       </div>
 
       <!-- Vista técnico: su propio estado -->
-      <div *ngIf="esTecnico" class="tecnico-status">
+      <div *ngIf="esTecnico()" class="tecnico-status">
         <div class="status-self">
-          <div class="status-avatar">{{ nombreInicial }}</div>
+          <div class="status-avatar">{{ nombreInicial() }}</div>
           <div class="status-info">
-            <strong>{{ nombreUsuario }}</strong>
+            <strong>{{ nombreUsuario() }}</strong>
             <span class="status-tag status-success">Activo</span>
           </div>
         </div>
@@ -60,7 +60,7 @@
       </div>
 
       <!-- Vista taller: lista de técnicos -->
-      <div class="activity-list" *ngIf="!esTecnico">
+      <div class="activity-list" *ngIf="!esTecnico()">
         <div *ngIf="technicians.length === 0" class="empty-list">
           <span class="material-icons-round">engineering</span>
           <p>Sin técnicos registrados aún.</p>

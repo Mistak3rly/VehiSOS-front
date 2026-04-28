@@ -14,6 +14,7 @@ import { Vista_gestion_tecnicos } from './features/taller/pages/technicians/gest
 import { VistaGestionSolicitudes } from './features/taller/pages/requests/vista-gestion-solicitudes';
 import { DetalleIncidenteComponent } from './features/taller/pages/incident-detail/incident-detail.component';
 import { PagoList } from './features/pagos/pages/pago-list/pago-list';
+import { NotificacionList } from './features/notificaciones/pages/notificacion-list/notificacion-list';
 import { AdminDashboard } from './features/dashboard/pages/admin-dashboard/admin-dashboard';
 import { WorkshopApproval } from './features/admin/pages/workshop-approval/workshop-approval';
 import { AlgorithmConfig } from './features/admin/pages/algorithm-config/algorithm-config';
@@ -55,6 +56,7 @@ export const routes: Routes = [
   // SHARED ROUTES
   { path: 'perfil', component: VistaPerfiles },
   { path: 'vehiculos', component: VistaVehiculos },
+  { path: 'notificaciones', component: NotificacionList },
 
   { path: '', redirectTo: 'login', pathMatch: 'full' },
 ];

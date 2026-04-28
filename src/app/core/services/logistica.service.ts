@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import {
   TallerRead,
@@ -28,6 +29,8 @@ export class LogisticaService {
 
   /** Emite cada vez que llega una notificación nueva por WebSocket */
   readonly notificacion$ = new Subject<NotificacionRead>();
+  /** Emite cuando cambia la lista de notificaciones o el estado de lectura */
+  readonly notificacionesActualizadas$ = new Subject<void>();
   private ws: WebSocket | null = null;
   private wsRetryDelay = 1000;
   private wsRetryCount = 0;
@@ -154,6 +157,8 @@ export class LogisticaService {
     return this.http.patch<NotificacionRead>(
       `${this.BASE}/notificaciones/${notificationId}/leer`,
       {}
+    ).pipe(
+      tap(() => this.notificacionesActualizadas$.next())
     );
   }
 
@@ -163,7 +168,9 @@ export class LogisticaService {
     return this.http.post(`${environment.apiUrl}/api/v1/logistica/notificaciones/test/manual`, {
       target_user_id: idUsuario,
       ...mensaje
-    });
+    }).pipe(
+      tap(() => this.notificacionesActualizadas$.next())
+    );
   }
 
   // ── WebSocket notificaciones ──────────────
@@ -184,6 +191,7 @@ export class LogisticaService {
       try {
         const data = JSON.parse(event.data);
         this.notificacion$.next(data);
+        this.notificacionesActualizadas$.next();
       } catch (e) {
         console.error('Error al parsear notificación WS', e);
       }

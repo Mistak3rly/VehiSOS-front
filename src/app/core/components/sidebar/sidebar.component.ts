@@ -4,6 +4,7 @@ import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
 import { LogisticaService } from '../../services/logistica.service';
+import { environment } from '../../../../environments/environment';
 
 interface SubMenuItem {
   title: string;
@@ -108,9 +109,11 @@ export class SidebarComponent implements OnInit {
   ngOnInit() {
     if (this.auth.isAuthenticated()) {
       this.loadUnreadCount();
-      this.logistica.conectarNotificacionesWs(); // Iniciar conexión en tiempo real [CU-013]
-      this.logistica.notificacion$.subscribe(() => {
-        this.unreadCount.update(c => c + 1);
+      if (!environment.useMockData) {
+        this.logistica.conectarNotificacionesWs(); // Iniciar conexión en tiempo real [CU-013]
+      }
+      this.logistica.notificacionesActualizadas$.subscribe(() => {
+        this.loadUnreadCount();
       });
     }
   }

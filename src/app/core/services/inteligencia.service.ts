@@ -14,6 +14,11 @@ import {
   WorkshopAssistantRequest,
   WorkshopAssistantResponse,
   TrazabilidadCombinadaResponse,
+  DesempenoTallerRead,
+  FeedbackAsignacion,
+  WorkshopPerformanceMetrics,
+  EspecialidadVehiculoRead,
+  DashboardAnalisisResponse,
 } from '../models/api.models';
 
 @Injectable({ providedIn: 'root' })
@@ -94,6 +99,53 @@ export class InteligenciaService {
   getTrazabilidad(incidenteId: number): Observable<TrazabilidadCombinadaResponse> {
     return this.http.get<TrazabilidadCombinadaResponse>(
       `${this.BASE}/incidentes/${incidenteId}/trazabilidad`
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────
+  // SISTEMA IA - FEEDBACK Y DESEMPEÑO
+  // ───────────────────────────────────────────────────────────
+
+  /** Registra feedback sobre una asignación realizada */
+  submitAssignmentFeedback(
+    incidenteId: number,
+    feedback: FeedbackAsignacion
+  ): Observable<DesempenoTallerRead> {
+    return this.http.post<DesempenoTallerRead>(
+      `${this.BASE}/incidentes/${incidenteId}/feedback-asignacion`,
+      feedback
+    );
+  }
+
+  /** Obtiene las métricas de desempeño de un taller */
+  getWorkshopPerformance(tallerId: number): Observable<WorkshopPerformanceMetrics> {
+    return this.http.get<WorkshopPerformanceMetrics>(
+      `${this.BASE}/talleres/${tallerId}/desempeno`
+    );
+  }
+
+  /** Obtiene el historial de desempeño de un taller (paginado) */
+  getWorkshopHistory(
+    tallerId: number,
+    skip: number = 0,
+    limit: number = 50
+  ): Observable<DesempenoTallerRead[]> {
+    return this.http.get<DesempenoTallerRead[]>(
+      `${this.BASE}/talleres/${tallerId}/historial-desempeno?skip=${skip}&limit=${limit}`
+    );
+  }
+
+  /** Obtiene las especialidades de un taller por tipo de vehículo */
+  getWorkshopSpecialties(tallerId: number): Observable<EspecialidadVehiculoRead[]> {
+    return this.http.get<EspecialidadVehiculoRead[]>(
+      `${this.BASE}/talleres/${tallerId}/especialidades`
+    );
+  }
+
+  /** Obtiene análisis agregado de todos los talleres (admin) */
+  getDashboardAnalytics(): Observable<DashboardAnalisisResponse> {
+    return this.http.get<DashboardAnalisisResponse>(
+      `${this.BASE}/dashboard/analisis-talleres`
     );
   }
 }

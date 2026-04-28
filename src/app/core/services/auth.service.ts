@@ -113,6 +113,26 @@ export class AuthService {
     if (auth.user.roles?.length) {
       localStorage.setItem('userRole', auth.user.roles[0].nombre);
     }
+
+    // Priorizar `taller_id` devuelto por el backend (campo de primer nivel)
+    const backendTallerId = (auth as AuthResponse & { taller_id?: number }).taller_id;
+    if (backendTallerId !== undefined && backendTallerId !== null) {
+      localStorage.setItem('taller_id', String(backendTallerId));
+    } else {
+      // Fallback: buscar dentro del user o usar heurística por rol
+      const sessionUser = auth.user as UserReadDetail & { taller_id?: number; id_taller?: number };
+      const existingTallerId = localStorage.getItem('taller_id');
+      const resolvedTallerId = sessionUser.taller_id ?? sessionUser.id_taller;
+      if (resolvedTallerId !== undefined && resolvedTallerId !== null) {
+        localStorage.setItem('taller_id', String(resolvedTallerId));
+      } else if (!existingTallerId && auth.user.roles?.length) {
+        const roleName = auth.user.roles[0].nombre.toLowerCase();
+        if (roleName === 'operador' || roleName === 'tecnico' || roleName === 'taller') {
+          localStorage.setItem('taller_id', '1');
+        }
+      }
+    }
+
     this.currentUser.set(auth.user);
     this.isAuthenticated.set(true);
   }

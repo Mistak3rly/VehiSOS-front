@@ -1,1 +1,130 @@
-<p>taller-dashboard works!</p>
+<div class="taller-dashboard">
+  <!-- Encabezado -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <h1>Dashboard del Taller Operario</h1>
+      <p class="subtitle">Gestiona tu desempeño y especialidades</p>
+    </div>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="refreshData()"
+      [disabled]="isLoading"
+      class="refresh-btn"
+    >
+      <mat-icon>refresh</mat-icon>
+      Actualizar
+    </button>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Cargando datos...</p>
+  </div>
+
+  <!-- Contenido Principal -->
+  <mat-tab-group *ngIf="!isLoading" class="dashboard-tabs">
+    <!-- Tab 1: Desempeño -->
+    <mat-tab label="📊 Desempeño">
+      <div class="tab-content">
+        <app-performance-card [metrics]="performance"></app-performance-card>
+
+        <!-- Resumen Adicional -->
+        <mat-card class="summary-card" *ngIf="performance">
+          <mat-card-header>
+            <mat-card-title>Análisis Detallado</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="analysis-grid">
+              <div class="analysis-item">
+                <span class="label">Promedio Mensual (Servicios)</span>
+                <span class="value">{{ (performance.total_servicios / 12) | number: '1.0-0' }}</span>
+              </div>
+              <div class="analysis-item">
+                <span class="label">Ingresos Estimados</span>
+                <span class="value">${{ performance.gasto_total.toFixed(2) }}</span>
+              </div>
+              <div class="analysis-item">
+                <span class="label">Tiempo Promedio Piso</span>
+                <span class="value">{{ performance.tiempo_promedio_reparacion_minutos }}min</span>
+              </div>
+              <div class="analysis-item">
+                <span class="label">Satisfacción</span>
+                <span class="value" [class.high]="(performance.calificacion_promedio || 0) >= 4">
+                  {{ performance.calificacion_promedio !== null ? performance.calificacion_promedio.toFixed(1) : 'N/A' }}/5.0
+                </span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- Tab 2: Especialidades -->
+    <mat-tab label="🔧 Especialidades">
+      <div class="tab-content">
+        <app-specialty-table [specialties]="specialties"></app-specialty-table>
+      </div>
+    </mat-tab>
+
+    <!-- Tab 3: Historial -->
+    <mat-tab label="📋 Historial de Servicios">
+      <div class="tab-content">
+        <mat-card class="history-card">
+          <mat-card-header>
+            <mat-card-title>Últimos 20 Servicios</mat-card-title>
+          </mat-card-header>
+
+          <div class="table-container" *ngIf="history.length > 0">
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Incidente</th>
+                  <th>Tiempo Reparación</th>
+                  <th>Calificación</th>
+                  <th>Éxito</th>
+                  <th>Costo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of history">
+                  <td>{{ item.fecha_creacion | date: 'short' }}</td>
+                  <td>#{{ item.id_incidente || '-' }}</td>
+                  <td>{{ item.tiempo_reparacion_minutos || '-' }} min</td>
+                  <td>
+                    <span class="rating" [class.good]="(item.calificacion_cliente || 0) >= 4">
+                      {{ item.calificacion_cliente || '-' }}/5
+                    </span>
+                  </td>
+                  <td>
+                    <mat-icon class="status-icon" [class.success]="item.tasa_exito">
+                      {{ item.tasa_exito ? 'check_circle' : 'cancel' }}
+                    </mat-icon>
+                  </td>
+                  <td>${{ (item.costo_servicio || 0) + (item.costo_repuestos || 0) | number: '1.2-2' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div *ngIf="history.length === 0" class="no-data">
+            <p>No hay historial de servicios registrado</p>
+          </div>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- Tab 4: Feedback -->
+    <mat-tab label="⭐ Enviar Feedback">
+      <div class="tab-content">
+        <app-feedback-form
+          (feedbackSubmitted)="onFeedbackSubmitted($event)"
+          (cancelled)="onFeedbackCancelled()"
+        ></app-feedback-form>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>
+

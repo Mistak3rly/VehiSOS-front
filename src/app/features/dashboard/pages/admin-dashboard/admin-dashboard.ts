@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   DashboardIAService,
@@ -7,22 +7,58 @@ import {
   AnalisisIARead,
 } from '../../../../core/services/dashboard-ia.service';
 import { MapComponent } from '../../../../core/components/map/map.component';
+import { InteligenciaService } from '../../../../core/services/inteligencia.service';
+import { AnalyticsDashboardComponent } from './analytics-dashboard';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { DashboardAnalisisResponse } from '../../../../core/models/api.models';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, MapComponent],
+  imports: [
+    CommonModule,
+    MapComponent,
+    AnalyticsDashboardComponent,
+    MatTabsModule,
+    MatSnackBarModule,
+    MatProgressSpinnerModule,
+    MatButtonModule,
+    MatIconModule,
+  ],
   templateUrl: './admin-dashboard.html',
   styleUrl: './admin-dashboard.scss',
 })
-export class AdminDashboard implements OnInit {
+export class AdminDashboard implements OnInit, OnDestroy {
   isLoading = signal(true);
   hasError  = signal(false);
   data      = signal<DashboardIAData | null>(null);
 
-  constructor(private dashboardService: DashboardIAService) {}
+  // IA Features
+  workshopAnalytics = signal<DashboardAnalisisResponse | null>(null);
+  analyticsLoading = signal(false);
+  private destroy$ = new Subject<void>();
 
-  ngOnInit() { this.cargarDatos(); }
+  constructor(
+    private dashboardService: DashboardIAService,
+    private inteligencia: InteligenciaService,
+    private snackBar: MatSnackBar
+  ) {}
+
+  ngOnInit() {
+    this.cargarDatos();
+    this.loadWorkshopAnalytics();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   cargarDatos() {
     this.isLoading.set(true);
@@ -36,6 +72,24 @@ export class AdminDashboard implements OnInit {
         this.isLoading.set(false);
       },
     });
+  }
+
+  loadWorkshopAnalytics() {
+    this.analyticsLoading.set(true);
+    this.inteligencia
+      .getDashboardAnalytics()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.workshopAnalytics.set(data);
+          this.analyticsLoading.set(false);
+        },
+        error: (err) => {
+          console.error('Error cargando analytics:', err);
+          this.snackBar.open('Error cargando análiticas de talleres', 'Cerrar', { duration: 5000 });
+          this.analyticsLoading.set(false);
+        },
+      });
   }
 
   // ── Helpers de visualización ─────────────────

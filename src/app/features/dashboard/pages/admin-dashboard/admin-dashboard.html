@@ -403,6 +403,24 @@
       </ng-template>
     </section>
 
+    <!-- ═══════════════════════════════════════
+         ANALYTICS DE DESEMPEÑO DE TALLERES
+         ═══════════════════════════════════════ -->
+    <section class="card analytics-section">
+      <div class="panel-header">
+        <span class="material-icons-round">trending_up</span>
+        <h2>Análiticas de Desempeño de Talleres</h2>
+        <span class="analytics-subtitle">monitoreo de rendimiento y especialidades</span>
+      </div>
+
+      <div *ngIf="analyticsLoading()" class="analytics-loading">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Cargando análiticas...</p>
+      </div>
+
+      <app-analytics-dashboard [analytics]="workshopAnalytics()"></app-analytics-dashboard>
+    </section>
+
   </ng-container>
 
 </div>

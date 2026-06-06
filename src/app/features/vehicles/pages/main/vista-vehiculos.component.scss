@@ -1,5 +1,5 @@
-$primary-red: #C40016;
-$dark-red: #8F0010;
+$primary-red: var(--primary-red);
+$dark-red: var(--primary-container);
 $bg-light: #F8F1F1;
 $white: #FFFFFF;
 $text-dark: #2A1A1A;

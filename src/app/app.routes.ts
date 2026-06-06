@@ -22,10 +22,12 @@ import { GlobalFinances } from './features/admin/pages/global-finances/global-fi
 import { UserManagement } from './features/admin/pages/user-management/user-management';
 import { RolesPermissions } from './features/admin/pages/roles-permissions/roles-permissions';
 import { AuditLogs } from './features/admin/pages/audit-logs/audit-logs';
+import { TenantManagement } from './features/admin/pages/tenant-management/tenant-management';
 import { RecomendacionIAComponent } from './features/talleres/pages/recomendacion-ia/recomendacion-ia.component';
 
 export const routes: Routes = [
   { path: 'login', component: VistaLogin },
+  { path: 'admin/login', component: VistaLogin, data: { adminLogin: true } },
   { path: 'register', component: Register },
   { path: 'forgot-password', component: ForgotPassword },
 
@@ -35,6 +37,7 @@ export const routes: Routes = [
   { path: 'admin/configuracion', component: AlgorithmConfig },
   { path: 'admin/finanzas', component: GlobalFinances },
   { path: 'admin/usuarios', component: UserManagement },
+  { path: 'admin/tenants', component: TenantManagement },
   { path: 'admin/roles', component: RolesPermissions },
   { path: 'admin/auditoria', component: AuditLogs },
 

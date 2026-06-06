@@ -1,9 +1,9 @@
-$primary-red: #C40016;
-$dark-red: #8F0010;
-$bg-light: #F8F1F1;
-$white: #FFFFFF;
-$text-dark: #2A1A1A;
-$text-secondary: #746A6A;
+$primary-red: var(--primary-red);
+$dark-red: var(--primary-container);
+$bg-light: var(--bg-light);
+$white: var(--surface);
+$text-dark: var(--text-dark);
+$text-secondary: var(--text-muted);
 $shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 
 .emergency-report-container {

@@ -30,6 +30,7 @@ export interface RoleCreate {
 
 export interface UserReadDetail {
   id: number;
+  tenant_id: number | null;
   nombre: string;
   apellidos: string;
   correo: string;
@@ -42,6 +43,30 @@ export interface UserReadDetail {
   nombre_dueno: string | null;
   ci_dueno: string | null;
   taller_id: number | null;
+  tenant?: TenantRead | null;
+}
+
+export interface TenantRead {
+  id: number;
+  nombre: string;
+  descripcion: string | null;
+  estado: string;
+  activo: boolean;
+  plan: string;
+  configuracion: Record<string, unknown>;
+  color_tema: string;
+  fecha_creacion: string;
+  fecha_actualizacion: string;
+}
+
+export interface TenantCreate {
+  nombre: string;
+  descripcion?: string;
+  estado?: string;
+  activo?: boolean;
+  plan?: string;
+  configuracion?: Record<string, unknown>;
+  color_tema?: string;
 }
 
 export interface UserCreate {
@@ -58,6 +83,10 @@ export interface UserCreate {
   ci_dueno?: string;
 }
 
+export interface AdminUserCreate extends UserCreate {
+  tenant_id: number;
+}
+
 export interface UserUpdate {
   nombre?: string;
   apellidos?: string;
@@ -71,12 +100,17 @@ export interface UserUpdate {
 export interface LoginRequest {
   identificador: string;
   password: string;
+  tenant_id?: number | null;
 }
 
 export interface AuthResponse {
   access_token: string;
   token_type: string;
   user: UserReadDetail;
+  tenant?: TenantRead | null;
+  tenant_id?: number | null;
+  rol?: string | null;
+  permisos?: string[];
   taller_id?: number;
 }
 

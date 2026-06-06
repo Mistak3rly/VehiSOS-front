@@ -1,7 +1,9 @@
-import { Component, signal, OnInit } from '@angular/core';
+import { Component, signal, OnInit, effect } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { SidebarComponent } from './core/components/sidebar/sidebar.component';
+import { AuthService } from './core/services/auth.service';
+import { TenantThemeService } from './core/services/tenant-theme.service';
 import { filter } from 'rxjs/operators';
 
 @Component({
@@ -17,7 +19,18 @@ export class App implements OnInit {
 
   private readonly AUTH_ROUTES = ['/login', '/register', '/forgot-password'];
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private auth: AuthService,
+    private themeService: TenantThemeService,
+  ) {
+    // Re-aplica el tema del tenant en TODA la app cada vez que cambia el usuario
+    effect(() => {
+      const user = this.auth.currentUser();
+      const tenant = user?.tenant ?? this.auth.getTenant();
+      this.themeService.applyTenantTheme(tenant);
+    });
+  }
 
   ngOnInit() {
     // Evaluar la ruta inicial antes del primer NavigationEnd

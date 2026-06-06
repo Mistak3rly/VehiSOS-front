@@ -91,42 +91,45 @@ export class TallerDashboardComponent implements OnInit {
   }
 
   cargarDatos() {
-    // Solicitudes disponibles (funciona para taller y técnico)
     this.logisticaService.listSolicitudesDisponibles().subscribe({
       next: (solicitudes) => {
-        const mapped = solicitudes.map(s => ({
+        this.pendingServices = solicitudes.map(s => ({
           id: s.codigo_incidente,
           vehicle: s.titulo || 'Sin Título',
           issue: s.tipo_codigo || 'General',
           time: this.datePipe.transform(s.fecha_reporte, 'shortTime') || ''
         }));
-        this.pendingServices = mapped.length > 0 ? mapped : [...this.demoPendingServices];
         const statTitle = this.esTecnico() ? 'Solicitudes Disponibles' : 'Atenciones Disponibles';
         this.actualizarStat(statTitle, this.pendingServices.length.toString());
       },
-      error: () => { this.setDemoDashboardData(); }
+      error: () => {
+        this.pendingServices = [];
+        this.actualizarStat('Atenciones Disponibles', '0');
+      }
     });
 
-    // Solo para taller propietario: técnicos y finanzas
     if (!this.esTecnico()) {
       const tallerId = this.getTallerId();
-      if (!tallerId) return;
+      if (!tallerId) {
+        this.actualizarStat('Técnicos', '0');
+        this.actualizarStat('Ganancias del Mes', 'Bs. 0');
+        return;
+      }
 
       this.logisticaService.listPersonal(tallerId).subscribe({
         next: (personal) => {
-          const mapped = personal.map(p => ({
+          this.technicians = personal.map(p => ({
             name: p.nombre_usuario
               ? `${p.nombre_usuario} ${p.apellidos_usuario ?? ''}`.trim()
               : `Técnico #${p.id_usuario}`,
             status: p.disponible ? 'Disponible' : 'Ocupado',
             class: p.disponible ? 'status-success' : 'status-warning'
           }));
-          this.technicians = mapped.length > 0 ? mapped : [...this.demoTechnicians];
           this.actualizarStat('Técnicos', this.technicians.length.toString());
         },
         error: () => {
-          this.technicians = [...this.demoTechnicians];
-          this.actualizarStat('Técnicos', this.technicians.length.toString());
+          this.technicians = [];
+          this.actualizarStat('Técnicos', '0');
         }
       });
 
@@ -135,11 +138,9 @@ export class TallerDashboardComponent implements OnInit {
           this.actualizarStat('Ganancias del Mes', `Bs. ${Number(resumen.total_neto_taller).toLocaleString()}`);
         },
         error: () => {
-          this.actualizarStat('Ganancias del Mes', 'Bs. 48,250');
+          this.actualizarStat('Ganancias del Mes', 'Bs. 0');
         }
       });
-    } else if (this.pendingServices.length === 0 || this.technicians.length === 0) {
-      this.setDemoDashboardData();
     }
   }
 }

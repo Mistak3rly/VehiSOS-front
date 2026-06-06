@@ -1,5 +1,5 @@
-$red: #C40016;
-$red-dark: #8F0010;
+$red: var(--primary-red);
+$red-dark: var(--primary-container);
 $red-light: rgba(196, 0, 22, 0.08);
 $bg: #F8F1F1;
 $surface: #FFFFFF;

@@ -1,7 +1,63 @@
 <div class="login-container">
+
+  <!-- Overlay -->
+  <div class="panel-overlay" [class.open]="isPanelOpen()" (click)="togglePanel()"></div>
+
+  <!-- Tenant side panel -->
+  <aside class="tenant-panel" [class.open]="isPanelOpen()">
+    <div class="tenant-panel-header">
+      <h2>Tenants disponibles</h2>
+      <button class="close-btn" (click)="togglePanel()" aria-label="Cerrar">
+        <svg xmlns="http://www.w3.org/2000/svg" height="22" viewBox="0 -960 960 960" width="22" fill="currentColor">
+          <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/>
+        </svg>
+      </button>
+    </div>
+
+    <p class="tenant-panel-sub">Organizaciones registradas en el sistema.</p>
+
+    <div class="tenant-cards">
+      @if (tenants().length === 0) {
+        <div class="tenant-empty">
+          <svg xmlns="http://www.w3.org/2000/svg" height="40" viewBox="0 -960 960 960" width="40" fill="currentColor">
+            <path d="M480-120q-33 0-56.5-23.5T400-200q0-33 23.5-56.5T480-280q33 0 56.5 23.5T560-200q0 33-23.5 56.5T480-120Zm-40-240v-480h80v480h-80Z"/>
+          </svg>
+          <p>No hay tenants creados aún.</p>
+        </div>
+      }
+      @for (tenant of tenants(); track tenant.id) {
+        <div class="tenant-card"
+             [class.selected]="selectedTenant()?.id === tenant.id"
+             [style.--tenant-color]="tenant.color_tema"
+             (click)="selectTenantFromPanel(tenant)"
+             role="button"
+             [attr.aria-label]="'Seleccionar ' + tenant.nombre">
+          <div class="tenant-card-bar"></div>
+          <div class="tenant-card-body">
+            <div class="tenant-card-title">
+              <span class="tenant-dot" [style.background]="tenant.color_tema"></span>
+              <strong>{{ tenant.nombre }}</strong>
+              @if (selectedTenant()?.id === tenant.id) {
+                <span class="check-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" height="16" viewBox="0 -960 960 960" width="16" fill="currentColor">
+                    <path d="M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z"/>
+                  </svg>
+                </span>
+              }
+            </div>
+            <span class="tenant-meta">{{ tenant.plan | uppercase }} · {{ tenant.estado | uppercase }}</span>
+            <div class="tenant-card-placeholder">
+              <span>Sin datos aún</span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </aside>
+
   <!-- Header -->
   <header class="header">
-    <button class="menu-btn" aria-label="Menú">
+    <button class="menu-btn" aria-label="Menú" (click)="togglePanel()">
       <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor">
         <path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/>
       </svg>
@@ -19,8 +75,25 @@
   <!-- Main Content -->
   <main class="content">
     <div class="card">
+      @if (selectedTenant()) {
+        <div class="tenant-badge" [style.--badge-color]="selectedTenant()!.color_tema">
+          <span class="tenant-badge-dot" [style.background]="selectedTenant()!.color_tema"></span>
+          <span>{{ selectedTenant()!.nombre }}</span>
+          <button class="tenant-badge-clear" (click)="clearTenantSelection()" aria-label="Limpiar selección">
+            <svg xmlns="http://www.w3.org/2000/svg" height="14" viewBox="0 -960 960 960" width="14" fill="currentColor">
+              <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/>
+            </svg>
+          </button>
+        </div>
+      }
       <h1 class="title">Iniciar sesión</h1>
-      <p class="subtitle">Accede a tu cuenta para gestionar asistencia vehicular.</p>
+      <p class="subtitle">
+        @if (selectedTenant()) {
+          Accediendo a <strong>{{ selectedTenant()!.nombre }}</strong>
+        } @else {
+          Accede a tu cuenta para gestionar asistencia vehicular.
+        }
+      </p>
 
       <form [formGroup]="loginForm" (ngSubmit)="submitLogin()" class="login-form">
         <!-- Identificador -->
@@ -32,7 +105,9 @@
             </svg>
             <input type="text" id="identificador" formControlName="identificador" placeholder="Correo o documento de identidad" [class.invalid]="isFieldInvalid('identificador')">
           </div>
-          <span class="error-msg" *ngIf="isFieldInvalid('identificador')">El identificador es obligatorio</span>
+          @if (isFieldInvalid('identificador')) {
+            <span class="error-msg">El identificador es obligatorio</span>
+          }
         </div>
 
         <!-- Password -->
@@ -44,7 +119,9 @@
             </svg>
             <input type="password" id="password" formControlName="password" placeholder="Tu contraseña" [class.invalid]="isFieldInvalid('password')">
           </div>
-          <span class="error-msg" *ngIf="isFieldInvalid('password')">La contraseña es obligatoria</span>
+          @if (isFieldInvalid('password')) {
+            <span class="error-msg">La contraseña es obligatoria</span>
+          }
         </div>
 
         <div class="login-options">
@@ -56,9 +133,9 @@
         </div>
 
         <!-- Global Error Message -->
-        <div class="global-error" *ngIf="errorMessage()">
-          {{ errorMessage() }}
-        </div>
+        @if (errorMessage()) {
+          <div class="global-error">{{ errorMessage() }}</div>
+        }
 
         <!-- Submit Button -->
         <button type="submit" class="submit-btn" [disabled]="loginForm.invalid || isLoading()">

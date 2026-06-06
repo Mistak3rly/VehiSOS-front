@@ -33,6 +33,7 @@ import {
   AnalisisImagenesResponse,
   ResumenPriorizacionResponse,
   TrazabilidadCombinadaResponse,
+  AdminUserCreate,
   UserCreate,
   UserReadDetail,
   UserUpdate,
@@ -57,6 +58,7 @@ import {
   AssignRoleRequest,
   AssignPermissionRequest,
   TrazabilidadCombinadaResponse as TrazabilidadResponse,
+  TenantRead,
 } from '../models/api.models';
 
 type DemoRole = RoleRead & { permiso_ids?: number[] };
@@ -80,11 +82,27 @@ interface DemoDb {
   historialDesempeno: DesempenoTallerRead[];
   especialidades: EspecialidadVehiculoRead[];
   personal: PersonalTallerRead[];
+  tenants: TenantRead[];
 }
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 const nowIso = () => new Date().toISOString();
 const seedDate = new Date('2025-04-01T12:00:00.000Z');
+
+const tenantsSeed: TenantRead[] = [
+  {
+    id: 1,
+    nombre: 'Tenant Principal',
+    descripcion: 'Tenant base de compatibilidad para VehiSOS',
+    estado: 'activo',
+    activo: true,
+    plan: 'standard',
+    configuracion: { tema: 'rojo' },
+    color_tema: '#C40016',
+    fecha_creacion: seedDate.toISOString(),
+    fecha_actualizacion: seedDate.toISOString(),
+  },
+];
 
 const rolesSeed = [
   { id: 1, nombre: 'administrador', descripcion: 'Administración general del sistema' },
@@ -149,6 +167,7 @@ function minutesAgo(index: number): string {
 
 function createUsers(): UserReadDetail[] {
   const users: UserReadDetail[] = [];
+  const principalTenant = tenantsSeed[0];
   const workshopUsers = [
     { id: 1, nombre: 'Laura', apellidos: 'Mora', correo: 'admin@vehisos.com', role: 'administrador', taller_id: null },
     { id: 2, nombre: 'Taller', apellidos: 'Operario', correo: 'TallerOperario@gmail.com', role: 'taller', taller_id: 1 },
@@ -176,6 +195,8 @@ function createUsers(): UserReadDetail[] {
       fecha_creacion: seedDate.toISOString(),
       fecha_actualizacion: seedDate.toISOString(),
       roles: [clone(role)],
+      tenant_id: item.role === 'administrador' ? null : principalTenant.id,
+      tenant: item.role === 'administrador' ? null : clone(principalTenant),
       nombre_dueno: item.role === 'taller' ? `${item.nombre} ${item.apellidos}` : null,
       ci_dueno: item.role === 'taller' ? `CI-${200000 + item.id}` : null,
       taller_id: item.taller_id,
@@ -202,6 +223,8 @@ function createUsers(): UserReadDetail[] {
       fecha_creacion: seedDate.toISOString(),
       fecha_actualizacion: seedDate.toISOString(),
       roles: [clone(role)],
+      tenant_id: principalTenant.id,
+      tenant: clone(principalTenant),
       nombre_dueno: null,
       ci_dueno: null,
       taller_id: role.nombre === 'tecnico' ? 1 : null,
@@ -566,6 +589,7 @@ function buildMockDb(): DemoDb {
     historialDesempeno,
     especialidades,
     personal,
+    tenants: tenantsSeed.map(t => clone(t)),
   };
 }
 
@@ -645,6 +669,10 @@ export function buildLoginResponse(payload: LoginRequest): AuthResponse {
     access_token: `demo-token-${matchedUser.id}`,
     token_type: 'bearer',
     user: clone(matchedUser),
+    tenant: matchedUser.tenant ?? null,
+    tenant_id: matchedUser.tenant_id ?? null,
+    rol: matchedUser.roles[0]?.nombre ?? null,
+    permisos: matchedUser.roles[0]?.permisos.map(permission => permission.nombre) ?? [],
     taller_id: matchedUser.taller_id ?? undefined,
   };
 }
@@ -663,6 +691,19 @@ export function buildUserCreate(payload: UserCreate, roleName: 'cliente' | 'tall
     fecha_creacion: nowIso(),
     fecha_actualizacion: nowIso(),
     roles: [clone(role)],
+    tenant_id: 1,
+    tenant: {
+      id: 1,
+      nombre: 'Tenant Principal',
+      descripcion: 'Tenant base de compatibilidad para VehiSOS',
+      estado: 'activo',
+      activo: true,
+      plan: 'standard',
+      configuracion: { tema: 'rojo' },
+      color_tema: '#C40016',
+      fecha_creacion: nowIso(),
+      fecha_actualizacion: nowIso(),
+    },
     nombre_dueno: payload.nombre_dueno ?? null,
     ci_dueno: payload.ci_dueno ?? null,
     taller_id: role.nombre === 'taller' ? 1 : role.nombre === 'tecnico' ? 1 : null,
@@ -1170,4 +1211,58 @@ export function buildFinancialSummary(tallerId?: number): ResumenFinancieroRead 
     total_pagado: Math.round(totalPagado * 100) / 100,
     total_pendiente: Math.round(totalPendiente * 100) / 100,
   };
+}
+
+export function buildAdminUserCreate(payload: AdminUserCreate): UserReadDetail {
+  if (mockDb.users.find(u => u.correo === payload.correo)) {
+    throw { status: 409, error: { detail: 'El correo ya está registrado.' } };
+  }
+  const roleFromIds = payload.role_ids?.length
+    ? mockDb.roles.find(r => r.id === payload.role_ids![0])
+    : undefined;
+  const roleByName = payload.rol ? mockDb.roles.find(r => r.nombre === payload.rol) : undefined;
+  const role = roleFromIds ?? roleByName ?? mockDb.roles[3];
+  const tenant = mockDb.tenants.find(t => t.id === payload.tenant_id) ?? mockDb.tenants[0];
+  const nextId = Math.max(...mockDb.users.map(u => u.id)) + 1;
+  const user: UserReadDetail = {
+    id: nextId,
+    nombre: payload.nombre,
+    apellidos: payload.apellidos,
+    correo: payload.correo,
+    telefono: payload.telefono ?? null,
+    documento_identidad: payload.documento_identidad,
+    activo: payload.activo ?? true,
+    fecha_creacion: nowIso(),
+    fecha_actualizacion: nowIso(),
+    roles: [clone(role)],
+    tenant_id: tenant?.id ?? null,
+    tenant: tenant ? clone(tenant) : null,
+    nombre_dueno: payload.nombre_dueno ?? null,
+    ci_dueno: payload.ci_dueno ?? null,
+    taller_id: role.nombre === 'taller' || role.nombre === 'tecnico' ? 1 : null,
+  };
+  mockDb.users.unshift(user);
+  return clone(user);
+}
+
+export function buildTenantCreate(payload: { nombre: string; descripcion?: string; estado?: string; activo?: boolean; plan?: string; configuracion?: Record<string, unknown>; color_tema?: string }): TenantRead {
+  const nextId = Math.max(...mockDb.tenants.map(t => t.id)) + 1;
+  const existing = mockDb.tenants.find(t => t.nombre === payload.nombre);
+  if (existing) {
+    throw { status: 409, error: { detail: 'El tenant ya existe' } };
+  }
+  const tenant: TenantRead = {
+    id: nextId,
+    nombre: payload.nombre,
+    descripcion: payload.descripcion ?? null,
+    estado: payload.estado ?? 'activo',
+    activo: payload.activo ?? true,
+    plan: payload.plan ?? 'standard',
+    configuracion: payload.configuracion ?? {},
+    color_tema: payload.color_tema ?? '#C40016',
+    fecha_creacion: nowIso(),
+    fecha_actualizacion: nowIso(),
+  };
+  mockDb.tenants.unshift(tenant);
+  return clone(tenant);
 }

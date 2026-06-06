@@ -55,7 +55,7 @@
   }
 
   &.urgency-critical {
-    background: linear-gradient(135deg, #7a000a 0%, #c40016 100%);
+    background: linear-gradient(135deg, var(--primary-container) 0%, var(--primary-red) 100%);
   }
 
   &.urgency-high {

@@ -45,6 +45,8 @@ import {
   buildPersonalCreate,
   buildPersonalUpdate,
   buildIncidentTrazabilidad as buildTrazabilidad,
+  buildTenantCreate,
+  buildAdminUserCreate,
 } from '../mock/mock-api-data';
 
 const apiPrefix = `${environment.apiUrl}/api/v1`;
@@ -66,6 +68,14 @@ function readJsonBody<T>(request: Parameters<HttpInterceptorFn>[0]['body']): T {
   return request as T;
 }
 
+function scopedTenantId(): number | null {
+  return currentStoredUser()?.tenant_id ?? null;
+}
+
+function isGlobalAdmin(): boolean {
+  return scopedTenantId() === null;
+}
+
 export const mockApiInterceptor: HttpInterceptorFn = (request, next) => {
   if (!environment.useMockData || !request.url.startsWith(apiPrefix)) {
     return next(request);
@@ -85,11 +95,24 @@ export const mockApiInterceptor: HttpInterceptorFn = (request, next) => {
   }
 
   if (pathname === '/api/v1/usuarios' && method === 'GET') {
-    return ok(mockDb.users);
+    const tid = scopedTenantId();
+    const list = isGlobalAdmin() ? mockDb.users : mockDb.users.filter(u => u.tenant_id === tid);
+    return ok(list);
   }
 
   if (pathname === '/api/v1/usuarios/tecnicos' && method === 'GET') {
-    return ok(mockDb.users.filter(user => user.roles[0]?.nombre === 'tecnico'));
+    const tid = scopedTenantId();
+    const tecnicos = mockDb.users.filter(u => u.roles[0]?.nombre === 'tecnico' && (isGlobalAdmin() || u.tenant_id === tid));
+    return ok(tecnicos);
+  }
+
+  if (pathname === '/api/v1/usuarios/admin' && method === 'POST') {
+    try {
+      return ok(buildAdminUserCreate(readJsonBody(request.body)), 201);
+    } catch (e: unknown) {
+      const err = e as { status: number; error: { detail: string } };
+      return fail(err?.error?.detail ?? 'Error al crear usuario', err?.status ?? 500);
+    }
   }
 
   if (pathname === '/api/v1/usuarios/register' && method === 'POST') {
@@ -136,6 +159,11 @@ export const mockApiInterceptor: HttpInterceptorFn = (request, next) => {
   }
 
   if (pathname === '/api/v1/emergencias/vehiculos' && method === 'GET') {
+    const tid = scopedTenantId();
+    if (!isGlobalAdmin()) {
+      const tenantUserIds = new Set(mockDb.users.filter(u => u.tenant_id === tid).map(u => u.id));
+      return ok(mockDb.vehicles.filter(v => tenantUserIds.has(v.id_usuario)));
+    }
     return ok(mockDb.vehicles);
   }
   const vehicleId = parseId(pathname, /^\/api\/v1\/emergencias\/vehiculos\/(\d+)$/);
@@ -152,6 +180,11 @@ export const mockApiInterceptor: HttpInterceptorFn = (request, next) => {
   }
 
   if (pathname === '/api/v1/emergencias/incidentes' && method === 'GET') {
+    const tid = scopedTenantId();
+    if (!isGlobalAdmin()) {
+      const tenantUserIds = new Set(mockDb.users.filter(u => u.tenant_id === tid).map(u => u.id));
+      return ok(mockDb.incidences.filter(i => tenantUserIds.has(i.id_cliente)));
+    }
     return ok(mockDb.incidences);
   }
   if (pathname === '/api/v1/emergencias/incidentes' && method === 'POST') {
@@ -183,6 +216,11 @@ export const mockApiInterceptor: HttpInterceptorFn = (request, next) => {
   }
 
   if (pathname === '/api/v1/logistica/talleres' && method === 'GET') {
+    const tid = scopedTenantId();
+    if (!isGlobalAdmin()) {
+      const tenantUserIds = new Set(mockDb.users.filter(u => u.tenant_id === tid).map(u => u.id));
+      return ok(mockDb.talleres.filter(t => tenantUserIds.has(t.id_propietario)));
+    }
     return ok(mockDb.talleres);
   }
   const tallerId = parseId(pathname, /^\/api\/v1\/logistica\/talleres\/(\d+)/);
@@ -343,6 +381,18 @@ export const mockApiInterceptor: HttpInterceptorFn = (request, next) => {
 
   if (pathname === '/api/v1/logistica/talleres' && method === 'GET') {
     return ok(mockDb.talleres);
+  }
+
+  if (pathname === '/api/v1/tenants' && method === 'GET') {
+    return ok(mockDb.tenants);
+  }
+  if (pathname === '/api/v1/tenants' && method === 'POST') {
+    try {
+      return ok(buildTenantCreate(readJsonBody(request.body)), 201);
+    } catch (e: unknown) {
+      const err = e as { status: number; error: { detail: string } };
+      return fail(err?.error?.detail ?? 'Error al crear tenant', err?.status ?? 500);
+    }
   }
 
   return fail(`Ruta mock no implementada: ${request.method} ${pathname}`);

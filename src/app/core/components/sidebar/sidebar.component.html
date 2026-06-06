@@ -17,6 +17,22 @@
     </div>
 
     <!-- Menu Section -->
+    <section class="tenant-stack" *ngIf="isAdminRole() && activeTenants().length > 0">
+      <div class="tenant-stack-header">
+        <span>Tenants activos</span>
+        <a routerLink="/admin/tenants">Gestionar</a>
+      </div>
+      <div class="tenant-stack-list">
+        <a class="tenant-card" *ngFor="let tenant of activeTenants()" routerLink="/admin/tenants">
+          <span class="tenant-dot" [style.backgroundColor]="tenant.color_tema"></span>
+          <div class="tenant-meta">
+            <strong>{{ tenant.nombre }}</strong>
+            <small>{{ tenant.plan }} · {{ tenant.estado }}</small>
+          </div>
+        </a>
+      </div>
+    </section>
+
     <nav class="sidebar-nav">
       <ul>
         <ng-container *ngFor="let item of menuItems">

@@ -3,8 +3,10 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { AuthService } from '../../services/auth.service';
+import { AdminService } from '../../services/admin.service';
 import { LogisticaService } from '../../services/logistica.service';
 import { environment } from '../../../../environments/environment';
+import { TenantRead } from '../../models/api.models';
 
 interface SubMenuItem {
   title: string;
@@ -29,10 +31,12 @@ interface MenuItem {
 })
 export class SidebarComponent implements OnInit {
   private auth = inject(AuthService);
+  private adminService = inject(AdminService);
   private logistica = inject(LogisticaService);
   isCollapsed = signal(false);
   isMobileOpen = signal(false);
   unreadCount = signal(0);
+  activeTenants = signal<TenantRead[]>([]);
   
   // Rol derivado reactivamente del servicio de autenticación
   userRole = computed(() => {
@@ -86,6 +90,7 @@ export class SidebarComponent implements OnInit {
     // ── ADMINISTRADOR ─────────────────────────────────────
     { title: 'Dashboard',              icon: 'dashboard',            route: '/admin/dashboard',          roles: ['admin', 'administrador'] },
     { title: 'Aprobación de Talleres', icon: 'verified',             route: '/admin/talleres/aprobacion', roles: ['admin', 'administrador'] },
+    { title: 'Tenants',                icon: 'domain',               route: '/admin/tenants',             roles: ['admin', 'administrador'] },
     { title: 'Config. Algoritmo',      icon: 'tune',                 route: '/admin/configuracion',       roles: ['admin', 'administrador'] },
     { title: 'Finanzas Globales',      icon: 'account_balance',      route: '/admin/finanzas',            roles: ['admin', 'administrador'] },
     { title: 'Gestión de Usuarios',    icon: 'manage_accounts',      route: '/admin/usuarios',            roles: ['admin', 'administrador'] },
@@ -109,6 +114,9 @@ export class SidebarComponent implements OnInit {
   ngOnInit() {
     if (this.auth.isAuthenticated()) {
       this.loadUnreadCount();
+      if (this.isAdminRole()) {
+        this.loadActiveTenants();
+      }
       if (!environment.useMockData) {
         this.logistica.conectarNotificacionesWs(); // Iniciar conexión en tiempo real [CU-013]
       }
@@ -116,6 +124,19 @@ export class SidebarComponent implements OnInit {
         this.loadUnreadCount();
       });
     }
+  }
+
+  isAdminRole(): boolean {
+    const currentRole = this.userRole().toLowerCase();
+    return currentRole === 'admin' || currentRole === 'administrador';
+  }
+
+  loadActiveTenants() {
+    if (!this.isAdminRole()) return;
+    this.adminService.listTenants().subscribe({
+      next: (tenants) => this.activeTenants.set(tenants.filter(tenant => tenant.activo)),
+      error: () => this.activeTenants.set([]),
+    });
   }
 
   loadUnreadCount() {

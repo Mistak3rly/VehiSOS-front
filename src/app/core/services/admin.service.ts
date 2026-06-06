@@ -3,6 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { 
+  AdminUserCreate,
+  TenantCreate,
+  TenantRead,
   UserReadDetail, UserUpdate, 
   RoleRead, RoleCreate, 
   PermissionRead, PermissionCreate,
@@ -12,12 +15,17 @@ import {
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   private readonly BASE = `${environment.apiUrl}/api/v1/usuarios`;
+  private readonly TENANTS_BASE = `${environment.apiUrl}/api/v1/tenants`;
 
   constructor(private http: HttpClient) {}
 
   // USERS
   listUsers(): Observable<UserReadDetail[]> {
     return this.http.get<UserReadDetail[]>(this.BASE);
+  }
+
+  createUser(payload: AdminUserCreate): Observable<UserReadDetail> {
+    return this.http.post<UserReadDetail>(`${this.BASE}/admin`, payload);
   }
 
   updateUser(id: number, payload: UserUpdate): Observable<UserReadDetail> {
@@ -48,6 +56,19 @@ export class AdminService {
 
   createPermission(payload: PermissionCreate): Observable<PermissionRead> {
     return this.http.post<PermissionRead>(`${this.BASE}/permisos`, payload);
+  }
+
+  // TENANTS
+  listTenants(): Observable<TenantRead[]> {
+    return this.http.get<TenantRead[]>(this.TENANTS_BASE);
+  }
+
+  listTenantsPublic(): Observable<TenantRead[]> {
+    return this.http.get<TenantRead[]>(`${this.TENANTS_BASE}/public`);
+  }
+
+  createTenant(payload: TenantCreate): Observable<TenantRead> {
+    return this.http.post<TenantRead>(this.TENANTS_BASE, payload);
   }
 
   // AUDIT (Simulated for now as backend lacks it)

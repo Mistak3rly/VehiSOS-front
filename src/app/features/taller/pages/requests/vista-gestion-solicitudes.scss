@@ -1,4 +1,4 @@
-$red: #C40016;
+$red: var(--primary-red);
 $bg: #F8F1F1;
 $white: #FFFFFF;
 $text: #2A1A1A;
@@ -439,7 +439,7 @@ $shadow: 0 4px 20px rgba(0,0,0,0.06);
   transition: all 0.2s;
   width: 100%;
 
-  &:hover:not(:disabled) { background: #8F0010; transform: translateY(-1px); }
+  &:hover:not(:disabled) { background: var(--primary-container); transform: translateY(-1px); }
   &:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 

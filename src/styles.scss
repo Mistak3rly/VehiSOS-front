@@ -3,14 +3,18 @@
 @import url('https://fonts.googleapis.com/icon?family=Material+Icons+Round');
 
 :root {
-  /* LIGHT THEME (STITCH BASE) */
-  --primary-red: #97000e;
-  --primary-container: #c40016;
+  /* THEME TOKENS (tenant-driven) */
+  --primary-red: #c40016;
+  --primary-container: #8f0010;
+  --primary-soft: #feebee;
+  --bg-light: #fff8f8;
   --bg-smoke: #fff8f8;
+  --surface: #ffffff;
   --surface-lowest: #ffffff;
   --surface-low: #f9f2f2;
   --text-dark: #1d1b1b;
   --text-muted: #5d3f3c;
+  --tenant-accent: #c40016;
   --font-family: 'Manrope', sans-serif;
   --radius-md: 24px;
   --radius-lg: 32px;

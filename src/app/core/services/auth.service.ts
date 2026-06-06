@@ -15,7 +15,9 @@ import {
   PermissionRead,
   AssignRoleRequest,
   AssignPermissionRequest,
+  TenantRead,
 } from '../models/api.models';
+import { TenantThemeService } from './tenant-theme.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -24,7 +26,7 @@ export class AuthService {
   currentUser = signal<UserReadDetail | null>(null);
   isAuthenticated = signal<boolean>(false);
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private tenantThemeService: TenantThemeService) {
     this.checkSession();
   }
 
@@ -50,9 +52,11 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('tenant');
     localStorage.removeItem('userRole');
     this.currentUser.set(null);
     this.isAuthenticated.set(false);
+    this.tenantThemeService.applyTenantTheme(null);
   }
 
   getToken(): string | null {
@@ -61,6 +65,16 @@ export class AuthService {
 
   getUserRole(): string {
     return localStorage.getItem('userRole') || 'cliente';
+  }
+
+  getTenant(): TenantRead | null {
+    const raw = localStorage.getItem('tenant');
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as TenantRead;
+    } catch {
+      return null;
+    }
   }
 
   // ── Usuarios ──────────────────────────────
@@ -110,6 +124,13 @@ export class AuthService {
   private setSession(auth: AuthResponse): void {
     localStorage.setItem('token', auth.access_token);
     localStorage.setItem('user', JSON.stringify(auth.user));
+    if (auth.tenant) {
+      localStorage.setItem('tenant', JSON.stringify(auth.tenant));
+      this.tenantThemeService.applyTenantTheme(auth.tenant);
+    } else if (auth.user.tenant) {
+      localStorage.setItem('tenant', JSON.stringify(auth.user.tenant));
+      this.tenantThemeService.applyTenantTheme(auth.user.tenant);
+    }
     if (auth.user.roles?.length) {
       localStorage.setItem('userRole', auth.user.roles[0].nombre);
     }
@@ -121,15 +142,11 @@ export class AuthService {
     } else {
       // Fallback: buscar dentro del user o usar heurística por rol
       const sessionUser = auth.user as UserReadDetail & { taller_id?: number; id_taller?: number };
-      const existingTallerId = localStorage.getItem('taller_id');
       const resolvedTallerId = sessionUser.taller_id ?? sessionUser.id_taller;
       if (resolvedTallerId !== undefined && resolvedTallerId !== null) {
         localStorage.setItem('taller_id', String(resolvedTallerId));
-      } else if (!existingTallerId && auth.user.roles?.length) {
-        const roleName = auth.user.roles[0].nombre.toLowerCase();
-        if (roleName === 'operador' || roleName === 'tecnico' || roleName === 'taller') {
-          localStorage.setItem('taller_id', '1');
-        }
+      } else {
+        localStorage.removeItem('taller_id');
       }
     }
 
@@ -143,6 +160,7 @@ export class AuthService {
     if (token && userJson) {
       try {
         this.currentUser.set(JSON.parse(userJson));
+        this.tenantThemeService.applyTenantTheme(this.getTenant());
         this.isAuthenticated.set(true);
       } catch { /* ignore */ }
     }

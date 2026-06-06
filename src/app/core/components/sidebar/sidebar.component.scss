@@ -220,12 +220,92 @@ $transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
+.tenant-stack {
+  margin: 0 1.25rem 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border-light);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface-white) 90%, var(--primary-red) 10%);
+
+  .tenant-stack-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.8rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--text-main);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+
+    a {
+      color: var(--primary-red);
+      text-decoration: none;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+  }
+
+  .tenant-stack-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    max-height: 180px;
+    overflow: auto;
+  }
+
+  .tenant-card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 0.8rem;
+    border-radius: 14px;
+    text-decoration: none;
+    background: var(--surface-white);
+    border: 1px solid var(--border-light);
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: var(--primary-red);
+      transform: translateY(-1px);
+    }
+
+    .tenant-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary-red) 10%, transparent);
+    }
+
+    .tenant-meta {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+
+      strong {
+        color: var(--text-main);
+        font-size: 0.88rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      small {
+        color: var(--text-muted);
+        font-size: 0.72rem;
+      }
+    }
+  }
+}
+
 // Collapsed State
 .sidebar-wrapper.collapsed {
   .sidebar {
     width: $sidebar-collapsed-width;
 
-    .sidebar-header .logo, .menu-title, .arrow-icon, .details, .submenu { display: none; }
+    .sidebar-header .logo, .menu-title, .arrow-icon, .details, .submenu, .tenant-stack { display: none; }
     .sidebar-header { justify-content: center; padding: 2.5rem 0; }
     .menu-link { 
       padding: 1.2rem; 
@@ -275,7 +355,7 @@ $transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   .sidebar-wrapper.mobile-open { .sidebar { left: 0; } .mobile-overlay { display: block; } }
   .sidebar-wrapper.collapsed .sidebar {
     width: $sidebar-width;
-    .sidebar-header .logo, .menu-title, .arrow-icon, .details { display: flex; }
+    .sidebar-header .logo, .menu-title, .arrow-icon, .details, .tenant-stack { display: flex; }
     .sidebar-header { justify-content: space-between; padding: 2.5rem 2rem; }
     .menu-link { padding: 1rem 2rem; justify-content: flex-start; }
     .sidebar-footer { .user-info { display: flex; } }

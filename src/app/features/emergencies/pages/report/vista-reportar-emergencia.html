@@ -150,6 +150,13 @@
               {{ errorMessage }}
             </div>
           }
+
+          @if (successMessage) {
+            <div style="background:#dcfce7;border:1px solid #86efac;border-radius:6px;padding:12px 16px;margin-top:10px;display:flex;align-items:center;gap:8px;color:#15803d;font-weight:bold;">
+              <span class="material-icons-round">check_circle</span>
+              {{ successMessage }}
+            </div>
+          }
         </form>
       </section>
     </div>

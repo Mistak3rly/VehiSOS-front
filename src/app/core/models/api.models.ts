@@ -742,3 +742,164 @@ export interface CoberturaSaaSRead {
   fecha_creacion: string;
   fecha_actualizacion: string;
 }
+
+// ─────────────────────────────────────────────
+//  CU-025: COTIZACIONES
+// ─────────────────────────────────────────────
+
+export interface CotizacionCreate {
+  id_incidente: number;
+  descripcion_desperfecto: string;
+  repuestos?: string;
+  costo_repuestos?: number;
+  costo_mano_obra: number;
+  tiempo_estimado?: number;
+  notas_adicionales?: string;
+}
+
+export interface CotizacionUpdate {
+  descripcion_desperfecto?: string;
+  repuestos?: string;
+  costo_repuestos?: number;
+  costo_mano_obra?: number;
+  tiempo_estimado?: number;
+  notas_adicionales?: string;
+}
+
+export interface CotizacionRespuesta {
+  accion: 'aceptar' | 'rechazar';
+  metodo_pago?: string;
+  motivo_rechazo?: string;
+}
+
+export interface CotizacionRead {
+  id: number;
+  tenant_id: number;
+  id_incidente: number;
+  id_taller: number;
+  id_cliente: number;
+  descripcion_desperfecto: string;
+  repuestos: string | null;
+  costo_repuestos: number;
+  costo_mano_obra: number;
+  costo_total: number;
+  comision_plataforma: number;
+  tiempo_estimado: number | null;
+  estado: 'pendiente' | 'enviada' | 'aceptada' | 'rechazada' | 'vencida' | 'pagada';
+  metodo_pago: string | null;
+  notas_adicionales: string | null;
+  motivo_rechazo: string | null;
+  fecha_creacion: string;
+  fecha_respuesta: string | null;
+  fecha_vencimiento: string | null;
+}
+
+// ─────────────────────────────────────────────
+//  CU-026: KPI DASHBOARD
+// ─────────────────────────────────────────────
+
+export interface KPIGlobal {
+  total_incidentes: number;
+  total_cotizaciones: number;
+  total_pagos: number;
+  ingresos_totales: number;
+  tiempo_respuesta_promedio_min: number;
+  tasa_exito_global: number;
+  incidentes_por_estado: Record<string, number>;
+  incidentes_por_tenant: Record<string, number>;
+  top_talleres: { id: number; nombre: string; servicios: number; rating: number }[];
+  top_tecnicos: { id: number; nombre: string; atenciones: number; rating: number }[];
+}
+
+export interface KPITaller {
+  taller_id: number;
+  solicitudes_activas: number;
+  solicitudes_finalizadas: number;
+  solicitudes_canceladas: number;
+  tiempo_promedio_respuesta_min: number;
+  tiempo_promedio_llegada_min: number;
+  tasa_exito: number;
+  tasa_cancelacion: number;
+  ingresos_generados: number;
+  servicios_por_tipo: Record<string, number>;
+  cotizaciones_aceptadas: number;
+  cotizaciones_rechazadas: number;
+}
+
+// ─────────────────────────────────────────────
+//  CU-027: RENDIMIENTO
+// ─────────────────────────────────────────────
+
+export interface RendimientoTecnico {
+  tecnico_id: number;
+  nombre: string;
+  atenciones_asignadas: number;
+  atenciones_completadas: number;
+  atenciones_canceladas: number;
+  tiempo_promedio_llegada_min: number;
+  tiempo_promedio_resolucion_min: number;
+  calificacion_promedio: number;
+  nivel_cumplimiento: number;
+}
+
+export interface RendimientoTaller {
+  taller_id: number;
+  nombre: string;
+  servicios_completados: number;
+  tasa_exito: number;
+  tiempo_promedio_respuesta_min: number;
+  nivel_satisfaccion: number;
+  ingresos_generados: number;
+  sla_cumplido: number;
+}
+
+// ─────────────────────────────────────────────
+//  CU-028: MAPA GEOGRÁFICO
+// ─────────────────────────────────────────────
+
+export interface PuntoMapa {
+  id: number;
+  latitud: number;
+  longitud: number;
+  tipo: string;
+  prioridad: string;
+  estado: string;
+  titulo: string;
+  fecha: string;
+}
+
+export interface DatosMapa {
+  puntos: PuntoMapa[];
+  agrupacion_por_tipo: Record<string, number>;
+  agrupacion_por_estado: Record<string, number>;
+}
+
+// ─────────────────────────────────────────────
+//  CU-029: REPORTES
+// ─────────────────────────────────────────────
+
+export interface ReporteOperativo {
+  titulo: string;
+  generado_en: string;
+  filtros: Record<string, string>;
+  datos: Record<string, unknown>;
+  resumen: Record<string, unknown>;
+}
+
+// ─────────────────────────────────────────────
+//  CU-030: RESUMEN FINAL
+// ─────────────────────────────────────────────
+
+export interface ResumenAsistenciaRead {
+  id: number;
+  tenant_id: number;
+  id_incidente: number;
+  id_cliente: number;
+  id_taller: number | null;
+  id_tecnico: number | null;
+  diagnostico: string | null;
+  resumen: Record<string, unknown>;
+  codigo_auditoria: string;
+  url_documento: string | null;
+  fecha_generacion: string;
+}

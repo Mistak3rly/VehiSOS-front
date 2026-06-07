@@ -1,0 +1,129 @@
+<div class="reportes-container">
+  <header class="page-header">
+    <h1>Reportes Operativos</h1>
+    <p>Exporta información en PDF o Excel · CU-029</p>
+  </header>
+
+  @if (successMessage()) { <div class="alert alert-success">{{ successMessage() }}</div> }
+  @if (errorMessage()) { <div class="alert alert-error">{{ errorMessage() }}</div> }
+
+  <div class="layout">
+    <!-- Panel de configuración -->
+    <div class="config-panel card">
+      <h2>Configurar Reporte</h2>
+
+      <div class="tipo-selector">
+        <button [class.active]="tipoReporte() === 'operativo'" (click)="tipoReporte.set('operativo')">
+          <span class="material-icons-round">summarize</span> Operativo
+        </button>
+        <button [class.active]="tipoReporte() === 'financiero'" (click)="tipoReporte.set('financiero')">
+          <span class="material-icons-round">account_balance</span> Financiero
+        </button>
+      </div>
+
+      <form [formGroup]="form" class="filtros-form">
+        <div class="form-group">
+          <label>Fecha inicio</label>
+          <input type="datetime-local" formControlName="fecha_inicio">
+        </div>
+        <div class="form-group">
+          <label>Fecha fin</label>
+          <input type="datetime-local" formControlName="fecha_fin">
+        </div>
+      </form>
+
+      <div class="action-buttons">
+        <button class="btn-preview" (click)="previsualizarJson()" [disabled]="isGenerating()">
+          <span class="material-icons-round">visibility</span>
+          {{ isGenerating() ? 'Generando...' : 'Vista previa' }}
+        </button>
+        <button class="btn-excel" (click)="descargarExcel()" [disabled]="isGenerating()">
+          <span class="material-icons-round">table_view</span> Descargar Excel
+        </button>
+        <button class="btn-pdf" (click)="descargarPdf()" [disabled]="isGenerating()">
+          <span class="material-icons-round">picture_as_pdf</span> Descargar PDF
+        </button>
+      </div>
+
+      <!-- Info sobre formatos -->
+      <div class="format-info">
+        <div class="format-item">
+          <span class="material-icons-round" style="color:#217346">table_view</span>
+          <div><strong>Excel (.xlsx)</strong><br><small>Datos tabulares, multi-hoja, con estilos</small></div>
+        </div>
+        <div class="format-item">
+          <span class="material-icons-round" style="color:#c0392b">picture_as_pdf</span>
+          <div><strong>PDF</strong><br><small>Reporte profesional con diseño corporativo</small></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Vista previa -->
+    <div class="preview-panel">
+      @if (previewData(); as data) {
+        <div class="card preview-card">
+          <div class="preview-header">
+            <h2>{{ data.titulo }}</h2>
+            <span class="badge">{{ tipoReporte() | uppercase }}</span>
+          </div>
+          <p class="generado">Generado: {{ data.generado_en | date:'medium' }}</p>
+
+          <div class="resumen-grid">
+            @for (entry of (data.resumen | keyvalue); track entry.key) {
+              <div class="resumen-item">
+                <div class="resumen-label">{{ $any(entry.key).toString().replace(/_/g,' ') }}</div>
+                <div class="resumen-value">{{ entry.value }}</div>
+              </div>
+            }
+          </div>
+
+          @if (data.incidentes?.length) {
+            <h3>Incidentes (últimos {{ data.incidentes.length }})</h3>
+            <div class="tabla-wrapper">
+              <table>
+                <thead>
+                  <tr><th>Código</th><th>Título</th><th>Fecha</th></tr>
+                </thead>
+                <tbody>
+                  @for (inc of data.incidentes.slice(0,10); track inc.id) {
+                    <tr>
+                      <td>{{ inc.codigo }}</td>
+                      <td>{{ inc.titulo }}</td>
+                      <td>{{ inc.fecha | date:'shortDate' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+
+          @if (data.pagos?.length) {
+            <h3>Pagos (últimos {{ data.pagos.length }})</h3>
+            <div class="tabla-wrapper">
+              <table>
+                <thead>
+                  <tr><th>Monto</th><th>Comisión</th><th>Estado</th><th>Método</th></tr>
+                </thead>
+                <tbody>
+                  @for (p of data.pagos.slice(0,10); track p.id) {
+                    <tr>
+                      <td>Bs. {{ p.monto_total | number:'1.2-2' }}</td>
+                      <td>Bs. {{ p.monto_comision | number:'1.2-2' }}</td>
+                      <td><span class="badge-mini" [class.pagado]="p.estado_pago==='pagado'">{{ p.estado_pago }}</span></td>
+                      <td>{{ p.metodo_pago || '—' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-preview card">
+          <span class="material-icons-round">analytics</span>
+          <p>Haz clic en <strong>"Vista previa"</strong> para ver el reporte antes de descargar.</p>
+        </div>
+      }
+    </div>
+  </div>
+</div>

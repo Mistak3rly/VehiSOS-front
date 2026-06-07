@@ -1,0 +1,121 @@
+<div class="cotizaciones-container">
+  <header class="page-header">
+    <div>
+      <h1>Gestión de Cotizaciones</h1>
+      <p>Crea y gestiona cotizaciones para tus clientes · CU-025</p>
+    </div>
+    <button class="btn-primary" (click)="abrirFormNueva()">
+      <span class="material-icons-round">add</span> Nueva Cotización
+    </button>
+  </header>
+
+  @if (successMessage()) {
+    <div class="alert alert-success">{{ successMessage() }}</div>
+  }
+  @if (errorMessage()) {
+    <div class="alert alert-error">{{ errorMessage() }}</div>
+  }
+
+  <!-- Formulario -->
+  @if (showForm()) {
+    <section class="card form-card">
+      <h2>{{ editingId() ? 'Editar Cotización' : 'Nueva Cotización' }}</h2>
+      <form [formGroup]="form" (ngSubmit)="guardar()">
+        <div class="form-grid">
+          @if (!editingId()) {
+            <div class="form-group">
+              <label>ID del Incidente *</label>
+              <input type="number" formControlName="id_incidente" placeholder="Ej. 123">
+              @if (form.get('id_incidente')?.invalid && form.get('id_incidente')?.touched) {
+                <small class="error">ID de incidente requerido</small>
+              }
+            </div>
+          }
+          <div class="form-group full-width">
+            <label>Descripción del desperfecto *</label>
+            <textarea formControlName="descripcion_desperfecto" rows="3"
+              placeholder="Describe detalladamente el problema encontrado..."></textarea>
+            @if (form.get('descripcion_desperfecto')?.invalid && form.get('descripcion_desperfecto')?.touched) {
+              <small class="error">Mínimo 10 caracteres</small>
+            }
+          </div>
+          <div class="form-group full-width">
+            <label>Repuestos necesarios</label>
+            <textarea formControlName="repuestos" rows="2" placeholder="Lista de repuestos (opcional)"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Costo repuestos (Bs.) *</label>
+            <input type="number" formControlName="costo_repuestos" min="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label>Costo mano de obra (Bs.) *</label>
+            <input type="number" formControlName="costo_mano_obra" min="0" step="0.01">
+          </div>
+          <div class="form-group">
+            <label>Tiempo estimado (minutos)</label>
+            <input type="number" formControlName="tiempo_estimado" min="1" placeholder="Ej. 120">
+          </div>
+          <div class="form-group">
+            <label>Total estimado</label>
+            <div class="total-display">Bs. {{ totalCosto | number:'1.2-2' }}</div>
+          </div>
+          <div class="form-group full-width">
+            <label>Notas adicionales</label>
+            <textarea formControlName="notas_adicionales" rows="2"
+              placeholder="Garantía, condiciones, observaciones..."></textarea>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-outline" (click)="cerrarForm()">Cancelar</button>
+          <button type="submit" class="btn-primary" [disabled]="form.invalid">Guardar cotización</button>
+        </div>
+      </form>
+    </section>
+  }
+
+  <!-- Lista -->
+  @if (isLoading()) {
+    <div class="loading">Cargando cotizaciones...</div>
+  } @else if (cotizaciones().length === 0) {
+    <div class="empty-state">
+      <span class="material-icons-round">receipt_long</span>
+      <p>No tienes cotizaciones aún.</p>
+    </div>
+  } @else {
+    <div class="cotizaciones-grid">
+      @for (c of cotizaciones(); track c.id) {
+        <div class="cotizacion-card card">
+          <div class="card-header">
+            <span class="incidente-badge">Incidente #{{ c.id_incidente }}</span>
+            <span class="estado-badge" [style.background]="estadoColor(c.estado)">{{ c.estado | uppercase }}</span>
+          </div>
+          <p class="descripcion">{{ c.descripcion_desperfecto }}</p>
+          <div class="montos">
+            <div class="monto-item">
+              <span>Repuestos</span><strong>Bs. {{ c.costo_repuestos | number:'1.2-2' }}</strong>
+            </div>
+            <div class="monto-item">
+              <span>Mano de obra</span><strong>Bs. {{ c.costo_mano_obra | number:'1.2-2' }}</strong>
+            </div>
+            <div class="monto-item total">
+              <span>TOTAL</span><strong>Bs. {{ c.costo_total | number:'1.2-2' }}</strong>
+            </div>
+          </div>
+          @if (c.tiempo_estimado) {
+            <p class="tiempo">⏱ {{ c.tiempo_estimado }} min estimados</p>
+          }
+          <div class="card-actions">
+            @if (c.estado === 'pendiente') {
+              <button class="btn-sm btn-outline" (click)="editarCotizacion(c)">Editar</button>
+              <button class="btn-sm btn-primary" (click)="enviar(c.id)">Enviar al cliente</button>
+            }
+          </div>
+          <small class="fecha">Creada: {{ c.fecha_creacion | date:'short' }}</small>
+          @if (c.fecha_respuesta) {
+            <small class="fecha">Respondida: {{ c.fecha_respuesta | date:'short' }}</small>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

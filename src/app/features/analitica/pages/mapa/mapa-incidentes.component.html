@@ -1,0 +1,68 @@
+<div class="mapa-container">
+  <header class="page-header">
+    <h1>Análisis Geográfico de Incidentes</h1>
+    <p>Visualiza dónde ocurren los incidentes · CU-028</p>
+  </header>
+
+  @if (isLoading()) { <div class="loading">Cargando datos del mapa...</div> }
+  @if (errorMessage()) { <div class="alert alert-error">{{ errorMessage() }}</div> }
+
+  @if (datos()) {
+    <!-- Stats rápidas -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <span class="material-icons-round">location_on</span>
+        <div>
+          <div class="stat-value">{{ totalPuntos }}</div>
+          <div class="stat-label">Total incidentes mapeados</div>
+        </div>
+      </div>
+      @for (entry of (datos()!.agrupacion_por_tipo | keyvalue); track entry.key) {
+        <div class="stat-card tipo">
+          <div class="dot" [style.background]="tiposColores[entry.key] || '#6b7280'"></div>
+          <div>
+            <div class="stat-value">{{ entry.value }}</div>
+            <div class="stat-label">{{ entry.key }}</div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Filtros -->
+    <div class="filtros">
+      <span>Filtrar por tipo:</span>
+      @for (tipo of tiposDisponibles; track tipo) {
+        <button class="filtro-btn" [class.active]="filtroTipo() === tipo" (click)="aplicarFiltro(tipo)">
+          {{ tipo === 'todos' ? 'Todos' : tipo }}
+        </button>
+      }
+    </div>
+
+    <div class="mapa-layout">
+      <!-- Mapa Google Maps -->
+      <div class="map-wrapper">
+        <div #mapContainer class="map-canvas"></div>
+      </div>
+
+      <!-- Gráfico de distribución -->
+      <div class="side-panel">
+        <div class="card">
+          <apx-chart [series]="pieChart.series" [chart]="pieChart.chart"
+            [labels]="pieChart.labels" [title]="pieChart.title"
+            [colors]="pieChart.colors"></apx-chart>
+        </div>
+
+        <!-- Leyenda -->
+        <div class="card leyenda">
+          <h3>Leyenda de colores</h3>
+          @for (entry of (tiposColores | keyvalue); track entry.key) {
+            <div class="leyenda-item">
+              <div class="dot" [style.background]="entry.value"></div>
+              <span>{{ entry.key }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

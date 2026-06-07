@@ -21,6 +21,7 @@ export class VistaReportarEmergencia implements OnInit {
   vehiculos: VehiculoRead[] = [];
   incidentTypes: TipoIncidenteRead[] = [];
   errorMessage = '';
+  successMessage = '';
   isSubmitting = false;
 
   isLocating = false;
@@ -160,6 +161,7 @@ export class VistaReportarEmergencia implements OnInit {
 
     this.isSubmitting = true;
     this.errorMessage = '';
+    this.successMessage = '';
 
     const formValue = this.emergencyForm.value;
     const evidencias: EvidenciaCreate[] = [];
@@ -197,15 +199,20 @@ export class VistaReportarEmergencia implements OnInit {
       evidencias
     };
 
-    this.emergenciasService.createIncidente(payload).subscribe({
+    this.emergenciasService.createIncidente(payload).pipe(
+      timeout(API_TIMEOUT_MS),
+    ).subscribe({
       next: (_) => {
         this.isSubmitting = false;
-        alert('Emergencia reportada correctamente. Tu solicitud fue creada con estado pendiente.');
-        this.router.navigate(['/cliente/solicitudes/seguimiento']);
+        this.successMessage = 'Emergencia reportada correctamente. Los talleres activos han sido notificados.';
+        setTimeout(() => this.router.navigate(['/cliente/solicitudes/seguimiento']), 2500);
       },
       error: (err) => {
         this.isSubmitting = false;
-        this.errorMessage = err.error?.detail || 'Error al reportar la emergencia. Revisa los datos.';
+        const isTimeout = err?.name === 'TimeoutError';
+        this.errorMessage = isTimeout
+          ? 'El servidor tardó demasiado. Verifica tu conexión e inténtalo de nuevo.'
+          : (err?.error?.detail || 'Error al reportar la emergencia. Revisa los datos.');
       }
     });
   }

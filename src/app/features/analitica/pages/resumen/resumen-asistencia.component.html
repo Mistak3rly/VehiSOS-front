@@ -1,0 +1,137 @@
+<div class="resumen-container">
+  <header class="page-header no-print">
+    <h1>Resumen Final de Asistencia</h1>
+    <p>Expediente digital completo · CU-030</p>
+    @if (resumen()) {
+      <button class="btn-print" (click)="imprimirPagina()">
+        <span class="material-icons-round">print</span> Imprimir / Guardar PDF
+      </button>
+    }
+  </header>
+
+  @if (isLoading()) { <div class="loading">Cargando resumen...</div> }
+
+  @if (errorMessage()) {
+    <div class="alert alert-error">
+      {{ errorMessage() }}
+      @if (incidenteId()) {
+        <button class="btn-generar" (click)="generar()" [disabled]="isGenerating()">
+          {{ isGenerating() ? 'Generando...' : '🔄 Generar resumen ahora' }}
+        </button>
+      }
+    </div>
+  }
+
+  @if (resumen(); as r) {
+    <div class="documento">
+      <!-- Encabezado del documento -->
+      <div class="doc-header">
+        <div class="logo-area">
+          <h2 class="app-name">VehiSOS</h2>
+          <p class="app-sub">Sistema de Asistencia Vehicular</p>
+        </div>
+        <div class="doc-meta">
+          <div class="codigo">{{ r.codigo_auditoria }}</div>
+          <div class="fecha">{{ r.fecha_generacion | date:'medium' }}</div>
+          <div class="estado-badge">EXPEDIENTE OFICIAL</div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <!-- Incidente -->
+      @if (datosIncidente) {
+        <section class="section">
+          <h3><span class="material-icons-round">emergency</span> Datos del Incidente</h3>
+          <div class="info-grid">
+            <div class="info-item"><span>Código</span><strong>{{ datosIncidente.codigo }}</strong></div>
+            <div class="info-item"><span>Título</span><strong>{{ datosIncidente.titulo }}</strong></div>
+            <div class="info-item"><span>Fecha reporte</span><strong>{{ datosIncidente.fecha_reporte | date:'medium' }}</strong></div>
+            <div class="info-item full"><span>Descripción</span><p>{{ datosIncidente.descripcion || '—' }}</p></div>
+            <div class="info-item full"><span>Ubicación</span><p>{{ datosIncidente.referencia_ubicacion || 'Lat: '+datosIncidente.latitud+', Lng: '+datosIncidente.longitud }}</p></div>
+          </div>
+        </section>
+      }
+
+      <!-- Vehículo -->
+      @if (datosVehiculo) {
+        <section class="section">
+          <h3><span class="material-icons-round">directions_car</span> Vehículo</h3>
+          <div class="info-grid">
+            <div class="info-item"><span>Placa</span><strong class="placa">{{ datosVehiculo.placa }}</strong></div>
+            <div class="info-item"><span>Marca</span><strong>{{ datosVehiculo.marca }}</strong></div>
+            <div class="info-item"><span>Modelo</span><strong>{{ datosVehiculo.modelo }}</strong></div>
+            <div class="info-item"><span>Año</span><strong>{{ datosVehiculo.anio || '—' }}</strong></div>
+          </div>
+        </section>
+      }
+
+      <!-- Diagnóstico -->
+      @if (r.diagnostico) {
+        <section class="section">
+          <h3><span class="material-icons-round">medical_services</span> Diagnóstico</h3>
+          <p class="diagnostico-text">{{ r.diagnostico }}</p>
+        </section>
+      }
+
+      <!-- Cotización / Financiero -->
+      @if (cotizacion) {
+        <section class="section">
+          <h3><span class="material-icons-round">receipt_long</span> Información Financiera</h3>
+          <div class="info-grid">
+            <div class="info-item"><span>Cotización ID</span><strong>#{{ cotizacion.id }}</strong></div>
+            <div class="info-item"><span>Total pagado</span><strong class="monto">Bs. {{ cotizacion.total | number:'1.2-2' }}</strong></div>
+            <div class="info-item"><span>Estado</span><strong>{{ cotizacion.estado | uppercase }}</strong></div>
+            <div class="info-item"><span>Método de pago</span><strong>{{ cotizacion.metodo_pago || '—' }}</strong></div>
+          </div>
+        </section>
+      }
+
+      <!-- Evidencias -->
+      @if (evidencias.length > 0) {
+        <section class="section">
+          <h3><span class="material-icons-round">attach_file</span> Evidencias ({{ evidencias.length }})</h3>
+          <div class="evidencias-list">
+            @for (e of evidencias; track $index) {
+              <div class="evidencia-item">
+                @if (e.tipo === 'imagen') { <span class="material-icons-round">image</span> }
+                @else if (e.tipo === 'audio') { <span class="material-icons-round">mic</span> }
+                @else { <span class="material-icons-round">article</span> }
+                <div>
+                  <strong>{{ e.tipo | titlecase }}</strong>
+                  @if (e.archivo) { <span> - {{ e.archivo }}</span> }
+                  @if (e.texto) { <p class="evidencia-texto">{{ e.texto }}</p> }
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- Trazabilidad -->
+      @if (historial.length > 0) {
+        <section class="section">
+          <h3><span class="material-icons-round">timeline</span> Trazabilidad ({{ historial.length }} eventos)</h3>
+          <div class="timeline">
+            @for (h of historial; track $index) {
+              <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="timeline-content">
+                  <strong>{{ h.evento }}</strong>
+                  <span>{{ h.descripcion || '' }}</span>
+                  <small>{{ h.fecha | date:'medium' }}</small>
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <hr class="divider">
+      <footer class="doc-footer">
+        <p>Documento generado automáticamente por VehiSOS · Código de auditoría: <strong>{{ r.codigo_auditoria }}</strong></p>
+        <p>Fecha de emisión: {{ r.fecha_generacion | date:'fullDate' }}</p>
+      </footer>
+    </div>
+  }
+</div>

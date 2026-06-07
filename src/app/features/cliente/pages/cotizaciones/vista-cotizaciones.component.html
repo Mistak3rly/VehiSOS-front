@@ -1,0 +1,79 @@
+<div class="cotizaciones-container">
+  <header class="page-header">
+    <h1>Mis Cotizaciones</h1>
+    <p>Revisa y aprueba las cotizaciones de los talleres · CU-025</p>
+  </header>
+
+  @if (successMessage()) { <div class="alert alert-success">{{ successMessage() }}</div> }
+  @if (errorMessage()) { <div class="alert alert-error">{{ errorMessage() }}</div> }
+
+  @if (isLoading()) {
+    <div class="loading">Cargando cotizaciones...</div>
+  } @else if (cotizaciones().length === 0) {
+    <div class="empty-state">
+      <span class="material-icons-round">receipt_long</span>
+      <p>No tienes cotizaciones pendientes.</p>
+    </div>
+  } @else {
+    <div class="cotizaciones-grid">
+      @for (c of cotizaciones(); track c.id) {
+        <div class="cotizacion-card card">
+          <div class="card-header">
+            <span class="incidente-badge">Incidente #{{ c.id_incidente }}</span>
+            <span class="estado-badge" [style.background]="estadoColor(c.estado)">
+              {{ estadoLabel(c.estado) }}
+            </span>
+          </div>
+
+          <h3>Diagnóstico del taller</h3>
+          <p class="descripcion">{{ c.descripcion_desperfecto }}</p>
+
+          @if (c.repuestos) {
+            <div class="repuestos">
+              <strong>Repuestos:</strong> {{ c.repuestos }}
+            </div>
+          }
+
+          <div class="montos">
+            <div class="monto-row"><span>Repuestos</span><span>Bs. {{ c.costo_repuestos | number:'1.2-2' }}</span></div>
+            <div class="monto-row"><span>Mano de obra</span><span>Bs. {{ c.costo_mano_obra | number:'1.2-2' }}</span></div>
+            <div class="monto-row total"><span>TOTAL A PAGAR</span><span>Bs. {{ c.costo_total | number:'1.2-2' }}</span></div>
+            <div class="monto-row comision"><span>Comisión plataforma</span><span>Bs. {{ c.comision_plataforma | number:'1.2-2' }}</span></div>
+          </div>
+
+          @if (c.tiempo_estimado) {
+            <p class="info-item">⏱ Tiempo estimado: <strong>{{ c.tiempo_estimado }} minutos</strong></p>
+          }
+          @if (c.notas_adicionales) {
+            <p class="info-item notas">📝 {{ c.notas_adicionales }}</p>
+          }
+          @if (c.metodo_pago) {
+            <p class="info-item">💳 Método de pago: <strong>{{ c.metodo_pago }}</strong></p>
+          }
+
+          @if (c.estado === 'enviada') {
+            <div class="acciones">
+              <button class="btn-rechazar" (click)="rechazar(c)" [disabled]="respondiendo() === c.id">
+                Rechazar
+              </button>
+              <button class="btn-aceptar" (click)="aceptar(c)" [disabled]="respondiendo() === c.id">
+                {{ respondiendo() === c.id ? 'Procesando...' : 'Aceptar y pagar' }}
+              </button>
+            </div>
+          }
+          @if (c.estado === 'aceptada') {
+            <button class="btn-pagar" (click)="confirmarPago(c.id)">Confirmar pago</button>
+          }
+          @if (c.motivo_rechazo) {
+            <p class="rechazo">Motivo rechazo: {{ c.motivo_rechazo }}</p>
+          }
+
+          <small class="fecha">Recibida: {{ c.fecha_creacion | date:'mediumDate' }}</small>
+          @if (c.fecha_vencimiento) {
+            <small class="vence">Vence: {{ c.fecha_vencimiento | date:'mediumDate' }}</small>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

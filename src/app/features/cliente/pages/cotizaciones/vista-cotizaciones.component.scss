@@ -1,0 +1,32 @@
+.cotizaciones-container { padding: 24px; max-width: 1100px; margin: 0 auto; }
+.page-header { margin-bottom: 24px; }
+.page-header h1 { font-size: 1.75rem; font-weight: 700; margin: 0; }
+.page-header p { color: #6b7280; margin: 4px 0 0; }
+.card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.1); margin-bottom: 16px; }
+.cotizaciones-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.incidente-badge { background: #e0e7ff; color: #3730a3; padding: 4px 12px; border-radius: 20px; font-size: .8rem; font-weight: 600; }
+.estado-badge { color: #fff; padding: 4px 12px; border-radius: 20px; font-size: .8rem; font-weight: 700; }
+h3 { font-size: .95rem; font-weight: 600; margin: 0 0 6px; color: #374151; }
+.descripcion { color: #1f2937; font-size: .9rem; margin: 0 0 12px; line-height: 1.5; }
+.repuestos { background: #f0f9ff; border-radius: 6px; padding: 8px 12px; font-size: .85rem; color: #0c4a6e; margin-bottom: 12px; }
+.montos { background: #f9fafb; border-radius: 8px; padding: 12px 16px; margin-bottom: 12px; }
+.monto-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: .875rem; color: #374151; }
+.monto-row.total { border-top: 1.5px solid #e5e7eb; margin-top: 6px; padding-top: 8px; font-weight: 700; font-size: 1rem; color: #111; }
+.monto-row.comision { color: #9ca3af; font-size: .78rem; margin-top: 2px; }
+.info-item { font-size: .85rem; color: #374151; margin: 4px 0; }
+.notas { background: #fffbeb; border-radius: 6px; padding: 6px 10px; }
+.acciones { display: flex; gap: 10px; margin-top: 16px; }
+.btn-aceptar { flex: 1; background: #10b981; color: #fff; border: none; border-radius: 8px; padding: 10px; font-weight: 700; cursor: pointer; font-size: .9rem; }
+.btn-aceptar:disabled { opacity: .6; cursor: not-allowed; }
+.btn-rechazar { flex: 1; background: #fff; color: #ef4444; border: 1.5px solid #ef4444; border-radius: 8px; padding: 10px; font-weight: 600; cursor: pointer; font-size: .9rem; }
+.btn-rechazar:disabled { opacity: .6; cursor: not-allowed; }
+.btn-pagar { width: 100%; background: #8b5cf6; color: #fff; border: none; border-radius: 8px; padding: 10px; font-weight: 700; cursor: pointer; margin-top: 12px; }
+.rechazo { background: #fee2e2; border-radius: 6px; padding: 6px 10px; font-size: .8rem; color: #991b1b; margin-top: 8px; }
+.fecha, .vence { display: block; font-size: .75rem; color: #9ca3af; margin-top: 4px; }
+.vence { color: #d97706; }
+.alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; }
+.alert-success { background: #d1fae5; color: #065f46; }
+.alert-error { background: #fee2e2; color: #991b1b; }
+.loading, .empty-state { text-align: center; padding: 60px 20px; color: #6b7280; }
+.empty-state span { font-size: 3rem; display: block; margin-bottom: 8px; }

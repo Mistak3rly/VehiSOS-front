@@ -1,0 +1,104 @@
+<div class="rendimiento-container">
+  <header class="page-header">
+    <h1>Rendimiento de Talleres y Técnicos</h1>
+    <p>Métricas de productividad y desempeño operativo · CU-027</p>
+  </header>
+
+  @if (isLoading()) { <div class="loading">Cargando datos de rendimiento...</div> }
+  @if (errorMessage()) { <div class="alert-error">{{ errorMessage() }}</div> }
+
+  @if (!isLoading()) {
+    <div class="tabs">
+      <button [class.active]="activeTab() === 'tecnicos'" (click)="activeTab.set('tecnicos')">
+        <span class="material-icons-round">engineering</span> Técnicos
+      </button>
+      <button [class.active]="activeTab() === 'talleres'" (click)="activeTab.set('talleres')">
+        <span class="material-icons-round">build</span> Talleres
+      </button>
+    </div>
+
+    <!-- TÉCNICOS -->
+    @if (activeTab() === 'tecnicos') {
+      @if (tecnicos().length > 0) {
+        <div class="card chart-card">
+          <apx-chart [series]="barChartTecnicos.series" [chart]="barChartTecnicos.chart"
+            [xaxis]="barChartTecnicos.xaxis" [title]="barChartTecnicos.title"
+            [colors]="barChartTecnicos.colors" [plotOptions]="barChartTecnicos.plotOptions"
+            [dataLabels]="barChartTecnicos.dataLabels"></apx-chart>
+        </div>
+
+        <div class="ranking-grid">
+          @for (t of tecnicos(); track t.tecnico_id; let i = $index) {
+            <div class="ranking-card card">
+              <div class="rank-badge" [class.gold]="i===0" [class.silver]="i===1" [class.bronze]="i===2">
+                #{{ i + 1 }}
+              </div>
+              <div class="tecnico-info">
+                <h3>{{ t.nombre }}</h3>
+                <div class="stars" title="Rating {{ t.calificacion_promedio }}">{{ stars(t.calificacion_promedio) }}</div>
+              </div>
+              <div class="metricas">
+                <div class="metrica-row">
+                  <span>Asignadas</span><strong>{{ t.atenciones_asignadas }}</strong>
+                </div>
+                <div class="metrica-row">
+                  <span>Completadas</span><strong style="color:#10b981">{{ t.atenciones_completadas }}</strong>
+                </div>
+                <div class="metrica-row">
+                  <span>Canceladas</span><strong style="color:#ef4444">{{ t.atenciones_canceladas }}</strong>
+                </div>
+                <div class="metrica-row">
+                  <span>T. llegada prom.</span><strong>{{ t.tiempo_promedio_llegada_min }} min</strong>
+                </div>
+                <div class="metrica-row">
+                  <span>T. resolución prom.</span><strong>{{ t.tiempo_promedio_resolucion_min }} min</strong>
+                </div>
+              </div>
+              <div class="cumplimiento-bar">
+                <span>Cumplimiento {{ t.nivel_cumplimiento | number:'1.1-1' }}%</span>
+                <div class="bar-bg">
+                  <div class="bar-fill" [style.width]="t.nivel_cumplimiento+'%'"
+                    [style.background]="cumplimientoColor(t.nivel_cumplimiento)"></div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-state">
+          <span class="material-icons-round">engineering</span>
+          <p>No hay datos de rendimiento de técnicos aún.</p>
+        </div>
+      }
+    }
+
+    <!-- TALLERES -->
+    @if (activeTab() === 'talleres') {
+      @if (talleres().length > 0) {
+        <div class="ranking-grid">
+          @for (t of talleres(); track t.taller_id; let i = $index) {
+            <div class="ranking-card card">
+              <div class="rank-badge" [class.gold]="i===0" [class.silver]="i===1" [class.bronze]="i===2">
+                #{{ i + 1 }}
+              </div>
+              <h3>{{ t.nombre }}</h3>
+              <div class="stars">{{ stars(t.nivel_satisfaccion) }}</div>
+              <div class="metricas">
+                <div class="metrica-row"><span>Servicios</span><strong>{{ t.servicios_completados }}</strong></div>
+                <div class="metrica-row"><span>Tasa éxito</span><strong style="color:#10b981">{{ t.tasa_exito | number:'1.1-1' }}%</strong></div>
+                <div class="metrica-row"><span>SLA cumplido</span><strong>{{ t.sla_cumplido | number:'1.1-1' }}%</strong></div>
+                <div class="metrica-row"><span>T. respuesta prom.</span><strong>{{ t.tiempo_promedio_respuesta_min }} min</strong></div>
+                <div class="metrica-row"><span>Ingresos</span><strong style="color:#8b5cf6">Bs. {{ t.ingresos_generados | number:'1.2-2' }}</strong></div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-state">
+          <span class="material-icons-round">build</span>
+          <p>No hay datos de rendimiento de talleres aún.</p>
+        </div>
+      }
+    }
+  }
+</div>

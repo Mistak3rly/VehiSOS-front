@@ -244,6 +244,7 @@ export interface HistorialRead {
 
 export interface IncidenteCreate {
   id_vehiculo: number;
+  id_taller_destino: number;
   id_tipo_incidente?: number;
   id_prioridad?: number;
   titulo: string;
@@ -415,6 +416,7 @@ export interface TrazabilidadCombinadaResponse {
 export interface TallerRead {
   id: number;
   id_propietario: number;
+  tenant_id?: number | null;
   nombre: string;
   nit: string | null;
   correo: string | null;
@@ -528,6 +530,7 @@ export interface AsignacionRead {
   fecha_asignacion: string;
   fecha_respuesta: string | null;
   observaciones: string | null;
+  taller_nombre?: string | null;
 }
 
 export interface PagoCreate {
@@ -902,4 +905,21 @@ export interface ResumenAsistenciaRead {
   codigo_auditoria: string;
   url_documento: string | null;
   fecha_generacion: string;
+}
+
+// ─────────────────────────────────────────────
+//  AUDITORÍA
+// ─────────────────────────────────────────────
+
+export interface AuditLogRead {
+  id: number;
+  timestamp: string;
+  usuario_id: number | null;
+  usuario_identificador: string;
+  accion: string;
+  entidad_tipo: string | null;
+  entidad_id: number | null;
+  detalles: string | null;
+  tenant_id: number | null;
+  exitoso: boolean;
 }

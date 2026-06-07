@@ -2,11 +2,13 @@ import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { EmergenciasService } from '../../../../core/services/emergencias.service';
 import { InteligenciaService } from '../../../../core/services/inteligencia.service';
 import { LogisticaService } from '../../../../core/services/logistica.service';
 import { AuthService } from '../../../../core/services/auth.service';
-import { PagoRead } from '../../../../core/models/api.models';
+import { AsignacionRead, PagoRead } from '../../../../core/models/api.models';
 import { PanelIncidenteComponent } from '../../../operaciones/pages/panel-incidente/panel-incidente.component';
 
 interface Solicitud {
@@ -74,20 +76,53 @@ export class VistaSeguimientoSolicitudes implements OnInit {
 
   cargarSolicitudes() {
     this.isLoading.set(true);
-    this.emergenciasService.listIncidentes().subscribe({
-      next: (incidentes) => {
-        const mapeado = incidentes.map(inc => ({
-          id: inc.codigo_incidente,
-          incidenteId: inc.id,
-          vehiculo: `${inc.vehiculo.marca} ${inc.vehiculo.modelo} (${inc.vehiculo.placa})`,
-          incidente: inc.tipo_incidente?.nombre || 'General',
-          fecha: new Date(inc.fecha_reporte).toLocaleString(),
-          estado: inc.estado_servicio?.nombre || 'Pendiente',
-          descripcion: inc.descripcion_texto || '',
-          ubicacion: inc.referencia_ubicacion || 'Sin referencia',
-          taller: 'En búsqueda...', // idealmente vendría en una relación en el backend
-          evidencias: inc.evidencias?.map(e => e.url_archivo || '') || []
-        }));
+
+    forkJoin({
+      incidentes: this.emergenciasService.listIncidentes(),
+      asignaciones: this.logisticaService.misAsignacionesComoCliente().pipe(catchError(() => of([] as AsignacionRead[])))
+    }).subscribe({
+      next: ({ incidentes, asignaciones }) => {
+        // Mapa incidente_id → asignación más reciente
+        const asigMap = new Map<number, AsignacionRead>();
+        for (const a of asignaciones) {
+          if (!asigMap.has(a.id_incidente)) asigMap.set(a.id_incidente, a);
+        }
+
+        const mapeado = incidentes.map(inc => {
+          const asig = asigMap.get(inc.id);
+          const tallerNombre = asig?.taller_nombre
+            ? asig.taller_nombre
+            : asig
+            ? `Taller #${asig.id_taller}`
+            : 'Sin taller asignado';
+
+          const estadoAsig = asig?.estado_asignacion ?? '';
+          const estadoLabel =
+            estadoAsig === 'pendiente'  ? 'Pendiente de confirmación' :
+            estadoAsig === 'aceptada'   ? 'Aceptada' :
+            estadoAsig === 'rechazada'  ? 'Rechazada' :
+            estadoAsig === 'completada' ? 'Completada' :
+            inc.estado_servicio?.nombre || 'Pendiente';
+
+          const tiempoEst = asig?.tiempo_estimado_llegada
+            ? `${asig.tiempo_estimado_llegada} min`
+            : undefined;
+
+          return {
+            id: inc.codigo_incidente,
+            incidenteId: inc.id,
+            vehiculo: `${inc.vehiculo.marca} ${inc.vehiculo.modelo} (${inc.vehiculo.placa})`,
+            incidente: inc.tipo_incidente?.nombre || 'General',
+            fecha: new Date(inc.fecha_reporte).toLocaleString(),
+            estado: estadoLabel,
+            descripcion: inc.descripcion_texto || '',
+            ubicacion: inc.referencia_ubicacion || 'Sin referencia',
+            taller: tallerNombre,
+            tiempoEstimado: tiempoEst,
+            evidencias: inc.evidencias?.map(e => e.url_archivo || '') || []
+          };
+        });
+
         this.solicitudes.set(mapeado);
         this.isLoading.set(false);
       },

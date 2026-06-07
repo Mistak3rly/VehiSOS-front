@@ -5,12 +5,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { InteligenciaService } from '../../../../core/services/inteligencia.service';
 import { EmergenciasService } from '../../../../core/services/emergencias.service';
 import { LogisticaService } from '../../../../core/services/logistica.service';
-import { TrazabilidadCombinadaResponse, PagoRead } from '../../../../core/models/api.models';
+import { TrazabilidadCombinadaResponse, PagoRead, AsignacionRead } from '../../../../core/models/api.models';
+import { PanelIncidenteComponent } from '../../../operaciones/pages/panel-incidente/panel-incidente.component';
 
 @Component({
   selector: 'app-incident-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PanelIncidenteComponent],
   templateUrl: './incident-detail.component.html',
   styleUrls: ['./incident-detail.component.scss']
 })
@@ -23,8 +24,14 @@ export class DetalleIncidenteComponent implements OnInit {
 
   incidenteId = signal<number | null>(null);
   data = signal<TrazabilidadCombinadaResponse | null>(null);
+  asignacion = signal<AsignacionRead | null>(null);
   loading = signal(true);
   isUpdating = signal(false);
+
+  // Estado de la respuesta del taller
+  respondiendo = signal(false);
+  respuestaMsg = signal('');
+  respuestaError = signal('');
 
   // Paneles colapsables
   showTranscription = signal(true);
@@ -56,6 +63,12 @@ export class DetalleIncidenteComponent implements OnInit {
         this.loading.set(false);
       }
     });
+
+    // Cargar la asignación del taller para este incidente
+    this.logisticaService.getAsignacionPorIncidente(id).subscribe({
+      next: (asig) => this.asignacion.set(asig),
+      error: () => this.asignacion.set(null)
+    });
   }
 
   getUrgencyClass() {
@@ -66,7 +79,6 @@ export class DetalleIncidenteComponent implements OnInit {
   }
 
   getAIResumen() {
-    // Buscamos el análisis de tipo 'resumen_priorizacion'
     const resumenAnalisis = this.data()?.analisis.find(a => a.tipo_analisis === 'resumen_priorizacion');
     return resumenAnalisis?.resultado?.['resumen'] || 'No hay resumen disponible.';
   }
@@ -84,10 +96,34 @@ export class DetalleIncidenteComponent implements OnInit {
     return (imageAnalisis?.resultado?.['hallazgos'] as string[]) || [];
   }
 
+  responderAsignacion(accion: 'aceptar' | 'rechazar'): void {
+    const asig = this.asignacion();
+    if (!asig) return;
+    this.respondiendo.set(true);
+    this.respuestaMsg.set('');
+    this.respuestaError.set('');
+
+    this.logisticaService.responderAsignacion(asig.id, { accion }).subscribe({
+      next: (updated) => {
+        this.asignacion.set(updated);
+        this.respondiendo.set(false);
+        if (accion === 'aceptar') {
+          this.respuestaMsg.set('Solicitud aceptada. Ahora puedes comunicarte con el cliente desde el chat.');
+        } else {
+          this.respuestaMsg.set('Solicitud rechazada. El cliente ha sido notificado.');
+          setTimeout(() => this.router.navigate(['/taller/solicitudes']), 2000);
+        }
+      },
+      error: (err) => {
+        this.respondiendo.set(false);
+        this.respuestaError.set(err?.error?.detail || 'Error al responder la solicitud. Intenta de nuevo.');
+      }
+    });
+  }
+
   iniciarAtencion() {
     if (!this.incidenteId()) return;
     this.isUpdating.set(true);
-    
     this.emergenciasService.updateEstadoIncidente(this.incidenteId()!, {
       estado_codigo: 'en_camino',
       descripcion: 'El técnico ha iniciado el desplazamiento hacia el incidente.'

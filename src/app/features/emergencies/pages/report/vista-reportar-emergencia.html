@@ -2,7 +2,7 @@
   <!-- Header -->
   <header class="page-header">
     <h1>Reportar emergencia</h1>
-    <p>Describe tu incidente y comparte tu ubicación para recibir asistencia técnica.</p>
+    <p>Describe tu incidente, elige un taller y comparte tu ubicación para recibir asistencia técnica.</p>
   </header>
 
   <div class="report-layout">
@@ -46,6 +46,34 @@
 
             @if (emergencyForm.get('vehiculoId')?.invalid && emergencyForm.get('vehiculoId')?.touched) {
               <small class="error">Debes seleccionar un vehículo.</small>
+            }
+          </div>
+
+          <!-- Taller Destino -->
+          <div class="form-group">
+            <label for="tallerDestinoId">Taller al que enviar la emergencia</label>
+
+            @if (errorTalleres) {
+              <div style="background:#fee2e2;border:1px solid #fca5a5;border-radius:6px;padding:10px 12px;margin-bottom:6px;font-size:0.85rem;color:#dc2626;">
+                {{ errorTalleres }}
+                <button type="button" (click)="cargarDatos()" style="margin-left:8px;text-decoration:underline;background:none;border:none;color:#1d4ed8;cursor:pointer;font-size:0.85rem;">
+                  Reintentar
+                </button>
+              </div>
+            }
+
+            <select id="tallerDestinoId" formControlName="tallerDestinoId">
+              <option value="" disabled>
+                @if (isLoadingTalleres) { Cargando talleres... }
+                @else { Selecciona un taller }
+              </option>
+              @for (t of talleres; track t.id) {
+                <option [value]="t.id">{{ t.nombre }}{{ t.ciudad ? ' — ' + t.ciudad : '' }}</option>
+              }
+            </select>
+
+            @if (emergencyForm.get('tallerDestinoId')?.invalid && emergencyForm.get('tallerDestinoId')?.touched) {
+              <small class="error">Debes seleccionar un taller.</small>
             }
           </div>
 
@@ -102,24 +130,23 @@
               }
             </div>
             <input type="text" formControlName="referenciaUbicacion" placeholder="Referencia adicional (Ej. Frente al cine center)">
-            @if (emergencyForm.get('lat')?.invalid && emergencyForm.get('lat')?.touched) {
-              <small class="error">La ubicación GPS es obligatoria. Pulsa el botón superior.</small>
+            @if (!capturedLocation.captured) {
+              <small style="color:#b45309;font-size:0.8rem;">
+                <span class="material-icons-round" style="font-size:0.85rem;vertical-align:middle;">info</span>
+                Ubicación GPS recomendada pero no obligatoria.
+              </small>
             }
           </div>
 
           <!-- Evidence -->
           <div class="form-group evidence-group">
-            <label>Evidencias multimedia</label>
+            <label>Fotos del incidente (opcional)</label>
             <div class="evidence-actions">
               <label class="btn-evidence">
                 <span class="material-icons-round">photo_camera</span>
                 Adjuntar fotos
                 <input type="file" (change)="adjuntarFotos($event)" multiple accept="image/*" style="display: none;">
               </label>
-              <button type="button" class="btn-evidence" (click)="adjuntarAudio()" [class.active]="isAudioRecording">
-                <span class="material-icons-round">{{ isAudioRecording ? 'stop' : 'mic' }}</span>
-                {{ isAudioRecording ? 'Grabando...' : 'Grabar audio' }}
-              </button>
             </div>
 
             @if (imagePreviews.length > 0) {
@@ -134,7 +161,7 @@
                 }
               </div>
             }
-            <p class="hint">Máximo 5 fotografías. El audio es opcional.</p>
+            <p class="hint">Máximo 5 fotografías.</p>
           </div>
 
           <!-- Actions -->
@@ -167,9 +194,9 @@
         <span class="material-icons-round icon">info</span>
         <h3>¿Qué sucede después?</h3>
         <ul>
-          <li>Tu reporte llegará a los talleres más cercanos.</li>
-          <li>Un taller aceptará tu solicitud según su disponibilidad.</li>
-          <li>Podrás chatear con el técnico asignado.</li>
+          <li>El taller que seleccionaste recibirá una notificación inmediata.</li>
+          <li>El taller puede aceptar, revisar o rechazar tu solicitud.</li>
+          <li>Al aceptar, podrás chatear directamente con el técnico asignado.</li>
           <li>El costo final será evaluado en el sitio.</li>
         </ul>
       </section>

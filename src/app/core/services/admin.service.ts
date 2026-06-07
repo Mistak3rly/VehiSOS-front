@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { 
+import {
   AdminUserCreate,
+  AuditLogRead,
   TenantCreate,
   TenantRead,
-  UserReadDetail, UserUpdate, 
-  RoleRead, RoleCreate, 
+  UserReadDetail, UserUpdate,
+  RoleRead, RoleCreate,
   PermissionRead, PermissionCreate,
   AssignRoleRequest, AssignPermissionRequest
 } from '../models/api.models';
@@ -71,16 +72,22 @@ export class AdminService {
     return this.http.post<TenantRead>(this.TENANTS_BASE, payload);
   }
 
-  // AUDIT (Simulated for now as backend lacks it)
-  getAuditLogs(): Observable<any[]> {
-    // This is a placeholder since the backend doesn't have an audit table yet
-    return new Observable(observer => {
-      observer.next([
-        { id: 1, action: 'LOGIN', user: 'admin@vehisos.com', details: 'Inicio de sesión exitoso', date: new Date().toISOString() },
-        { id: 2, action: 'UPDATE_ROLE', user: 'admin@vehisos.com', details: 'Se asignó rol técnico a usuario #4', date: new Date().toISOString() },
-        { id: 3, action: 'APPROVE_WORKSHOP', user: 'admin@vehisos.com', details: 'Taller "Motores Ya" aprobado', date: new Date().toISOString() },
-      ]);
-      observer.complete();
-    });
+  // AUDIT
+  getAuditLogs(filters?: {
+    accion?: string;
+    desde?: string;
+    hasta?: string;
+    usuario?: string;
+    limit?: number;
+    offset?: number;
+  }): Observable<AuditLogRead[]> {
+    let params = new HttpParams();
+    if (filters?.accion) params = params.set('accion', filters.accion);
+    if (filters?.desde) params = params.set('desde', filters.desde);
+    if (filters?.hasta) params = params.set('hasta', filters.hasta);
+    if (filters?.usuario) params = params.set('usuario', filters.usuario);
+    if (filters?.limit != null) params = params.set('limit', filters.limit);
+    if (filters?.offset != null) params = params.set('offset', filters.offset);
+    return this.http.get<AuditLogRead[]>(`${environment.apiUrl}/api/v1/auditoria/logs`, { params });
   }
 }

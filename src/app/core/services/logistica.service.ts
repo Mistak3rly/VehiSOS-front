@@ -45,6 +45,14 @@ export class LogisticaService {
     return this.http.get<TallerRead[]>(`${this.BASE}/talleres`);
   }
 
+  listTalleresActivos(): Observable<TallerRead[]> {
+    return this.http.get<TallerRead[]>(`${this.BASE}/talleres/activos`);
+  }
+
+  getAsignacionPorIncidente(incidenteId: number): Observable<AsignacionRead> {
+    return this.http.get<AsignacionRead>(`${this.BASE}/asignaciones/por-incidente/${incidenteId}`);
+  }
+
   getTaller(id: number): Observable<TallerRead> {
     return this.http.get<TallerRead>(`${this.BASE}/talleres/${id}`);
   }
@@ -55,6 +63,11 @@ export class LogisticaService {
 
   updateTaller(id: number, payload: TallerUpdate): Observable<TallerRead> {
     return this.http.patch<TallerRead>(`${this.BASE}/talleres/${id}`, payload);
+  }
+
+  // ── Cliente: Asignaciones ───────────────
+  misAsignacionesComoCliente(): Observable<AsignacionRead[]> {
+    return this.http.get<AsignacionRead[]>(`${this.BASE}/asignaciones/cliente`);
   }
 
   // ── Admin: Talleres ─────────────────────

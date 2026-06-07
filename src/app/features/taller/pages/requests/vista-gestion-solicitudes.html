@@ -1,101 +1,164 @@
 <div class="requests-container">
+
+  <!-- ── Toast: nueva emergencia recibida por WebSocket ──────────────── -->
+  @if (alertaEmergencia(); as alerta) {
+    <div style="position:fixed;top:20px;right:20px;z-index:9999;max-width:380px;background:#fff;border:1px solid #fcd34d;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.18);padding:18px 20px;display:flex;flex-direction:column;gap:12px;animation:slideIn 0.3s ease;">
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <span class="material-icons-round" style="color:#d97706;font-size:1.8rem;flex-shrink:0;">notifications_active</span>
+        <div style="flex:1;">
+          <strong style="font-size:0.95rem;color:#1a1a1a;display:block;margin-bottom:4px;">{{ alerta.titulo }}</strong>
+          <p style="font-size:0.82rem;color:#555;margin:0;line-height:1.4;">{{ alerta.mensaje }}</p>
+        </div>
+        <button (click)="cerrarAlerta()" style="background:none;border:none;cursor:pointer;color:#888;padding:0;">
+          <span class="material-icons-round" style="font-size:1.1rem;">close</span>
+        </button>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button (click)="cerrarAlerta()" style="padding:7px 14px;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;border-radius:8px;font-size:0.82rem;font-weight:600;cursor:pointer;">
+          Ignorar
+        </button>
+        <button (click)="irAlDetalle(alerta.id_incidente!)" style="padding:7px 16px;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:4px;">
+          <span class="material-icons-round" style="font-size:0.95rem;">open_in_new</span>
+          Ver emergencia
+        </button>
+      </div>
+    </div>
+  }
+
   <!-- Header -->
   <header class="page-header">
     <div class="header-content">
       <h1>Gestión de solicitudes</h1>
-      <p>Revisa, acepta y actualiza solicitudes de atención vehicular.</p>
+      <p>Historial completo de solicitudes asignadas a tu taller.</p>
     </div>
+    <button class="btn-refresh" type="button" (click)="cargarSolicitudes()" [disabled]="isLoading()">
+      <span class="material-icons-round" [class.spinning]="isLoading()">refresh</span>
+      Actualizar
+    </button>
   </header>
 
-  <!-- List View -->
-  <ng-container *ngIf="!showDetail()">
-    <!-- Filters -->
+  <!-- ═══ Vista lista ═══════════════════════════════════════════════════ -->
+  @if (!showDetail()) {
+
+    <!-- Filtros -->
     <section class="filters-card card">
       <form [formGroup]="filterForm" class="filters-grid">
         <div class="form-group search">
           <label>Buscar</label>
           <div class="input-with-icon">
             <span class="material-icons-round">search</span>
-            <input type="text" formControlName="search" placeholder="Código de solicitud...">
+            <input type="text" formControlName="search" placeholder="Código, vehículo, tipo...">
           </div>
         </div>
         <div class="form-group">
           <label>Estado</label>
           <select formControlName="status">
             <option value="">Todos los estados</option>
-            <option value="Disponible">Disponible</option>
-            <option value="Asignada">Asignada</option>
-            <option value="Aceptada">Aceptada</option>
-            <option value="En camino">En camino</option>
-            <option value="En atención">En atención</option>
-            <option value="Finalizada">Finalizada</option>
+            <option value="Pendiente">Pendientes</option>
+            <option value="Aceptada">Aceptadas</option>
+            <option value="Rechazada">Rechazadas</option>
+            <option value="Finalizada">Finalizadas</option>
+            <option value="Cancelada">Canceladas</option>
           </select>
         </div>
         <div class="form-group">
           <label>Prioridad</label>
           <select formControlName="priority">
             <option value="">Todas las prioridades</option>
-            <option value="Baja">Baja</option>
-            <option value="Media">Media</option>
-            <option value="Alta">Alta</option>
-            <option value="Urgente">Urgente</option>
+            <option value="alta">Alta</option>
+            <option value="urgente">Urgente</option>
+            <option value="media">Media</option>
+            <option value="baja">Baja</option>
           </select>
+        </div>
+        <div class="form-group" style="display:flex;align-items:flex-end;">
+          @if (hayFiltros()) {
+            <button type="button" (click)="limpiarFiltros()"
+              style="display:flex;align-items:center;gap:4px;padding:8px 14px;background:#fee2e2;color:#dc2626;border:none;border-radius:8px;font-size:0.82rem;font-weight:700;cursor:pointer;">
+              <span class="material-icons-round" style="font-size:1rem;">clear</span>
+              Limpiar filtros
+            </button>
+          }
         </div>
       </form>
     </section>
 
-    <!-- Requests List -->
-    <div class="requests-grid" *ngIf="!isLoading(); else loadingTpl">
-      <div class="error-message" *ngIf="errorMessage" style="color: red; grid-column: 1 / -1; font-weight: bold; padding: 1rem;">
-        {{ errorMessage }}
+    <!-- Contador -->
+    @if (!isLoading()) {
+      <div style="padding:0 0 0.75rem;font-size:0.85rem;color:#718096;">
+        <strong>{{ solicitudes().length }}</strong> de <strong>{{ todasLasSolicitudes().length }}</strong> solicitudes
+        @if (hayFiltros()) { <span>(filtradas)</span> }
       </div>
-      <div class="request-card card" *ngFor="let s of solicitudes()" (click)="verDetalleSolicitud(s)">
-        <div class="card-header">
-          <span class="code">{{ s.codigo }}</span>
-          <span class="status-badge" [ngClass]="getStatusClass(s.estado)">{{ s.estado }}</span>
-        </div>
-        <div class="card-body">
-          <div class="info-item">
-            <span class="material-icons-round">person</span>
-            <div class="text">
-              <label>Cliente</label>
-              <span>{{ s.cliente }}</span>
-            </div>
-          </div>
-          <div class="info-item">
-            <span class="material-icons-round">directions_car</span>
-            <div class="text">
-              <label>Vehículo</label>
-              <span>{{ s.vehiculo }}</span>
-            </div>
-          </div>
-          <div class="info-item">
-            <span class="material-icons-round">report_problem</span>
-            <div class="text">
-              <label>Incidente</label>
-              <span>{{ s.tipoIncidente }}</span>
-            </div>
-          </div>
-        </div>
-        <div class="card-footer">
-          <span class="priority-badge" [ngClass]="getPriorityClass(s.prioridad)">
-            {{ s.prioridad }}
-          </span>
-          <span class="date">{{ s.fechaReporte | date:'short' }}</span>
-        </div>
-      </div>
+    }
 
-      <!-- Empty State -->
-      <div class="empty-state card" *ngIf="solicitudes().length === 0">
-        <span class="material-icons-round">receipt_long</span>
-        <h3>No existen solicitudes disponibles</h3>
-        <p>Cuando un cliente reporte una emergencia, aparecerá aquí.</p>
+    <!-- Tarjetas / cargando / vacío -->
+    @if (isLoading()) {
+      <div class="loading-state card">
+        <div class="spinner"></div>
+        <p>Cargando solicitudes...</p>
       </div>
-    </div>
-  </ng-container>
+    } @else {
+      @if (errorMessage) {
+        <div class="error-message" style="color:#dc2626;font-weight:700;padding:1rem;">
+          {{ errorMessage }}
+        </div>
+      }
 
-  <!-- Detail View -->
-  <ng-container *ngIf="showDetail()">
+      <div class="requests-grid">
+        @for (s of solicitudes(); track s.asignacionId) {
+          <div class="request-card card" (click)="verDetalleSolicitud(s)">
+            <div class="card-header">
+              <span class="code">{{ s.codigo }}</span>
+              <span class="status-badge" [ngClass]="getStatusClass(s.estado)">{{ s.estado }}</span>
+            </div>
+            <div class="card-body">
+              <div class="info-item">
+                <span class="material-icons-round">person</span>
+                <div class="text">
+                  <label>Cliente</label>
+                  <span>{{ s.cliente }}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <span class="material-icons-round">directions_car</span>
+                <div class="text">
+                  <label>Vehículo</label>
+                  <span>{{ s.vehiculo }}</span>
+                </div>
+              </div>
+              <div class="info-item">
+                <span class="material-icons-round">report_problem</span>
+                <div class="text">
+                  <label>Incidente</label>
+                  <span>{{ s.tipoIncidente }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer">
+              <span class="priority-badge" [ngClass]="getPriorityClass(s.prioridad)">{{ s.prioridad }}</span>
+              <span class="date">{{ s.fechaReporte | date:'dd/MM/yy, HH:mm' }}</span>
+            </div>
+          </div>
+        }
+
+        @if (solicitudes().length === 0 && !errorMessage) {
+          <div class="empty-state card" style="grid-column: 1 / -1;">
+            <span class="material-icons-round">receipt_long</span>
+            @if (hayFiltros()) {
+              <h3>Sin resultados</h3>
+              <p>No hay solicitudes que coincidan con los filtros aplicados.</p>
+            } @else {
+              <h3>Sin solicitudes</h3>
+              <p>Cuando un cliente reporte una emergencia a tu taller, aparecerá aquí.</p>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+
+  <!-- ═══ Vista detalle ═════════════════════════════════════════════════ -->
+  @if (showDetail()) {
     <div class="detail-layout">
       <div class="back-nav">
         <button class="btn-text" (click)="volverALista()">
@@ -105,7 +168,7 @@
       </div>
 
       <div class="detail-grid">
-        <!-- Info Column -->
+        <!-- Columna de información -->
         <div class="info-column">
           <section class="detail-card card">
             <div class="section-title">
@@ -127,7 +190,7 @@
               </div>
               <div class="detail-item">
                 <label>Cliente</label>
-                <span>{{ solicitudSeleccionada()?.cliente }} ({{ solicitudSeleccionada()?.telefono }})</span>
+                <span>{{ solicitudSeleccionada()?.cliente }}</span>
               </div>
               <div class="detail-item">
                 <label>Vehículo</label>
@@ -138,21 +201,21 @@
                 <span class="priority-text">{{ solicitudSeleccionada()?.tipoIncidente }}</span>
               </div>
               <div class="detail-item full-width">
-                <label>Descripción (Clasificación IA)</label>
-                <p>
-                  {{ solicitudSeleccionada()?.descripcion }}
-                </p>
-                <div class="ia-badge" *ngIf="solicitudSeleccionada()?.trazabilidad?.analisis?.length" style="margin-top: 5px; font-size: 0.85em; color: #6200ee; background: #eef; padding: 4px 8px; border-radius: 4px; display: inline-block;">
-                  <span class="material-icons-round" style="font-size: 14px; vertical-align: middle; margin-right: 4px;">smart_toy</span>
-                  Clasificado por IA: {{ solicitudSeleccionada()?.trazabilidad?.analisis?.[0]?.tipo_analisis }}
-                </div>
+                <label>Descripción</label>
+                <p>{{ solicitudSeleccionada()?.descripcion }}</p>
+                @if (solicitudSeleccionada()?.trazabilidad?.analisis?.length) {
+                  <div style="margin-top:5px;font-size:0.85em;color:#6200ee;background:#eef;padding:4px 8px;border-radius:4px;display:inline-block;">
+                    <span class="material-icons-round" style="font-size:14px;vertical-align:middle;margin-right:4px;">smart_toy</span>
+                    Clasificado por IA: {{ solicitudSeleccionada()?.trazabilidad?.analisis?.[0]?.tipo_analisis }}
+                  </div>
+                }
               </div>
               <div class="detail-item full-width">
                 <label>Ubicación</label>
                 <div class="location-box">
                   <span class="material-icons-round">location_on</span>
                   <div class="loc-text">
-                    <p class="ref">{{ solicitudSeleccionada()?.ubicacion?.referencia }}</p>
+                    <p class="ref">{{ solicitudSeleccionada()?.ubicacion?.referencia || 'Sin referencia' }}</p>
                     <p class="coords">Lat: {{ solicitudSeleccionada()?.ubicacion?.lat }}, Lng: {{ solicitudSeleccionada()?.ubicacion?.lng }}</p>
                   </div>
                 </div>
@@ -160,43 +223,49 @@
             </div>
 
             <!-- Evidencias -->
-            <div class="evidencias-section" *ngIf="solicitudSeleccionada()?.evidencias?.length">
-              <label>Evidencias</label>
-              <div class="evidencias-grid">
-                <div class="evidence-item" *ngFor="let ev of solicitudSeleccionada()?.evidencias">
-                  <img [src]="ev.url" alt="Evidencia">
+            @if (solicitudSeleccionada()?.evidencias?.length) {
+              <div class="evidencias-section">
+                <label>Evidencias fotográficas</label>
+                <div class="evidencias-grid">
+                  @for (ev of solicitudSeleccionada()!.evidencias; track ev.url) {
+                    <div class="evidence-item">
+                      <img [src]="ev.url" alt="Evidencia">
+                    </div>
+                  }
                 </div>
               </div>
-            </div>
+            }
 
-            <!-- CU-009 Timeline de Trazabilidad -->
-            <div class="timeline-container" *ngIf="solicitudSeleccionada()?.trazabilidad?.incidente?.historial?.length">
-              <label style="font-weight: 600; color: #aaaaaa; margin-bottom: 1rem; display: block;">Línea de Tiempo del Incidente</label>
-              <div class="timeline">
-                <div class="timeline-event" *ngFor="let h of solicitudSeleccionada()?.trazabilidad?.incidente?.historial">
-                  <div class="timeline-icon">
-                    <span class="material-icons-round">
-                      {{ h.tipo_evento === 'CREACION' ? 'add_circle' : 
-                         h.tipo_evento === 'ASIGNACION' ? 'person_add' :
-                         h.tipo_evento === 'CAMBIO_ESTADO' ? 'sync' : 'info' }}
-                    </span>
-                  </div>
-                  <div class="timeline-content">
-                    <div class="tl-header">
-                      <strong>{{ h.tipo_evento | titlecase }}</strong>
-                      <span>{{ h.fecha_creacion | date:'short' }}</span>
+            <!-- Timeline -->
+            @if (solicitudSeleccionada()?.trazabilidad?.incidente?.historial?.length) {
+              <div class="timeline-container">
+                <label style="font-weight:600;color:#aaa;margin-bottom:1rem;display:block;">Línea de Tiempo</label>
+                <div class="timeline">
+                  @for (h of solicitudSeleccionada()!.trazabilidad!.incidente!.historial!; track h.fecha_creacion) {
+                    <div class="timeline-event">
+                      <div class="timeline-icon">
+                        <span class="material-icons-round">
+                          {{ h.tipo_evento === 'CREACION' ? 'add_circle' :
+                             h.tipo_evento === 'ASIGNACION' ? 'person_add' :
+                             h.tipo_evento === 'CAMBIO_ESTADO' ? 'sync' : 'info' }}
+                        </span>
+                      </div>
+                      <div class="timeline-content">
+                        <div class="tl-header">
+                          <strong>{{ h.tipo_evento | titlecase }}</strong>
+                          <span>{{ h.fecha_creacion | date:'short' }}</span>
+                        </div>
+                        <div class="tl-body">{{ h.descripcion || 'Sin descripción' }}</div>
+                      </div>
                     </div>
-                    <div class="tl-body">
-                      {{ h.descripcion || 'Sin descripción' }}
-                    </div>
-                  </div>
+                  }
                 </div>
               </div>
-            </div>
+            }
           </section>
         </div>
 
-        <!-- Actions Column -->
+        <!-- Columna de acciones -->
         <div class="actions-column">
           <section class="action-card card">
             <div class="section-title">
@@ -204,50 +273,56 @@
               <h2>Gestión de Servicio</h2>
             </div>
 
-            <!-- Quick Actions -->
-            <div class="quick-actions" *ngIf="solicitudSeleccionada()?.estado === 'Disponible' || solicitudSeleccionada()?.estado === 'Pendiente'">
-              <button class="btn-success" (click)="aceptarSolicitud()">
-                <span class="material-icons-round">check</span>
-                Aceptar solicitud
-              </button>
-              <button class="btn-outline-error" (click)="rechazarSolicitud()">
-                <span class="material-icons-round">close</span>
-                Rechazar
-              </button>
-            </div>
+            <!-- Aceptar / Rechazar (solo si está pendiente) -->
+            @if (esPendiente(solicitudSeleccionada())) {
+              <div class="quick-actions">
+                <button class="btn-success" (click)="aceptarSolicitud()">
+                  <span class="material-icons-round">check</span>
+                  Aceptar solicitud
+                </button>
+                <button class="btn-outline-error" (click)="rechazarSolicitud()">
+                  <span class="material-icons-round">close</span>
+                  Rechazar
+                </button>
+              </div>
+            }
 
-            <!-- Update Status Form -->
+            <!-- Formulario de actualización de estado -->
             <form [formGroup]="statusForm" (ngSubmit)="actualizarEstadoServicio()" class="status-update-form">
               <div class="form-group">
                 <label>Asignar Técnico</label>
                 <select formControlName="tecnicoId">
                   <option value="">Seleccionar técnico...</option>
-                  <option *ngFor="let t of tecnicos" [value]="t.id">Personal #{{ t.id_usuario }} - {{ t.tipo_personal }}</option>
+                  @for (t of tecnicos; track t.id) {
+                    <option [value]="t.id">Personal #{{ t.id_usuario }} — {{ t.tipo_personal }}</option>
+                  }
                 </select>
               </div>
 
-              <div class="form-group" *ngIf="solicitudSeleccionada()?.estado !== 'Disponible'">
-                <label>Estado del Servicio</label>
-                <div class="stepper">
-                   <div class="step" 
-                        [class.completed]="solicitudSeleccionada()?.estado === 'En camino' || solicitudSeleccionada()?.estado === 'En atención' || solicitudSeleccionada()?.estado === 'Finalizada'"
-                        [class.active]="statusForm.get('estado')?.value === 'Aceptada'"
-                        (click)="setStatus('Aceptada')">1. Aceptada</div>
-                   <div class="step"
-                        [class.completed]="solicitudSeleccionada()?.estado === 'En atención' || solicitudSeleccionada()?.estado === 'Finalizada'"
-                        [class.active]="statusForm.get('estado')?.value === 'En camino'"
-                        (click)="setStatus('En camino')">2. En Camino</div>
-                   <div class="step"
-                        [class.completed]="solicitudSeleccionada()?.estado === 'Finalizada'"
-                        [class.active]="statusForm.get('estado')?.value === 'En atención'"
-                        (click)="setStatus('En atención')">3. En Atención</div>
-                   <div class="step"
-                        [class.active]="statusForm.get('estado')?.value === 'Finalizada'"
-                        [class.completed]="solicitudSeleccionada()?.estado === 'Finalizada'"
-                        (click)="setStatus('Finalizada')">4. Finalizada</div>
+              @if (!esPendiente(solicitudSeleccionada())) {
+                <div class="form-group">
+                  <label>Estado del Servicio</label>
+                  <div class="stepper">
+                    <div class="step"
+                      [class.completed]="['En camino','En atención','Finalizada'].includes(solicitudSeleccionada()?.estado || '')"
+                      [class.active]="statusForm.get('estado')?.value === 'Aceptada'"
+                      (click)="setStatus('Aceptada')">1. Aceptada</div>
+                    <div class="step"
+                      [class.completed]="['En atención','Finalizada'].includes(solicitudSeleccionada()?.estado || '')"
+                      [class.active]="statusForm.get('estado')?.value === 'En camino'"
+                      (click)="setStatus('En camino')">2. En Camino</div>
+                    <div class="step"
+                      [class.completed]="solicitudSeleccionada()?.estado === 'Finalizada'"
+                      [class.active]="statusForm.get('estado')?.value === 'En atención'"
+                      (click)="setStatus('En atención')">3. En Atención</div>
+                    <div class="step"
+                      [class.completed]="solicitudSeleccionada()?.estado === 'Finalizada'"
+                      [class.active]="statusForm.get('estado')?.value === 'Finalizada'"
+                      (click)="setStatus('Finalizada')">4. Finalizada</div>
+                  </div>
+                  <input type="hidden" formControlName="estado">
                 </div>
-                <input type="hidden" formControlName="estado">
-              </div>
+              }
 
               <div class="form-group">
                 <label>Observaciones</label>
@@ -263,12 +338,6 @@
         </div>
       </div>
     </div>
-  </ng-container>
+  }
 
-  <ng-template #loadingTpl>
-    <div class="loading-state card">
-      <div class="spinner"></div>
-      <p>Cargando solicitudes...</p>
-    </div>
-  </ng-template>
 </div>

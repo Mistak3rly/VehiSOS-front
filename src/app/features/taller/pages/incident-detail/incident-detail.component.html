@@ -1,5 +1,53 @@
 <div class="incident-detail-container" *ngIf="data() as d; else loadingTpl">
-  
+
+  <!-- ── BANNER: Responder solicitud ─────────────────────────────────── -->
+  @if (asignacion(); as asig) {
+    @if (asig.estado_asignacion === 'pendiente') {
+      <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;flex-wrap:wrap;align-items:center;gap:12px;">
+        <span class="material-icons-round" style="color:#d97706;font-size:1.4rem;">notifications_active</span>
+        <div style="flex:1;min-width:200px;">
+          <strong style="color:#92400e;">Nueva solicitud de emergencia</strong>
+          <p style="margin:2px 0 0;font-size:0.85rem;color:#78350f;">El cliente solicita tu asistencia. Revisa los detalles y decide.</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button (click)="responderAsignacion('rechazar')" [disabled]="respondiendo()"
+            style="padding:8px 16px;background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:8px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">
+            <span class="material-icons-round" style="font-size:1rem;">cancel</span>
+            Rechazar
+          </button>
+          <button (click)="responderAsignacion('aceptar')" [disabled]="respondiendo()"
+            style="padding:8px 20px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">
+            <span class="material-icons-round" style="font-size:1rem;">check_circle</span>
+            {{ respondiendo() ? 'Procesando...' : 'Aceptar' }}
+          </button>
+        </div>
+      </div>
+    }
+    @if (asig.estado_asignacion === 'aceptada') {
+      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:12px 20px;margin-bottom:20px;display:flex;align-items:center;gap:10px;">
+        <span class="material-icons-round" style="color:#16a34a;">verified</span>
+        <strong style="color:#15803d;">Solicitud aceptada — comunícate con el cliente desde el chat.</strong>
+      </div>
+    }
+    @if (asig.estado_asignacion === 'rechazada') {
+      <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:12px;padding:12px 20px;margin-bottom:20px;display:flex;align-items:center;gap:10px;">
+        <span class="material-icons-round" style="color:#dc2626;">block</span>
+        <strong style="color:#dc2626;">Solicitud rechazada.</strong>
+      </div>
+    }
+  }
+
+  @if (respuestaMsg()) {
+    <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:10px 16px;margin-bottom:16px;color:#15803d;font-weight:600;display:flex;align-items:center;gap:8px;">
+      <span class="material-icons-round">check_circle</span>{{ respuestaMsg() }}
+    </div>
+  }
+  @if (respuestaError()) {
+    <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:10px 16px;margin-bottom:16px;color:#dc2626;font-weight:600;">
+      {{ respuestaError() }}
+    </div>
+  }
+
   <!-- Visualización de CU11 - Resultados de Priorización -->
   <header class="urgency-banner" [ngClass]="getUrgencyClass()">
     <div class="banner-content">
@@ -16,7 +64,7 @@
 
   <main class="detail-content">
     <div class="info-grid">
-      
+
       <!-- Columna Principal: Evidencias -->
       <div class="evidence-column">
         <!-- Visualización de CU10 - Diagnóstico Multimedia -->
@@ -30,7 +78,7 @@
               <svg viewBox="0 0 24 24" width="24" height="24"><path fill="currentColor" d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
             </button>
           </div>
-          
+
           <div class="collapsible-content" [class.visible]="showTranscription()">
             <div class="transcription-box">
               <p>{{ getTranscription() }}</p>
@@ -55,7 +103,7 @@
                 {{ tag }}
               </span>
             </div>
-            
+
             <div class="image-gallery">
               <div class="image-wrapper" *ngFor="let img of getImages()">
                 <img [src]="img.url_archivo" [alt]="img.nombre_archivo">
@@ -76,7 +124,6 @@
             </div>
           </div>
           <div class="map-container">
-            <!-- Aquí iría el widget de mapa real, por ahora representamos el espacio -->
             <div class="map-placeholder">
               <div class="marker origin">Taller</div>
               <div class="route-line"></div>
@@ -89,6 +136,17 @@
             </div>
           </div>
         </section>
+
+        <!-- ── Chat con el cliente (CU-023) ───────────────────────── -->
+        @if (incidenteId()) {
+          <section style="margin-top:16px;">
+            <h2 style="font-size:1rem;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+              <span class="material-icons-round" style="font-size:1.1rem;color:var(--primary-red);">chat</span>
+              Chat con el cliente
+            </h2>
+            <app-panel-incidente [incidenteId]="incidenteId()!" rol="taller" />
+          </section>
+        }
       </div>
 
       <!-- Columna Lateral: Datos del Vehículo y Cliente -->

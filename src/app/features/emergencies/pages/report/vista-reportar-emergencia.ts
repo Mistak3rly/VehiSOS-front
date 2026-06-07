@@ -5,9 +5,10 @@ import { Router, RouterModule } from '@angular/router';
 import { timeout, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { EmergenciasService } from '../../../../core/services/emergencias.service';
-import { VehiculoRead, TipoIncidenteRead, IncidenteCreate, EvidenciaCreate } from '../../../../core/models/api.models';
+import { LogisticaService } from '../../../../core/services/logistica.service';
+import { VehiculoRead, TipoIncidenteRead, TallerRead, IncidenteCreate, EvidenciaCreate } from '../../../../core/models/api.models';
 
-const API_TIMEOUT_MS = 10_000;
+const API_TIMEOUT_MS = 15_000;
 
 @Component({
   selector: 'app-vista-reportar-emergencia',
@@ -20,6 +21,7 @@ export class VistaReportarEmergencia implements OnInit {
   emergencyForm: FormGroup;
   vehiculos: VehiculoRead[] = [];
   incidentTypes: TipoIncidenteRead[] = [];
+  talleres: TallerRead[] = [];
   errorMessage = '';
   successMessage = '';
   isSubmitting = false;
@@ -27,25 +29,28 @@ export class VistaReportarEmergencia implements OnInit {
   isLocating = false;
   isLoadingVehiculos = false;
   isLoadingTipos = false;
+  isLoadingTalleres = false;
   errorVehiculos = '';
   errorTipos = '';
+  errorTalleres = '';
   capturedLocation = { lat: 0, lng: 0, captured: false };
   selectedFiles: File[] = [];
   imagePreviews: string[] = [];
-  isAudioRecording = false;
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private emergenciasService: EmergenciasService
+    private emergenciasService: EmergenciasService,
+    private logisticaService: LogisticaService,
   ) {
     this.emergencyForm = this.fb.group({
-      vehiculoId: ['', [Validators.required]],
-      tipoIncidente: ['', [Validators.required]],
-      descripcion: ['', [Validators.required]],
+      vehiculoId:          ['', [Validators.required]],
+      tallerDestinoId:     ['', [Validators.required]],
+      tipoIncidente:       ['', [Validators.required]],
+      descripcion:         ['', [Validators.required]],
       referenciaUbicacion: [''],
-      lat: [null, [Validators.required]],
-      lng: [null, [Validators.required]]
+      lat:  [null],
+      lng:  [null],
     });
   }
 
@@ -56,19 +61,20 @@ export class VistaReportarEmergencia implements OnInit {
   cargarDatos(): void {
     this.errorVehiculos = '';
     this.errorTipos = '';
+    this.errorTalleres = '';
     this.cargarVehiculos();
     this.cargarTiposIncidente();
+    this.cargarTalleres();
   }
 
   private cargarVehiculos(): void {
     this.isLoadingVehiculos = true;
-
     this.emergenciasService.listVehiculos().pipe(
       timeout(API_TIMEOUT_MS),
       catchError(err => {
         const isTimeout = err?.name === 'TimeoutError';
         this.errorVehiculos = isTimeout
-          ? 'El servidor tardó demasiado en responder. Verifica que el backend esté corriendo.'
+          ? 'El servidor tardó demasiado. Verifica que el backend esté corriendo.'
           : (err?.error?.detail || err?.message || 'No se pudieron cargar los vehículos.');
         this.isLoadingVehiculos = false;
         return of([]);
@@ -81,13 +87,12 @@ export class VistaReportarEmergencia implements OnInit {
 
   private cargarTiposIncidente(): void {
     this.isLoadingTipos = true;
-
     this.emergenciasService.listTiposIncidente().pipe(
       timeout(API_TIMEOUT_MS),
       catchError(err => {
         const isTimeout = err?.name === 'TimeoutError';
         this.errorTipos = isTimeout
-          ? 'El servidor tardó demasiado en responder. Verifica que el backend esté corriendo.'
+          ? 'El servidor tardó demasiado. Verifica que el backend esté corriendo.'
           : (err?.error?.detail || err?.message || 'No se pudieron cargar los tipos de incidente.');
         this.isLoadingTipos = false;
         return of([]);
@@ -96,7 +101,25 @@ export class VistaReportarEmergencia implements OnInit {
       this.incidentTypes = data;
       this.isLoadingTipos = false;
       if (data.length === 0) {
-        this.errorTipos = 'El catálogo de tipos de incidente está vacío. Reinicia el backend para que el seed lo pueble automáticamente.';
+        this.errorTipos = 'El catálogo está vacío. Reinicia el backend para poblar el seed.';
+      }
+    });
+  }
+
+  private cargarTalleres(): void {
+    this.isLoadingTalleres = true;
+    this.logisticaService.listTalleresActivos().pipe(
+      timeout(API_TIMEOUT_MS),
+      catchError(err => {
+        this.errorTalleres = err?.error?.detail || 'No se pudieron cargar los talleres disponibles.';
+        this.isLoadingTalleres = false;
+        return of([]);
+      })
+    ).subscribe(data => {
+      this.talleres = data;
+      this.isLoadingTalleres = false;
+      if (data.length === 0) {
+        this.errorTalleres = 'No hay talleres activos disponibles en este momento.';
       }
     });
   }
@@ -113,11 +136,11 @@ export class VistaReportarEmergencia implements OnInit {
         this.capturedLocation = {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
-          captured: true
+          captured: true,
         };
         this.emergencyForm.patchValue({
           lat: this.capturedLocation.lat,
-          lng: this.capturedLocation.lng
+          lng: this.capturedLocation.lng,
         });
         this.isLocating = false;
       },
@@ -149,13 +172,11 @@ export class VistaReportarEmergencia implements OnInit {
     this.imagePreviews.splice(index, 1);
   }
 
-  adjuntarAudio(): void {
-    this.isAudioRecording = !this.isAudioRecording;
-  }
-
   enviarEmergencia(): void {
     if (!this.emergencyForm.valid) {
       this.emergencyForm.markAllAsTouched();
+      this.errorMessage = 'Por favor completa todos los campos obligatorios: vehículo, taller, tipo de incidente y descripción.';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
@@ -171,49 +192,46 @@ export class VistaReportarEmergencia implements OnInit {
         tipo_evidencia: 'imagen',
         url_archivo: preview,
         nombre_archivo: `foto_${index}.jpg`,
-        tipo_mime: 'image/jpeg'
+        tipo_mime: 'image/jpeg',
       });
     });
-
-    if (this.isAudioRecording) {
-      evidencias.push({
-        tipo_evidencia: 'audio',
-        url_archivo: 'data:audio/mp3;base64,...',
-        nombre_archivo: 'grabacion.mp3',
-        tipo_mime: 'audio/mpeg'
-      });
-    }
 
     if (formValue.descripcion) {
       evidencias.push({ tipo_evidencia: 'texto', contenido_texto: formValue.descripcion });
     }
 
     const payload: IncidenteCreate = {
-      id_vehiculo: parseInt(formValue.vehiculoId, 10),
-      id_tipo_incidente: parseInt(formValue.tipoIncidente, 10),
-      titulo: 'Emergencia Reportada',
-      descripcion_texto: formValue.descripcion,
-      referencia_ubicacion: formValue.referenciaUbicacion,
-      latitud: formValue.lat,
-      longitud: formValue.lng,
-      evidencias
+      id_vehiculo:          parseInt(formValue.vehiculoId, 10),
+      id_taller_destino:    parseInt(formValue.tallerDestinoId, 10),
+      id_tipo_incidente:    parseInt(formValue.tipoIncidente, 10),
+      titulo:               'Emergencia Reportada',
+      descripcion_texto:    formValue.descripcion,
+      referencia_ubicacion: formValue.referenciaUbicacion || '',
+      latitud:              formValue.lat ?? 0,
+      longitud:             formValue.lng ?? 0,
+      evidencias,
     };
 
     this.emergenciasService.createIncidente(payload).pipe(
       timeout(API_TIMEOUT_MS),
     ).subscribe({
-      next: (_) => {
+      next: () => {
         this.isSubmitting = false;
-        this.successMessage = 'Emergencia reportada correctamente. Los talleres activos han sido notificados.';
+        this.successMessage = 'Emergencia enviada. El taller ha sido notificado y puede aceptar, revisar o rechazar tu solicitud.';
         setTimeout(() => this.router.navigate(['/cliente/solicitudes/seguimiento']), 2500);
       },
       error: (err) => {
         this.isSubmitting = false;
         const isTimeout = err?.name === 'TimeoutError';
-        this.errorMessage = isTimeout
-          ? 'El servidor tardó demasiado. Verifica tu conexión e inténtalo de nuevo.'
-          : (err?.error?.detail || 'Error al reportar la emergencia. Revisa los datos.');
-      }
+        if (isTimeout) {
+          this.errorMessage = 'El servidor tardó demasiado. Verifica tu conexión e inténtalo de nuevo.';
+        } else {
+          const detail = err?.error?.detail;
+          this.errorMessage = typeof detail === 'string'
+            ? detail
+            : 'Error al reportar la emergencia. Verifica los datos e inténtalo de nuevo.';
+        }
+      },
     });
   }
 

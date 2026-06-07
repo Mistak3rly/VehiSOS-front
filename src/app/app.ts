@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { SidebarComponent } from './core/components/sidebar/sidebar.component';
 import { AuthService } from './core/services/auth.service';
 import { TenantThemeService } from './core/services/tenant-theme.service';
+import { OfflineService } from './core/services/offline.service';
 import { filter } from 'rxjs/operators';
 
 @Component({
@@ -23,6 +24,7 @@ export class App implements OnInit {
     private router: Router,
     private auth: AuthService,
     private themeService: TenantThemeService,
+    readonly offlineService: OfflineService,
   ) {
     // Re-aplica el tema del tenant en TODA la app cada vez que cambia el usuario
     effect(() => {

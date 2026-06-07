@@ -3,7 +3,7 @@
   <header class="page-header">
     <div class="header-content">
       <h1>Historial de vehículos</h1>
-      <p>Consulta los vehículos que han estado registrados en tu cuenta anteriormente.</p>
+      <p>Todos los vehículos registrados en tu cuenta.</p>
     </div>
     <button class="btn-outline" routerLink="/vehiculos">
       <span class="material-icons-round">arrow_back</span>
@@ -11,53 +11,68 @@
     </button>
   </header>
 
-  <!-- Table Section -->
-  <section class="table-card card">
-    <div class="table-responsive">
-      <table class="history-table">
-        <thead>
-          <tr>
-            <th>Vehículo</th>
-            <th>Placa</th>
-            <th>Año</th>
-            <th>Fecha de Baja</th>
-            <th>Motivo</th>
-            <th>Acción</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let v of historial">
-            <td>
-              <div class="vehicle-cell">
-                <span class="material-icons-round">history_edu</span>
-                <div class="info">
-                  <span class="main">{{ v.marca }} {{ v.modelo }}</span>
-                  <span class="sub">{{ v.color }}</span>
-                </div>
-              </div>
-            </td>
-            <td><span class="plate-badge">{{ v.placa }}</span></td>
-            <td>{{ v.year }}</td>
-            <td>{{ v.fechaBaja }}</td>
-            <td>
-              <span class="status-chip" [ngClass]="v.motivo.toLowerCase().replace(' ', '-')">
-                {{ v.motivo }}
-              </span>
-            </td>
-            <td>
-              <button class="btn-text" (click)="recuperarVehiculo(v.placa)">
-                Recuperar
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div style="text-align:center;padding:40px;">
+      <p>Cargando vehículos...</p>
     </div>
+  }
 
-    <!-- Empty State -->
-    <div class="empty-history" *ngIf="historial.length === 0">
-      <span class="material-icons-round">folder_open</span>
-      <p>No tienes vehículos en tu historial.</p>
+  <!-- Error -->
+  @if (errorMessage()) {
+    <div style="background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;padding:16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;">
+      <span class="material-icons-round" style="color:#dc2626;">error_outline</span>
+      <div>
+        <p style="color:#dc2626;margin:0 0 6px;">{{ errorMessage() }}</p>
+        <button (click)="cargarVehiculos()" style="font-size:0.85rem;color:#1d4ed8;background:none;border:none;cursor:pointer;text-decoration:underline;">
+          Reintentar
+        </button>
+      </div>
     </div>
-  </section>
+  }
+
+  <!-- Table Section -->
+  @if (!isLoading() && !errorMessage()) {
+    <section class="table-card card">
+      <div class="table-responsive">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>Vehículo</th>
+              <th>Placa</th>
+              <th>Año</th>
+              <th>Color</th>
+              <th>Observaciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (v of vehiculos(); track v.id) {
+              <tr>
+                <td>
+                  <div class="vehicle-cell">
+                    <span class="material-icons-round">directions_car</span>
+                    <span class="main">{{ v.marca }} {{ v.modelo }}</span>
+                  </div>
+                </td>
+                <td><span class="plate-badge">{{ v.placa }}</span></td>
+                <td>{{ v.anio ?? '—' }}</td>
+                <td>{{ v.color ?? '—' }}</td>
+                <td>{{ v.observaciones ?? '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (vehiculos().length === 0) {
+        <div class="empty-history">
+          <span class="material-icons-round">folder_open</span>
+          <p>No tienes vehículos registrados aún.</p>
+          <a routerLink="/cliente/vehiculos/registrar" style="color:#1d4ed8;text-decoration:underline;font-size:0.9rem;">
+            Registrar mi primer vehículo →
+          </a>
+        </div>
+      }
+    </section>
+  }
 </div>

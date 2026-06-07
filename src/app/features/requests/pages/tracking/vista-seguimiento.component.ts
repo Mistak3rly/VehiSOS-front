@@ -1,11 +1,13 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { EmergenciasService } from '../../../../core/services/emergencias.service';
 import { InteligenciaService } from '../../../../core/services/inteligencia.service';
 import { LogisticaService } from '../../../../core/services/logistica.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { PagoRead } from '../../../../core/models/api.models';
+import { PanelIncidenteComponent } from '../../../operaciones/pages/panel-incidente/panel-incidente.component';
 
 interface Solicitud {
   id: string;
@@ -26,7 +28,7 @@ interface Solicitud {
 @Component({
   selector: 'app-vista-seguimiento',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, PanelIncidenteComponent],
   templateUrl: './vista-seguimiento.component.html',
   styleUrl: './vista-seguimiento.component.scss'
 })
@@ -45,11 +47,26 @@ export class VistaSeguimientoSolicitudes implements OnInit {
   ratingValue = 0;
   ratingComment = '';
 
+  userRole = computed(() => {
+    const u = this.auth.currentUser();
+    return u?.roles?.[0]?.nombre ?? localStorage.getItem('userRole') ?? 'cliente';
+  });
+
   constructor(
     private emergenciasService: EmergenciasService,
     private inteligenciaService: InteligenciaService,
-    private logisticaService: LogisticaService
+    private logisticaService: LogisticaService,
+    private auth: AuthService,
   ) {}
+
+  trazabilidadParaPanel(s: Solicitud): Array<{ id: number; tipo_evento: string; descripcion?: string; fecha_creacion: string }> {
+    return (s.trazabilidad ?? []).map((t, i) => ({
+      id: i,
+      tipo_evento: t.evento,
+      descripcion: undefined,
+      fecha_creacion: t.fecha,
+    }));
+  }
 
   ngOnInit(): void {
     this.cargarSolicitudes();

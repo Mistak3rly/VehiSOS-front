@@ -79,6 +79,7 @@ export interface UserCreate {
   password: string;
   role_ids?: number[];
   rol?: 'cliente' | 'taller';
+  tenant_id?: number | null;
   nombre_dueno?: string;
   ci_dueno?: string;
 }
@@ -683,4 +684,61 @@ export interface AsignacionMultipleCandidatos {
   talleres: number[];
   max_intentos?: number;
   timeout_respuesta_minutos?: number;
+}
+
+// ─────────────────────────────────────────────
+//  CU-019 SERVICIOS Y COBERTURA (SaaS)
+// ─────────────────────────────────────────────
+
+export interface ServicioSaaSCreate {
+  nombre: string;
+  categoria: string;
+  descripcion?: string;
+  activo?: boolean;
+}
+
+export interface ServicioSaaSUpdate {
+  nombre?: string;
+  categoria?: string;
+  descripcion?: string;
+  activo?: boolean;
+}
+
+export interface ServicioSaaSRead {
+  id: number;
+  tenant_id: number;
+  nombre: string;
+  categoria: string;
+  descripcion: string | null;
+  activo: boolean;
+  fecha_creacion: string;
+  fecha_actualizacion: string;
+}
+
+export interface CoberturaSaaSCreate {
+  zona: string;
+  ciudad: string;
+  radio_cobertura: number;
+  disponible_24h?: boolean;
+  descripcion?: string;
+}
+
+export interface CoberturaSaaSUpdate {
+  zona?: string;
+  ciudad?: string;
+  radio_cobertura?: number;
+  disponible_24h?: boolean;
+  descripcion?: string;
+}
+
+export interface CoberturaSaaSRead {
+  id: number;
+  tenant_id: number;
+  zona: string;
+  ciudad: string;
+  radio_cobertura: number;
+  disponible_24h: boolean;
+  descripcion: string | null;
+  fecha_creacion: string;
+  fecha_actualizacion: string;
 }

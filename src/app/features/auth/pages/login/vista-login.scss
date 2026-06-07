@@ -463,19 +463,59 @@ $shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       margin-left: 1.4rem;
     }
 
-    .tenant-card-placeholder {
-      margin-top: 0.85rem;
-      padding: 0.7rem 0.85rem;
-      background: #f8f8f8;
-      border-radius: 10px;
-      border: 1px dashed #ddd;
-      text-align: center;
+    .tenant-card-desc {
+      margin: 0.55rem 0 0.7rem;
+      font-size: 0.8rem;
+      color: $text-secondary;
+      line-height: 1.45;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
 
-      span {
-        font-size: 0.78rem;
-        color: #bbb;
+      &--empty {
         font-style: italic;
+        opacity: 0.6;
       }
+    }
+
+    .tenant-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 0.6rem;
+      padding-top: 0.6rem;
+      border-top: 1px solid rgba(0,0,0,0.06);
+    }
+
+    .tenant-plan-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--tc, #C40016);
+      background: color-mix(in srgb, var(--tc, #C40016) 10%, transparent);
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+    }
+
+    .tenant-select-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--tc, #C40016);
+      opacity: 0.85;
+      transition: opacity 0.15s;
+    }
+
+    &:hover .tenant-select-cta,
+    &.selected .tenant-select-cta {
+      opacity: 1;
     }
   }
 }

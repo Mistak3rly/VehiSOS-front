@@ -10,58 +10,101 @@
     <div class="form-column">
       <section class="form-card card">
         <form [formGroup]="emergencyForm" (ngSubmit)="enviarEmergencia()">
+
           <!-- Vehicle Selection -->
           <div class="form-group">
             <label for="vehiculoId">Vehículo involucrado</label>
+
+            @if (errorVehiculos) {
+              <div style="background:#fee2e2;border:1px solid #fca5a5;border-radius:6px;padding:10px 12px;margin-bottom:6px;font-size:0.85rem;color:#dc2626;">
+                {{ errorVehiculos }}
+                <button type="button" (click)="cargarDatos()" style="margin-left:8px;text-decoration:underline;background:none;border:none;color:#1d4ed8;cursor:pointer;font-size:0.85rem;">
+                  Reintentar
+                </button>
+              </div>
+            }
+
             <select id="vehiculoId" formControlName="vehiculoId">
-              <option value="" disabled selected>Selecciona un vehículo</option>
-              <option *ngFor="let v of vehiculos" [value]="v.id">
-                {{ v.marca }} {{ v.modelo }} ({{ v.placa }})
+              <option value="" disabled>
+                @if (isLoadingVehiculos) { Cargando vehículos... }
+                @else if (vehiculos.length === 0 && !errorVehiculos) { Sin vehículos registrados }
+                @else { Selecciona un vehículo }
               </option>
+              @for (v of vehiculos; track v.id) {
+                <option [value]="v.id">{{ v.marca }} {{ v.modelo }} ({{ v.placa }})</option>
+              }
             </select>
-            <small class="error" *ngIf="emergencyForm.get('vehiculoId')?.invalid && emergencyForm.get('vehiculoId')?.touched">
-              Debes seleccionar un vehículo.
-            </small>
+
+            @if (vehiculos.length === 0 && !isLoadingVehiculos && !errorVehiculos) {
+              <div style="margin-top:6px;">
+                <small style="color:#b45309;">No tienes vehículos registrados.</small>
+                <a routerLink="/cliente/vehiculos/registrar" style="margin-left:8px;color:#1d4ed8;font-size:0.85rem;text-decoration:underline;">
+                  Registrar vehículo →
+                </a>
+              </div>
+            }
+
+            @if (emergencyForm.get('vehiculoId')?.invalid && emergencyForm.get('vehiculoId')?.touched) {
+              <small class="error">Debes seleccionar un vehículo.</small>
+            }
           </div>
 
           <!-- Incident Type -->
           <div class="form-group">
             <label for="tipoIncidente">Tipo de incidente</label>
+
+            @if (errorTipos) {
+              <div style="background:#fee2e2;border:1px solid #fca5a5;border-radius:6px;padding:10px 12px;margin-bottom:6px;font-size:0.85rem;color:#dc2626;">
+                {{ errorTipos }}
+                <button type="button" (click)="cargarDatos()" style="margin-left:8px;text-decoration:underline;background:none;border:none;color:#1d4ed8;cursor:pointer;font-size:0.85rem;">
+                  Reintentar
+                </button>
+              </div>
+            }
+
             <select id="tipoIncidente" formControlName="tipoIncidente">
-              <option value="" disabled selected>Selecciona el tipo de falla</option>
-              <option *ngFor="let type of incidentTypes" [value]="type.id">{{ type.nombre }}</option>
+              <option value="" disabled>
+                @if (isLoadingTipos) { Cargando tipos... }
+                @else { Selecciona el tipo de falla }
+              </option>
+              @for (type of incidentTypes; track type.id) {
+                <option [value]="type.id">{{ type.nombre }}</option>
+              }
             </select>
-            <small class="error" *ngIf="emergencyForm.get('tipoIncidente')?.invalid && emergencyForm.get('tipoIncidente')?.touched">
-              El tipo de incidente es obligatorio.
-            </small>
+
+            @if (emergencyForm.get('tipoIncidente')?.invalid && emergencyForm.get('tipoIncidente')?.touched) {
+              <small class="error">El tipo de incidente es obligatorio.</small>
+            }
           </div>
 
           <!-- Description -->
           <div class="form-group">
             <label for="descripcion">Descripción del problema</label>
             <textarea id="descripcion" formControlName="descripcion" placeholder="Explica brevemente qué sucede..."></textarea>
-            <small class="error" *ngIf="emergencyForm.get('descripcion')?.invalid && emergencyForm.get('descripcion')?.touched">
-              La descripción es obligatoria.
-            </small>
+            @if (emergencyForm.get('descripcion')?.invalid && emergencyForm.get('descripcion')?.touched) {
+              <small class="error">La descripción es obligatoria.</small>
+            }
           </div>
 
           <!-- Location -->
           <div class="form-group location-group">
             <label>Ubicación del incidente</label>
             <div class="location-actions">
-              <button type="button" class="btn-location" (click)='obtenerUbicacionActual()' [class.loading]="isLocating">
+              <button type="button" class="btn-location" (click)="obtenerUbicacionActual()" [class.loading]="isLocating">
                 <span class="material-icons-round">my_location</span>
                 {{ isLocating ? 'Obteniendo...' : 'Obtener ubicación actual' }}
               </button>
-              <div class="coordinates" *ngIf="capturedLocation.captured">
-                <span>Lat: {{ capturedLocation.lat.toFixed(6) }}</span>
-                <span>Lng: {{ capturedLocation.lng.toFixed(6) }}</span>
-              </div>
+              @if (capturedLocation.captured) {
+                <div class="coordinates">
+                  <span>Lat: {{ capturedLocation.lat.toFixed(6) }}</span>
+                  <span>Lng: {{ capturedLocation.lng.toFixed(6) }}</span>
+                </div>
+              }
             </div>
             <input type="text" formControlName="referenciaUbicacion" placeholder="Referencia adicional (Ej. Frente al cine center)">
-            <small class="error" *ngIf="emergencyForm.get('lat')?.invalid && emergencyForm.get('lat')?.touched">
-              La ubicación GPS es obligatoria. Pulsa el botón superior.
-            </small>
+            @if (emergencyForm.get('lat')?.invalid && emergencyForm.get('lat')?.touched) {
+              <small class="error">La ubicación GPS es obligatoria. Pulsa el botón superior.</small>
+            }
           </div>
 
           <!-- Evidence -->
@@ -79,28 +122,34 @@
               </button>
             </div>
 
-            <!-- Preview Photos -->
-            <div class="previews-grid" *ngIf="imagePreviews.length > 0">
-              <div class="preview-item" *ngFor="let img of imagePreviews; let i = index">
-                <img [src]="img" alt="Vista previa">
-                <button type="button" class="remove-btn" (click)="removeFoto(i)">
-                  <span class="material-icons-round">close</span>
-                </button>
+            @if (imagePreviews.length > 0) {
+              <div class="previews-grid">
+                @for (img of imagePreviews; track $index; let i = $index) {
+                  <div class="preview-item">
+                    <img [src]="img" alt="Vista previa">
+                    <button type="button" class="remove-btn" (click)="removeFoto(i)">
+                      <span class="material-icons-round">close</span>
+                    </button>
+                  </div>
+                }
               </div>
-            </div>
+            }
             <p class="hint">Máximo 5 fotografías. El audio es opcional.</p>
           </div>
 
           <!-- Actions -->
           <div class="form-actions">
             <button type="button" class="btn-outline" (click)="cancelar()">Cancelar</button>
-            <button type="submit" class="btn-primary" [disabled]="emergencyForm.invalid || isSubmitting">
+            <button type="submit" class="btn-primary" [disabled]="isSubmitting">
               {{ isSubmitting ? 'Enviando...' : 'Enviar emergencia' }}
             </button>
           </div>
-          <div class="error-message" *ngIf="errorMessage" style="color: red; margin-top: 10px; font-weight: bold;">
-            {{ errorMessage }}
-          </div>
+
+          @if (errorMessage) {
+            <div class="error-message" style="color:red;margin-top:10px;font-weight:bold;">
+              {{ errorMessage }}
+            </div>
+          }
         </form>
       </section>
     </div>
@@ -117,7 +166,7 @@
           <li>El costo final será evaluado en el sitio.</li>
         </ul>
       </section>
-      
+
       <section class="card emergency-contact">
         <h3>Llamada de urgencia</h3>
         <p>Si es un accidente grave con heridos, llama directamente a emergencias médicas.</p>

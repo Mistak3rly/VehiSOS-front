@@ -1,0 +1,17 @@
+{
+  "name": "VehiSOS — Asistencia Vehicular",
+  "short_name": "VehiSOS",
+  "description": "Plataforma SaaS de gestión de asistencia vehicular en tiempo real.",
+  "theme_color": "#C40016",
+  "background_color": "#FFF8F8",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

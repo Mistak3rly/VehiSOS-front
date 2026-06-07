@@ -24,7 +24,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
             mensajeLegible = 'Credenciales incorrectas o tu sesión ha expirado. Por favor, inicia sesión nuevamente.';
             break;
           case 403:
-            mensajeLegible = 'No tienes permiso para realizar esta acción o tu cuenta está inactiva.';
+            mensajeLegible = error.error?.detail || 'No tienes permiso para realizar esta acción o tu cuenta está inactiva.';
             break;
           case 404:
             mensajeLegible = 'El recurso o dato que buscas no existe.';

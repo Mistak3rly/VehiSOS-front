@@ -4,3 +4,19 @@
     <router-outlet></router-outlet>
   </main>
 </div>
+
+<!-- CU-020: Indicador offline/online + sync pendiente -->
+@if (!offlineService.isOnline()) {
+  <div class="offline-banner">
+    <span class="material-icons-round">wifi_off</span>
+    Sin conexión — las solicitudes se guardarán localmente y se sincronizarán al reconectarse.
+    @if (offlineService.pendingCount() > 0) {
+      <span class="offline-count">{{ offlineService.pendingCount() }} pendiente(s)</span>
+    }
+  </div>
+} @else if (offlineService.pendingCount() > 0) {
+  <div class="offline-banner syncing">
+    <span class="material-icons-round">sync</span>
+    Sincronizando {{ offlineService.pendingCount() }} solicitud(es) offline...
+  </div>
+}

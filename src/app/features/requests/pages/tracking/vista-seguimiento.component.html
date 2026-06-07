@@ -184,6 +184,21 @@
             </ng-template>
           </ng-container>
         </section>
+
+        <!-- Panel operacional CU-021/022/023/024 -->
+        <section class="card" style="margin-top: 1rem;">
+          <h3 style="padding: 1rem 1rem 0; margin: 0; font-size: 1rem;">
+            <span class="material-icons-round" style="vertical-align: middle; font-size: 1.1rem; margin-right: 4px;">hub</span>
+            Operaciones en tiempo real
+          </h3>
+          <div style="padding: 0.75rem;">
+            <app-panel-incidente
+              [incidenteId]="s.incidenteId"
+              [rol]="userRole()"
+              [trazabilidadData]="trazabilidadParaPanel(s)">
+            </app-panel-incidente>
+          </div>
+        </section>
       </div>
     </div>
   </div>

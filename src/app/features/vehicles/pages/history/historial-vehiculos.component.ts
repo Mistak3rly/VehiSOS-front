@@ -1,16 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-
-interface VehiculoHistorial {
-  placa: string;
-  marca: string;
-  modelo: string;
-  year: number;
-  color: string;
-  fechaBaja: string;
-  motivo: string;
-}
+import { VehicleService } from '../../../../core/services/vehicle.service';
+import { VehiculoRead } from '../../../../core/models/api.models';
 
 @Component({
   selector: 'app-historial-vehiculos',
@@ -20,41 +12,28 @@ interface VehiculoHistorial {
   styleUrl: './historial-vehiculos.component.scss'
 })
 export class HistorialVehiculos implements OnInit {
-  historial: VehiculoHistorial[] = [
-    {
-      placa: 'LP-9988',
-      marca: 'Nissan',
-      modelo: 'Sentra',
-      year: 2015,
-      color: 'Azul',
-      fechaBaja: '12/03/2024',
-      motivo: 'Vendido'
-    },
-    {
-      placa: 'SCZ-1122',
-      marca: 'Suzuki',
-      modelo: 'Grand Vitara',
-      year: 2018,
-      color: 'Plata',
-      fechaBaja: '05/01/2024',
-      motivo: 'Sustitución'
-    },
-    {
-      placa: 'CBBA-4455',
-      marca: 'Ford',
-      modelo: 'F-150',
-      year: 2010,
-      color: 'Negro',
-      fechaBaja: '20/11/2023',
-      motivo: 'Pérdida total'
-    }
-  ];
+  vehiculos = signal<VehiculoRead[]>([]);
+  isLoading = signal(false);
+  errorMessage = signal('');
 
-  constructor() {}
+  constructor(private vehicleService: VehicleService) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.cargarVehiculos();
+  }
 
-  recuperarVehiculo(placa: string) {
-    alert(`Solicitud de recuperación para el vehículo ${placa} enviada a revisión.`);
+  cargarVehiculos(): void {
+    this.isLoading.set(true);
+    this.errorMessage.set('');
+    this.vehicleService.getVehicles().subscribe({
+      next: (data) => {
+        this.vehiculos.set(data);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        this.errorMessage.set(err.error?.detail || 'No se pudieron cargar los vehículos. Verifica la conexión.');
+        this.isLoading.set(false);
+      }
+    });
   }
 }

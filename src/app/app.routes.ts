@@ -24,6 +24,7 @@ import { RolesPermissions } from './features/admin/pages/roles-permissions/roles
 import { AuditLogs } from './features/admin/pages/audit-logs/audit-logs';
 import { TenantManagement } from './features/admin/pages/tenant-management/tenant-management';
 import { RecomendacionIAComponent } from './features/talleres/pages/recomendacion-ia/recomendacion-ia.component';
+import { ServiciosCobertura } from './features/taller/pages/servicios-cobertura/servicios-cobertura.component';
 
 export const routes: Routes = [
   { path: 'login', component: VistaLogin },
@@ -46,6 +47,7 @@ export const routes: Routes = [
   { path: 'taller/solicitudes', component: VistaGestionSolicitudes },
   { path: 'taller/solicitudes/:id', component: DetalleIncidenteComponent },
   { path: 'taller/pagos', component: PagoList },
+  { path: 'taller/servicios-cobertura', component: ServiciosCobertura },
   { path: 'tecnicos', component: Vista_gestion_tecnicos },
 
   // CLIENTE ROUTES

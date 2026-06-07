@@ -76,6 +76,7 @@ export class SidebarComponent implements OnInit {
         { title: 'Pagos',                  route: '/taller/pagos' },
       ],
     },
+    { title: 'Servicios y Cobertura', icon: 'room_service', route: '/taller/servicios-cobertura', roles: ['taller'] },
 
     // ── TÉCNICO (mismo dashboard taller, sin gestionar técnicos) ──
     { title: 'Dashboard', icon: 'dashboard', route: '/taller/dashboard', roles: ['tecnico'] },

@@ -95,6 +95,12 @@ export class Register {
         apellidos = partesNombre.length > 1 ? partesNombre.slice(1).join(' ') : 'Sin apellido';
       }
 
+      const pendingTenantRaw = localStorage.getItem('pending_tenant');
+      let tenantId: number | null = null;
+      if (pendingTenantRaw) {
+        try { tenantId = (JSON.parse(pendingTenantRaw) as { id: number }).id; } catch { /* ignore */ }
+      }
+
       const payload: UserCreate = {
         nombre,
         apellidos,
@@ -103,6 +109,7 @@ export class Register {
         documento_identidad: formValue.documentoIdentidad,
         password: formValue.password,
         rol: formValue.rol as 'cliente' | 'taller',
+        tenant_id: tenantId,
         ...(formValue.rol === 'taller' && {
           nombre_dueno: formValue.nombreDueno,
           ci_dueno: formValue.ciDueno,

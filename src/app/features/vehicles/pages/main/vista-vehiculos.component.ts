@@ -15,6 +15,7 @@ export class VistaVehiculos implements OnInit {
   vehicleForm: FormGroup;
   vehiculos = signal<VehiculoRead[]>([]);
   isLoading = signal(false);
+  errorCarga = signal('');
 
   showForm = false;
   isEditing = false;
@@ -41,13 +42,14 @@ export class VistaVehiculos implements OnInit {
 
   cargarVehiculos() {
     this.isLoading.set(true);
+    this.errorCarga.set('');
     this.vehicleService.getVehicles().subscribe({
       next: (data) => {
         this.vehiculos.set(data);
         this.isLoading.set(false);
       },
       error: (err) => {
-        console.error('Error cargando vehículos', err);
+        this.errorCarga.set(err.error?.detail || 'No se pudieron cargar los vehículos. Verifica la conexión con el servidor.');
         this.isLoading.set(false);
       }
     });

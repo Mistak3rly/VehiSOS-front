@@ -46,8 +46,26 @@
               }
             </div>
             <span class="tenant-meta">{{ tenant.plan | uppercase }} · {{ tenant.estado | uppercase }}</span>
-            <div class="tenant-card-placeholder">
-              <span>Sin datos aún</span>
+
+            @if (tenant.descripcion) {
+              <p class="tenant-card-desc">{{ tenant.descripcion }}</p>
+            } @else {
+              <p class="tenant-card-desc tenant-card-desc--empty">Organización registrada en VehiSOS</p>
+            }
+
+            <div class="tenant-card-footer" [style.--tc]="tenant.color_tema">
+              <span class="tenant-plan-chip">
+                <svg xmlns="http://www.w3.org/2000/svg" height="13" viewBox="0 -960 960 960" width="13" fill="currentColor">
+                  <path d="M480-440q-59 0-99.5-40.5T340-580q0-59 40.5-99.5T480-720q59 0 99.5 40.5T620-580q0 59-40.5 99.5T480-440Zm0-80q26 0 43-17t17-43q0-26-17-43t-43-17q-26 0-43 17t-17 43q0 26 17 43t43 17ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Z"/>
+                </svg>
+                {{ tenant.plan }}
+              </span>
+              <span class="tenant-select-cta">
+                {{ selectedTenant()?.id === tenant.id ? 'Seleccionado' : 'Ingresar aquí' }}
+                <svg xmlns="http://www.w3.org/2000/svg" height="14" viewBox="0 -960 960 960" width="14" fill="currentColor">
+                  <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z"/>
+                </svg>
+              </span>
             </div>
           </div>
         </div>

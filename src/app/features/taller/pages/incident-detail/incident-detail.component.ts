@@ -5,7 +5,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { InteligenciaService } from '../../../../core/services/inteligencia.service';
 import { EmergenciasService } from '../../../../core/services/emergencias.service';
 import { LogisticaService } from '../../../../core/services/logistica.service';
-import { TrazabilidadCombinadaResponse, PagoRead, AsignacionRead } from '../../../../core/models/api.models';
+import { CotizacionService } from '../../../../core/services/cotizacion.service';
+import { TrazabilidadCombinadaResponse, PagoRead, AsignacionRead, CotizacionRead } from '../../../../core/models/api.models';
 import { PanelIncidenteComponent } from '../../../operaciones/pages/panel-incidente/panel-incidente.component';
 
 @Component({
@@ -21,6 +22,7 @@ export class DetalleIncidenteComponent implements OnInit {
   private inteligenciaService = inject(InteligenciaService);
   private emergenciasService = inject(EmergenciasService);
   private logisticaService = inject(LogisticaService);
+  private cotizacionService = inject(CotizacionService);
 
   incidenteId = signal<number | null>(null);
   data = signal<TrazabilidadCombinadaResponse | null>(null);
@@ -43,6 +45,21 @@ export class DetalleIncidenteComponent implements OnInit {
   isRegistrandoCobro = signal(false);
   pagoRegistrado = signal<PagoRead | null>(null);
 
+  // ── Cotizaciones ────────────────────────────────────────────────────────────
+  cotizaciones = signal<CotizacionRead[]>([]);
+  showCotizacionForm = signal(false);
+  nuevaCotizacion = {
+    descripcion_desperfecto: '',
+    repuestos: '',
+    costo_repuestos: 0,
+    costo_mano_obra: 0,
+    tiempo_estimado: 0,
+    notas_adicionales: '',
+  };
+  isSavingCotizacion = signal(false);
+  cotizacionMsg = signal('');
+  cotizacionError = signal('');
+
   ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -64,11 +81,71 @@ export class DetalleIncidenteComponent implements OnInit {
       }
     });
 
-    // Cargar la asignación del taller para este incidente
     this.logisticaService.getAsignacionPorIncidente(id).subscribe({
       next: (asig) => this.asignacion.set(asig),
       error: () => this.asignacion.set(null)
     });
+
+    this.loadCotizaciones(id);
+  }
+
+  loadCotizaciones(incidenteId: number) {
+    this.cotizacionService.porIncidente(incidenteId).subscribe({
+      next: (list) => this.cotizaciones.set(list),
+      error: () => this.cotizaciones.set([])
+    });
+  }
+
+  crearCotizacion() {
+    const id = this.incidenteId();
+    if (!id) return;
+    if (!this.nuevaCotizacion.descripcion_desperfecto.trim() || this.nuevaCotizacion.costo_mano_obra <= 0) {
+      this.cotizacionError.set('La descripción y el costo de mano de obra son obligatorios.');
+      return;
+    }
+    this.isSavingCotizacion.set(true);
+    this.cotizacionError.set('');
+    this.cotizacionService.crear({
+      id_incidente: id,
+      descripcion_desperfecto: this.nuevaCotizacion.descripcion_desperfecto,
+      repuestos: this.nuevaCotizacion.repuestos || undefined,
+      costo_repuestos: this.nuevaCotizacion.costo_repuestos,
+      costo_mano_obra: this.nuevaCotizacion.costo_mano_obra,
+      tiempo_estimado: this.nuevaCotizacion.tiempo_estimado || undefined,
+      notas_adicionales: this.nuevaCotizacion.notas_adicionales || undefined,
+    }).subscribe({
+      next: (c: CotizacionRead) => {
+        this.cotizaciones.update(list => [c, ...list]);
+        this.isSavingCotizacion.set(false);
+        this.showCotizacionForm.set(false);
+        this.cotizacionMsg.set('Cotización creada. Ahora puedes enviarla al cliente.');
+        this.nuevaCotizacion = { descripcion_desperfecto: '', repuestos: '', costo_repuestos: 0, costo_mano_obra: 0, tiempo_estimado: 0, notas_adicionales: '' };
+      },
+      error: (err: { error?: { detail?: string } }) => {
+        this.isSavingCotizacion.set(false);
+        this.cotizacionError.set(err.error?.detail || 'Error al crear la cotización.');
+      }
+    });
+  }
+
+  enviarCotizacion(cotizacionId: number) {
+    this.cotizacionService.enviar(cotizacionId).subscribe({
+      next: (updated: CotizacionRead) => {
+        this.cotizaciones.update(list => list.map(c => c.id === updated.id ? updated : c));
+        this.cotizacionMsg.set('Cotización enviada al cliente correctamente.');
+      },
+      error: (err: { error?: { detail?: string } }) => {
+        this.cotizacionError.set(err.error?.detail || 'Error al enviar la cotización.');
+      }
+    });
+  }
+
+  estadoCotizacionLabel(estado: string): string {
+    const map: Record<string, string> = {
+      pendiente: 'Borrador', enviada: 'Enviada', aceptada: 'Aceptada',
+      rechazada: 'Rechazada', pagada: 'Pagada', vencida: 'Vencida',
+    };
+    return map[estado] ?? estado;
   }
 
   getUrgencyClass() {

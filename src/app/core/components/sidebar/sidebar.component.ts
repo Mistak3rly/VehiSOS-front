@@ -101,12 +101,8 @@ export class SidebarComponent implements OnInit {
     },
 
     // ── ADMINISTRADOR ─────────────────────────────────────
-<<<<<<< Updated upstream
     { title: 'Dashboard',              icon: 'dashboard',            route: '/admin/dashboard',           roles: ['admin', 'administrador'] },
-=======
-    { title: 'Dashboard',              icon: 'dashboard',            route: '/admin/dashboard',          roles: ['admin', 'administrador'] },
     { title: 'Dashboard KPIs',         icon: 'analytics',            route: '/admin/kpi',                 roles: ['admin', 'administrador'] },
->>>>>>> Stashed changes
     { title: 'Aprobación de Talleres', icon: 'verified',             route: '/admin/talleres/aprobacion', roles: ['admin', 'administrador'] },
     { title: 'Tenants',                icon: 'domain',               route: '/admin/tenants',             roles: ['admin', 'administrador'] },
     { title: 'Config. Algoritmo',      icon: 'tune',                 route: '/admin/configuracion',       roles: ['admin', 'administrador'] },

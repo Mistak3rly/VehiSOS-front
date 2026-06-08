@@ -4,12 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { DashboardKpiService } from '../../../../core/services/dashboard-kpi.service';
 import { AuthService } from '../../../../core/services/auth.service';
-<<<<<<< Updated upstream
-import { KPIGlobal, KPITaller } from '../../../../core/models/api.models';
-import type {
-  ApexChart, ApexNonAxisChartSeries, ApexAxisChartSeries,
-  ApexXAxis, ApexPlotOptions, ApexDataLabels, ApexTitleSubtitle, ApexStroke, ApexFill,
-=======
 import { AdminService } from '../../../../core/services/admin.service';
 import { DashboardKPIResponse, TenantRead } from '../../../../core/models/api.models';
 import type {
@@ -23,17 +17,12 @@ import type {
   ApexGrid,
   ApexYAxis,
   ApexTooltip
->>>>>>> Stashed changes
 } from 'ng-apexcharts';
 
 @Component({
   selector: 'app-kpi-dashboard',
   standalone: true,
-<<<<<<< Updated upstream
-  imports: [CommonModule, NgApexchartsModule, FormsModule],
-=======
   imports: [CommonModule, FormsModule, NgApexchartsModule],
->>>>>>> Stashed changes
   templateUrl: './kpi-dashboard.component.html',
   styleUrl: './kpi-dashboard.component.scss',
 })
@@ -46,36 +35,12 @@ export class KpiDashboardComponent implements OnInit {
   // Dashboard Data
   kpiData = signal<DashboardKPIResponse | null>(null);
 
-<<<<<<< Updated upstream
-  // Tendencia
-  tendenciaData: { dia: string; total: number }[] = [];
-  diasFiltro = 30;
-
-  // Gráfico tendencia (line chart)
-  lineChartTendencia: {
-    series: ApexAxisChartSeries; chart: ApexChart; xaxis: ApexXAxis;
-    stroke: ApexStroke; fill: ApexFill; title: ApexTitleSubtitle;
-  } = {
-    series: [{ name: 'Incidentes', data: [] }],
-    chart: { type: 'area', height: 220, toolbar: { show: false }, sparkline: { enabled: false } },
-    xaxis: { categories: [], labels: { rotate: -45, style: { fontSize: '10px' } } },
-    stroke: { curve: 'smooth', width: 2 },
-    fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0 } },
-    title: { text: 'Tendencia de incidentes (últimos 30 días)' },
-  };
-
-  // Gráficos existentes
-  pieChartEstados: { series: ApexNonAxisChartSeries; labels: string[]; chart: ApexChart; title: ApexTitleSubtitle } = {
-    series: [], labels: [], chart: { type: 'pie', height: 260 }, title: { text: 'Incidentes por estado' },
-  };
-=======
   // Filters
   fechaInicio = '';
   fechaFin = '';
   tipoIncidente = '';
   zonaId = '';
   tenantId: number | null = null;
->>>>>>> Stashed changes
 
   // Static options for filters
   incidentTypes = [
@@ -85,19 +50,6 @@ export class KpiDashboardComponent implements OnInit {
     { codigo: 'choque', nombre: 'Choque' }
   ];
 
-<<<<<<< Updated upstream
-  barChartTalleres: {
-    series: ApexAxisChartSeries; chart: ApexChart; xaxis: ApexXAxis;
-    plotOptions: ApexPlotOptions; dataLabels: ApexDataLabels; title: ApexTitleSubtitle;
-  } = {
-    series: [{ name: 'Rating', data: [] }],
-    chart: { type: 'bar', height: 260 },
-    xaxis: { categories: [] },
-    plotOptions: { bar: { horizontal: true } },
-    dataLabels: { enabled: false },
-    title: { text: 'Top Talleres' },
-  };
-=======
   zones = [
     { codigo: 'Norte', nombre: 'Zona Norte' },
     { codigo: 'Sur', nombre: 'Zona Sur' },
@@ -105,7 +57,6 @@ export class KpiDashboardComponent implements OnInit {
     { codigo: 'Oeste', nombre: 'Zona Oeste' },
     { codigo: 'Central', nombre: 'Zona Central' }
   ];
->>>>>>> Stashed changes
 
   // Tenants list for admin dropdown
   tenants: TenantRead[] = [];
@@ -136,19 +87,15 @@ export class KpiDashboardComponent implements OnInit {
     if (this.isAdmin) {
       this.loadTenants();
     }
-<<<<<<< Updated upstream
-    this.loadTendencia();
-=======
     this.loadDashboardData();
->>>>>>> Stashed changes
   }
 
   loadTenants(): void {
     this.adminSvc.listTenants().subscribe({
-      next: (data) => {
+      next: (data: TenantRead[]) => {
         this.tenants = data;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error al cargar tenants:', err);
       }
     });
@@ -167,20 +114,20 @@ export class KpiDashboardComponent implements OnInit {
     if (this.fechaFin) filters.fecha_fin = new Date(this.fechaFin).toISOString();
     if (this.tipoIncidente) filters.tipo_incidente = this.tipoIncidente;
     if (this.zonaId) filters.zona_id = this.zonaId;
-    
+
     // Only pass tenant_id if user is admin (Backend enforces this, but let's be clean)
     if (this.isAdmin && this.tenantId !== null && this.tenantId !== undefined) {
       filters.tenant_id = this.tenantId;
     }
 
     this.kpiSvc.getDashboardKPIs(filters).subscribe({
-      next: (data) => {
+      next: (data: DashboardKPIResponse) => {
         this.kpiData.set(data);
         this.buildCharts(data);
         this.isLoading.set(false);
         this.isSubmitting.set(false);
       },
-      error: (err) => {
+      error: (err: any) => {
         this.errorMessage.set(err.error?.detail || 'Error al conectar con el servidor de KPIs.');
         this.isLoading.set(false);
         this.isSubmitting.set(false);
@@ -192,31 +139,6 @@ export class KpiDashboardComponent implements OnInit {
     this.loadDashboardData(true);
   }
 
-<<<<<<< Updated upstream
-  loadTendencia(): void {
-    this.analiticaSvc.tendenciaIncidentes(this.diasFiltro).subscribe({
-      next: (data) => {
-        this.tendenciaData = data;
-        this.lineChartTendencia = {
-          ...this.lineChartTendencia,
-          series: [{ name: 'Incidentes', data: data.map(d => d.total) }],
-          xaxis: {
-            categories: data.map(d => d.dia.substring(5)), // MM-DD
-            labels: { rotate: -45, style: { fontSize: '10px' } },
-          },
-          title: { text: `Tendencia de incidentes (últimos ${this.diasFiltro} días)` },
-        };
-      },
-    });
-  }
-
-  buildCharts(data: KPIGlobal): void {
-    const estados = data.incidentes_por_estado;
-    this.pieChartEstados = { ...this.pieChartEstados, series: Object.values(estados), labels: Object.keys(estados) };
-
-    const tenants = data.incidentes_por_tenant;
-    this.pieChartTenants = { ...this.pieChartTenants, series: Object.values(tenants), labels: Object.keys(tenants) };
-=======
   clearFilters(): void {
     this.fechaInicio = '';
     this.fechaFin = '';
@@ -228,9 +150,9 @@ export class KpiDashboardComponent implements OnInit {
 
   buildCharts(data: DashboardKPIResponse): void {
     // 1. Incidentes por Tipo
-    const tipoLabels = data.incidentes_por_tipo.map(item => item.tipo);
-    const tipoValues = data.incidentes_por_tipo.map(item => item.cantidad);
-    
+    const tipoLabels = data.incidentes_por_tipo.map((item: any) => item.tipo);
+    const tipoValues = data.incidentes_por_tipo.map((item: any) => item.cantidad);
+
     this.chartIncidentesSeries = [{
       name: 'Incidentes',
       data: tipoValues
@@ -295,9 +217,9 @@ export class KpiDashboardComponent implements OnInit {
     };
 
     // 2. Zonas críticas
-    const zonaLabels = data.zonas_con_mas_incidentes.map(item => item.zona);
-    const zonaValues = data.zonas_con_mas_incidentes.map(item => item.cantidad);
-    
+    const zonaLabels = data.zonas_con_mas_incidentes.map((item: any) => item.zona);
+    const zonaValues = data.zonas_con_mas_incidentes.map((item: any) => item.cantidad);
+
     this.chartZonasSeries = [{
       name: 'Incidentes',
       data: zonaValues
@@ -349,7 +271,6 @@ export class KpiDashboardComponent implements OnInit {
         theme: 'light'
       }
     };
->>>>>>> Stashed changes
 
     // 3. Cumplimiento SLA
     this.chartSlaSeries = [data.sla.porcentaje_cumplimiento];
@@ -393,9 +314,9 @@ export class KpiDashboardComponent implements OnInit {
     };
 
     // 4. Motivos de cancelación
-    const cancelLabels = data.casos_cancelados_detalle.map(item => item.motivo);
-    const cancelValues = data.casos_cancelados_detalle.map(item => item.cantidad);
-    
+    const cancelLabels = data.casos_cancelados_detalle.map((item: any) => item.motivo);
+    const cancelValues = data.casos_cancelados_detalle.map((item: any) => item.cantidad);
+
     this.chartCancelacionesSeries = cancelValues;
     this.chartCancelacionesOptions = {
       chart: {
@@ -455,31 +376,8 @@ export class KpiDashboardComponent implements OnInit {
     };
   }
 
-<<<<<<< Updated upstream
-  cambiarDias(dias: number): void {
-    this.diasFiltro = dias;
-    this.loadTendencia();
-  }
-
-  exportarKpiPdf(): void {
-    window.open(`${(this.analiticaSvc as any).BASE}/reportes/operativo/pdf`, '_blank');
-  }
-
-  exportarKpiExcel(): void {
-    this.analiticaSvc.descargarExcelOperativo().subscribe(blob => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = 'kpi_vehisos.xlsx'; a.click();
-      URL.revokeObjectURL(url);
-    });
-  }
-
-  pct(value: number): string { return `${value.toFixed(1)}%`; }
-  money(value: number): string { return `Bs. ${value.toLocaleString('es-BO', { minimumFractionDigits: 2 })}`; }
-=======
   // Format Helpers
   pct(value: number): string {
     return `${value.toFixed(1)}%`;
   }
->>>>>>> Stashed changes
 }

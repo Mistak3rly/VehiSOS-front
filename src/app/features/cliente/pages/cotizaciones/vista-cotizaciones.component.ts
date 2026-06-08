@@ -58,6 +58,20 @@ export class VistaCotizacionesComponent implements OnInit {
     });
   }
 
+  descargarPdf(id: number): void {
+    this.svc.descargarPdf(id).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `cotizacion_${id}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+      error: (err) => this.errorMessage.set(err.error?.detail || 'Error al generar PDF'),
+    });
+  }
+
   estadoColor(estado: string): string {
     const map: Record<string, string> = {
       pendiente: '#f59e0b', enviada: '#3b82f6', aceptada: '#10b981',

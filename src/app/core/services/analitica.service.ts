@@ -21,6 +21,12 @@ export class AnaliticaService {
     return this.http.get<KPITaller>(`${this.BASE}/kpi/taller`);
   }
 
+  // CU-026 Tendencia
+  tendenciaIncidentes(dias: number = 30): Observable<{ dia: string; total: number }[]> {
+    const params = new HttpParams().set('dias', dias);
+    return this.http.get<{ dia: string; total: number }[]>(`${this.BASE}/kpi/tendencia`, { params });
+  }
+
   // CU-027
   rendimientoTecnicos(): Observable<any[]> {
     return this.http.get<any[]>(`${this.BASE}/rendimiento/tecnicos`);
@@ -31,9 +37,16 @@ export class AnaliticaService {
     return this.http.get<any[]>(`${this.BASE}/rendimiento/talleres`, { params });
   }
 
+  descargarExcelRendimiento(): Observable<Blob> {
+    return this.http.get(`${this.BASE}/rendimiento/excel`, { responseType: 'blob' });
+  }
+
   // CU-028
-  datosMapa(tenantId?: number): Observable<DatosMapa> {
-    const params = tenantId ? new HttpParams().set('tenant_id', tenantId) : undefined;
+  datosMapa(tenantId?: number, desde?: string, hasta?: string): Observable<DatosMapa> {
+    let params = new HttpParams();
+    if (tenantId) params = params.set('tenant_id', tenantId);
+    if (desde) params = params.set('desde', desde);
+    if (hasta) params = params.set('hasta', hasta);
     return this.http.get<DatosMapa>(`${this.BASE}/mapa/incidentes`, { params });
   }
 
@@ -78,4 +91,9 @@ export class AnaliticaService {
   generarResumen(incidenteId: number): Observable<ResumenAsistenciaRead> {
     return this.http.post<ResumenAsistenciaRead>(`${this.BASE}/resumen/${incidenteId}/generar`, {});
   }
+
+  descargarPdfResumen(incidenteId: number): Observable<Blob> {
+    return this.http.get(`${this.BASE}/resumen/${incidenteId}/pdf`, { responseType: 'blob' });
+  }
 }
+

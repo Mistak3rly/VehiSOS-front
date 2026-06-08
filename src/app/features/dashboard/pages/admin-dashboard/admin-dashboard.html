@@ -8,7 +8,7 @@
       </div>
       <div>
         <h1>Dashboard Inteligencia Artificial</h1>
-        <p>Monitor analítico en tiempo real — CU-010 · CU-011 · CU-012</p>
+        <p>Monitor analítico en tiempo real</p>
       </div>
     </div>
     <button class="btn-refresh" (click)="cargarDatos()" [disabled]="isLoading()">
@@ -128,7 +128,7 @@
         <section class="card panel">
           <div class="panel-header">
             <span class="material-icons-round">donut_large</span>
-            <h2>Clasificación y Gravedad de Incidentes (CU-011)</h2>
+            <h2>Clasificación y Gravedad de Incidentes</h2>
           </div>
 
           <div *ngIf="d.totalIncidentes > 0; else noPriorityData">
@@ -178,7 +178,7 @@
         <section class="card panel">
           <div class="panel-header">
             <span class="material-icons-round">bar_chart</span>
-            <h2>Tipología de Incidentes Detectados (CU-010)</h2>
+            <h2>Tipología de Incidentes Detectados</h2>
           </div>
           <div class="bars-list" *ngIf="d.incidentTypes.length > 0; else noTypes">
             <div class="bar-item" *ngFor="let tipo of d.incidentTypes">
@@ -203,7 +203,7 @@
         <section class="card panel" *ngIf="d.iaKpis.totalAnalyses > 0">
           <div class="panel-header">
             <span class="material-icons-round">memory</span>
-            <h2>Monitor de Procesamiento IA (CU-010)</h2>
+            <h2>Monitor de Procesamiento IA</h2>
           </div>
           <div class="bars-list">
             <div class="bar-item" *ngFor="let entry of analisisTipoEntries(d.iaKpis.analisisPorTipo)">
@@ -232,7 +232,7 @@
         <section class="card panel panel-map">
           <div class="panel-header">
             <span class="material-icons-round">map</span>
-            <h2>Mapa de Siniestralidad – Santa Cruz (CU-011)</h2>
+            <h2>Mapa de Siniestralidad – Santa Cruz</h2>
           </div>
           <div class="heatmap-container">
             <div class="heatmap-bg">
@@ -293,7 +293,7 @@
         <section class="card panel">
           <div class="panel-header">
             <span class="material-icons-round">route</span>
-            <h2>Eficiencia del Algoritmo Haversine (CU-012)</h2>
+            <h2>Eficiencia del Algoritmo Haversine</h2>
           </div>
 
           <div class="logistics-grid">
@@ -333,7 +333,7 @@
             </div>
             <p class="acceptance-hint"
                *ngIf="d.logisticaStats.tasaAceptacion < 60 && d.logisticaStats.totalAsignaciones > 0">
-              ⚠ Tasa baja — ajustar pesos de proximidad/especialización en CU-012.
+              ⚠ Tasa baja — ajustar pesos de proximidad/especialización.
             </p>
             <p class="acceptance-hint" style="color:#a0aec0; font-weight:400;"
                *ngIf="d.logisticaStats.totalAsignaciones === 0">
@@ -406,7 +406,7 @@
     <!-- ═══════════════════════════════════════
          ANALYTICS DE DESEMPEÑO DE TALLERES
          ═══════════════════════════════════════ -->
-    <section class="card analytics-section">
+    <section class="card panel analytics-section">
       <div class="panel-header">
         <span class="material-icons-round">trending_up</span>
         <h2>Análiticas de Desempeño de Talleres</h2>

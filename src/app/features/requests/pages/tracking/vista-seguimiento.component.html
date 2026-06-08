@@ -43,6 +43,12 @@
             Ver detalle
             <span class="material-icons-round">chevron_right</span>
           </button>
+          @if (esAtendida(s.estado)) {
+            <a [routerLink]="['/cliente/resumen', s.incidenteId]" class="btn-resumen">
+              <span class="material-icons-round">description</span>
+              Ver resumen final
+            </a>
+          }
         </div>
       </div>
     </div>

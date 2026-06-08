@@ -1,13 +1,45 @@
 <div class="kpi-container">
   <header class="page-header">
-    <h1>Dashboard de KPIs</h1>
-    <p>{{ isAdmin ? 'Vista global de la plataforma' : 'Métricas de tu taller' }} · CU-026</p>
+    <div>
+      <h1>Dashboard de KPIs</h1>
+      <p>{{ isAdmin ? 'Vista global de la plataforma' : 'Métricas de tu taller' }}</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-export" (click)="exportarKpiExcel()">
+        <span class="material-icons-round">table_chart</span> Excel
+      </button>
+      <button class="btn-export" (click)="exportarKpiPdf()">
+        <span class="material-icons-round">picture_as_pdf</span> PDF
+      </button>
+    </div>
   </header>
 
-  @if (isLoading()) { <div class="loading">Cargando métricas...</div> }
+  @if (isLoading()) { <div class="loading"><div class="spinner"></div>Cargando métricas...</div> }
   @if (errorMessage()) { <div class="alert alert-error">{{ errorMessage() }}</div> }
 
-  <!-- KPI GLOBAL (Admin) -->
+  <!-- ─── GRÁFICO TENDENCIA (siempre visible) ─── -->
+  @if (!isLoading()) {
+    <div class="card chart-card wide" style="margin-bottom:1.5rem;">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:1rem 1.25rem 0;">
+        <h3 style="margin:0;font-size:1rem;color:#1a1a1a;">Tendencia de incidentes</h3>
+        <div style="display:flex;gap:6px;">
+          @for (d of [7,14,30,60,90]; track d) {
+            <button class="btn-dias" [class.active]="diasFiltro === d" (click)="cambiarDias(d)">{{d}}d</button>
+          }
+        </div>
+      </div>
+      <apx-chart
+        [series]="lineChartTendencia.series"
+        [chart]="lineChartTendencia.chart"
+        [xaxis]="lineChartTendencia.xaxis"
+        [stroke]="lineChartTendencia.stroke"
+        [fill]="lineChartTendencia.fill"
+        [title]="{ text: '' }">
+      </apx-chart>
+    </div>
+  }
+
+  <!-- ─── KPI GLOBAL (Admin) ─── -->
   @if (isAdmin && kpiGlobal(); as g) {
     <div class="kpi-cards">
       <div class="kpi-card blue">
@@ -58,42 +90,54 @@
       </div>
     </div>
 
-    <!-- Top talleres -->
-    <div class="card table-card">
-      <h3>Top Talleres</h3>
-      <table>
-        <thead><tr><th>Taller</th><th>Servicios</th><th>Rating</th></tr></thead>
-        <tbody>
-          @for (t of g.top_talleres; track t.id) {
-            <tr>
-              <td>{{ t.nombre }}</td>
-              <td>{{ t.servicios }}</td>
-              <td><div class="rating-bar" [style.width]="(t.rating*20)+'%'"></div>{{ t.rating | number:'1.1-1' }}/5</td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
+    <div class="tables-row">
+      <div class="card table-card">
+        <h3>Top Talleres</h3>
+        <table>
+          <thead><tr><th>#</th><th>Taller</th><th>Servicios</th><th>Rating</th></tr></thead>
+          <tbody>
+            @for (t of g.top_talleres; track t.id; let i = $index) {
+              <tr>
+                <td class="rank">{{ i + 1 }}</td>
+                <td>{{ t.nombre }}</td>
+                <td>{{ t.servicios }}</td>
+                <td>
+                  <div class="rating-row">
+                    <div class="rating-bar" [style.width]="(t.rating*20)+'%'"></div>
+                    <span>{{ t.rating | number:'1.1-1' }}</span>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
 
-    <!-- Top técnicos -->
-    <div class="card table-card">
-      <h3>Top Técnicos</h3>
-      <table>
-        <thead><tr><th>Técnico</th><th>Atenciones</th><th>Rating</th></tr></thead>
-        <tbody>
-          @for (t of g.top_tecnicos; track t.id) {
-            <tr>
-              <td>{{ t.nombre }}</td>
-              <td>{{ t.atenciones }}</td>
-              <td><div class="rating-bar" [style.width]="(t.rating*20)+'%'"></div>{{ t.rating | number:'1.1-1' }}/5</td>
-            </tr>
-          }
-        </tbody>
-      </table>
+      <div class="card table-card">
+        <h3>Top Técnicos</h3>
+        <table>
+          <thead><tr><th>#</th><th>Técnico</th><th>Atenciones</th><th>Rating</th></tr></thead>
+          <tbody>
+            @for (t of g.top_tecnicos; track t.id; let i = $index) {
+              <tr>
+                <td class="rank">{{ i + 1 }}</td>
+                <td>{{ t.nombre }}</td>
+                <td>{{ t.atenciones }}</td>
+                <td>
+                  <div class="rating-row">
+                    <div class="rating-bar" [style.width]="(t.rating*20)+'%'"></div>
+                    <span>{{ t.rating | number:'1.1-1' }}</span>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
     </div>
   }
 
-  <!-- KPI TALLER -->
+  <!-- ─── KPI TALLER ─── -->
   @if (!isAdmin && kpiTaller(); as t) {
     <div class="kpi-cards">
       <div class="kpi-card blue">
@@ -124,7 +168,7 @@
       <div class="kpi-card teal">
         <span class="material-icons-round">schedule</span>
         <div class="kpi-value">{{ t.tiempo_promedio_respuesta_min | number:'1.0-0' }} min</div>
-        <div class="kpi-label">Tiempo promedio respuesta</div>
+        <div class="kpi-label">Tiempo prom. respuesta</div>
       </div>
       <div class="kpi-card indigo">
         <span class="material-icons-round">thumb_up</span>

@@ -1,7 +1,13 @@
 <div class="rendimiento-container">
-  <header class="page-header">
-    <h1>Rendimiento de Talleres y Técnicos</h1>
-    <p>Métricas de productividad y desempeño operativo · CU-027</p>
+  <header class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;">
+    <div>
+      <h1>Rendimiento de Talleres y Técnicos</h1>
+      <p>Métricas de productividad y desempeño operativo</p>
+    </div>
+    <button class="btn-excel" (click)="exportarExcel()" [disabled]="exportando">
+      <span class="material-icons-round">table_chart</span>
+      {{ exportando ? 'Generando...' : 'Exportar Excel' }}
+    </button>
   </header>
 
   @if (isLoading()) { <div class="loading">Cargando datos de rendimiento...</div> }

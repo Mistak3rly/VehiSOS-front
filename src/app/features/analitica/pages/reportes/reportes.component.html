@@ -1,129 +1,156 @@
 <div class="reportes-container">
+
+  <!-- Header -->
   <header class="page-header">
-    <h1>Reportes Operativos</h1>
-    <p>Exporta información en PDF o Excel · CU-029</p>
+    <div>
+      <h1>Generar reportes operativos</h1>
+    </div>
+    <button class="btn-exportar" (click)="generarReporte()" [disabled]="isGenerating()">
+      <span class="material-icons-round">{{ isGenerating() ? 'hourglass_empty' : 'file_download' }}</span>
+      {{ isGenerating() ? 'Generando...' : 'Exportar' }}
+    </button>
   </header>
 
-  @if (successMessage()) { <div class="alert alert-success">{{ successMessage() }}</div> }
-  @if (errorMessage()) { <div class="alert alert-error">{{ errorMessage() }}</div> }
+  @if (successMessage()) { <div class="alert alert-success"><span class="material-icons-round">check_circle</span>{{ successMessage() }}</div> }
+  @if (errorMessage()) { <div class="alert alert-error"><span class="material-icons-round">error</span>{{ errorMessage() }}</div> }
 
-  <div class="layout">
-    <!-- Panel de configuración -->
-    <div class="config-panel card">
-      <h2>Configurar Reporte</h2>
-
-      <div class="tipo-selector">
-        <button [class.active]="tipoReporte() === 'operativo'" (click)="tipoReporte.set('operativo')">
-          <span class="material-icons-round">summarize</span> Operativo
-        </button>
-        <button [class.active]="tipoReporte() === 'financiero'" (click)="tipoReporte.set('financiero')">
-          <span class="material-icons-round">account_balance</span> Financiero
-        </button>
-      </div>
-
-      <form [formGroup]="form" class="filtros-form">
-        <div class="form-group">
-          <label>Fecha inicio</label>
-          <input type="datetime-local" formControlName="fecha_inicio">
-        </div>
-        <div class="form-group">
-          <label>Fecha fin</label>
-          <input type="datetime-local" formControlName="fecha_fin">
-        </div>
-      </form>
-
-      <div class="action-buttons">
-        <button class="btn-preview" (click)="previsualizarJson()" [disabled]="isGenerating()">
-          <span class="material-icons-round">visibility</span>
-          {{ isGenerating() ? 'Generando...' : 'Vista previa' }}
-        </button>
-        <button class="btn-excel" (click)="descargarExcel()" [disabled]="isGenerating()">
-          <span class="material-icons-round">table_view</span> Descargar Excel
-        </button>
-        <button class="btn-pdf" (click)="descargarPdf()" [disabled]="isGenerating()">
-          <span class="material-icons-round">picture_as_pdf</span> Descargar PDF
-        </button>
-      </div>
-
-      <!-- Info sobre formatos -->
-      <div class="format-info">
-        <div class="format-item">
-          <span class="material-icons-round" style="color:#217346">table_view</span>
-          <div><strong>Excel (.xlsx)</strong><br><small>Datos tabulares, multi-hoja, con estilos</small></div>
-        </div>
-        <div class="format-item">
-          <span class="material-icons-round" style="color:#c0392b">picture_as_pdf</span>
-          <div><strong>PDF</strong><br><small>Reporte profesional con diseño corporativo</small></div>
-        </div>
-      </div>
+  <!-- Panel de configuración -->
+  <div class="config-card card">
+    <!-- Tipo de reporte -->
+    <div class="tipo-row">
+      <button class="tipo-btn" [class.active]="tipoReporte() === 'operativo'" (click)="tipoReporte.set('operativo')">
+        <span class="material-icons-round">summarize</span>
+        Operativo
+      </button>
+      <button class="tipo-btn" [class.active]="tipoReporte() === 'financiero'" (click)="tipoReporte.set('financiero')">
+        <span class="material-icons-round">account_balance</span>
+        Financiero
+      </button>
     </div>
 
-    <!-- Vista previa -->
-    <div class="preview-panel">
-      @if (previewData(); as data) {
-        <div class="card preview-card">
-          <div class="preview-header">
-            <h2>{{ data.titulo }}</h2>
-            <span class="badge">{{ tipoReporte() | uppercase }}</span>
-          </div>
-          <p class="generado">Generado: {{ data.generado_en | date:'medium' }}</p>
-
-          <div class="resumen-grid">
-            @for (entry of (data.resumen | keyvalue); track entry.key) {
-              <div class="resumen-item">
-                <div class="resumen-label">{{ $any(entry.key).toString().replace(/_/g,' ') }}</div>
-                <div class="resumen-value">{{ entry.value }}</div>
-              </div>
+    <form [formGroup]="form" class="filtros-grid">
+      <!-- Desde -->
+      <div class="form-group">
+        <label>Rango de fechas — desde</label>
+        <input type="date" formControlName="fecha_inicio" class="input-date">
+      </div>
+      <!-- Hasta -->
+      <div class="form-group">
+        <label>Rango de fechas — hasta</label>
+        <input type="date" formControlName="fecha_fin" class="input-date">
+      </div>
+      <!-- Taller (solo admin) -->
+      @if (isAdmin) {
+        <div class="form-group">
+          <label>Taller</label>
+          <select formControlName="taller_id" class="input-select">
+            <option value="">Todos los talleres</option>
+            @for (t of talleres; track t.id) {
+              <option [value]="t.id">{{ t.nombre }}</option>
             }
-          </div>
-
-          @if (data.incidentes?.length) {
-            <h3>Incidentes (últimos {{ data.incidentes.length }})</h3>
-            <div class="tabla-wrapper">
-              <table>
-                <thead>
-                  <tr><th>Código</th><th>Título</th><th>Fecha</th></tr>
-                </thead>
-                <tbody>
-                  @for (inc of data.incidentes.slice(0,10); track inc.id) {
-                    <tr>
-                      <td>{{ inc.codigo }}</td>
-                      <td>{{ inc.titulo }}</td>
-                      <td>{{ inc.fecha | date:'shortDate' }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          }
-
-          @if (data.pagos?.length) {
-            <h3>Pagos (últimos {{ data.pagos.length }})</h3>
-            <div class="tabla-wrapper">
-              <table>
-                <thead>
-                  <tr><th>Monto</th><th>Comisión</th><th>Estado</th><th>Método</th></tr>
-                </thead>
-                <tbody>
-                  @for (p of data.pagos.slice(0,10); track p.id) {
-                    <tr>
-                      <td>Bs. {{ p.monto_total | number:'1.2-2' }}</td>
-                      <td>Bs. {{ p.monto_comision | number:'1.2-2' }}</td>
-                      <td><span class="badge-mini" [class.pagado]="p.estado_pago==='pagado'">{{ p.estado_pago }}</span></td>
-                      <td>{{ p.metodo_pago || '—' }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
-          }
-        </div>
-      } @else {
-        <div class="empty-preview card">
-          <span class="material-icons-round">analytics</span>
-          <p>Haz clic en <strong>"Vista previa"</strong> para ver el reporte antes de descargar.</p>
+          </select>
         </div>
       }
+      <!-- Formato -->
+      <div class="form-group">
+        <label>Formato de salida</label>
+        <select class="input-select" [value]="formatoSalida()" (change)="formatoSalida.set($any($event.target).value)">
+          <option value="pdf">PDF (ejecutivo)</option>
+          <option value="excel">Excel (.xlsx)</option>
+        </select>
+      </div>
+    </form>
+
+    <div class="action-row">
+      <button class="btn-generar" (click)="generarReporte()" [disabled]="isGenerating()">
+        <span class="material-icons-round">{{ isGenerating() ? 'hourglass_empty' : 'receipt_long' }}</span>
+        {{ isGenerating() ? 'Generando...' : 'Generar reporte' }}
+      </button>
+      <button class="btn-limpiar" (click)="limpiarFiltros()">
+        <span class="material-icons-round">clear</span>
+        Limpiar filtros
+      </button>
+      <button class="btn-preview" (click)="previsualizarJson()" [disabled]="isGenerating()">
+        <span class="material-icons-round">visibility</span>
+        Vista previa
+      </button>
     </div>
+  </div>
+
+  <!-- Vista previa JSON (si existe) -->
+  @if (previewData(); as data) {
+    <div class="card preview-card">
+      <div class="preview-header">
+        <h2>{{ data.titulo }}</h2>
+        <span class="badge">{{ tipoReporte() | uppercase }}</span>
+      </div>
+      <p class="generado">Generado: {{ data.generado_en | date:'medium' }}</p>
+      <div class="resumen-grid">
+        @for (entry of (data.resumen | keyvalue); track entry.key) {
+          <div class="resumen-item">
+            <div class="resumen-label">{{ $any(entry.key).toString().replace(/_/g,' ') }}</div>
+            <div class="resumen-value">{{ entry.value }}</div>
+          </div>
+        }
+      </div>
+      @if (data.incidentes?.length) {
+        <h3>Últimos incidentes</h3>
+        <table>
+          <thead><tr><th>Código</th><th>Título</th><th>Fecha</th></tr></thead>
+          <tbody>
+            @for (inc of data.incidentes.slice(0,8); track inc.id) {
+              <tr><td>{{ inc.codigo }}</td><td>{{ inc.titulo }}</td><td>{{ inc.fecha | date:'shortDate' }}</td></tr>
+            }
+          </tbody>
+        </table>
+      }
+      @if (data.pagos?.length) {
+        <h3>Últimas transacciones</h3>
+        <table>
+          <thead><tr><th>Monto</th><th>Comisión</th><th>Estado</th><th>Método</th></tr></thead>
+          <tbody>
+            @for (p of data.pagos.slice(0,8); track p.id) {
+              <tr>
+                <td>Bs. {{ p.monto_total | number:'1.2-2' }}</td>
+                <td>Bs. {{ p.monto_comision | number:'1.2-2' }}</td>
+                <td><span class="badge-estado" [class.pagado]="p.estado_pago==='pagado'">{{ p.estado_pago }}</span></td>
+                <td>{{ p.metodo_pago || '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  }
+
+  <!-- Reportes recientes -->
+  <div class="recientes-section">
+    <h2 class="section-title">Reportes recientes</h2>
+
+    @if (reportesRecientes().length === 0) {
+      <div class="card empty-recientes">
+        <span class="material-icons-round">history</span>
+        <p>Los reportes generados en esta sesión aparecerán aquí.</p>
+      </div>
+    } @else {
+      <div class="recientes-list">
+        @for (r of reportesRecientes(); track $index) {
+          <div class="card reporte-item">
+            <div class="reporte-icon" [class.pdf]="r.formato === 'PDF'" [class.excel]="r.formato !== 'PDF'">
+              <span class="material-icons-round">{{ r.formato === 'PDF' ? 'picture_as_pdf' : 'table_chart' }}</span>
+            </div>
+            <div class="reporte-info">
+              <div class="reporte-nombre">{{ r.nombre }}</div>
+              <div class="reporte-meta">
+                {{ r.formato }} · {{ tiempoTranscurrido(r.fecha) }}
+              </div>
+            </div>
+            <span class="estado-badge" [class.disponible]="r.estado === 'disponible'" [class.archivado]="r.estado === 'archivado'">
+              {{ r.estado === 'disponible' ? 'Disponible' : 'Archivado' }}
+            </span>
+          </div>
+        }
+      </div>
+    }
   </div>
 </div>

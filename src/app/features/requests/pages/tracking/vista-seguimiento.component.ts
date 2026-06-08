@@ -172,6 +172,11 @@ export class VistaSeguimientoSolicitudes implements OnInit {
     return 'status-' + estado.toLowerCase().replace(' ', '-');
   }
 
+  esAtendida(estado: string): boolean {
+    const e = (estado ?? '').toLowerCase();
+    return e.includes('finaliz') || e.includes('complet') || e.includes('atención finalizada');
+  }
+
   // CU15 Modal calificación
   abrirCalificacion() {
     this.showRatingModal = true;

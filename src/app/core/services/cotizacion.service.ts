@@ -43,4 +43,8 @@ export class CotizacionService {
   confirmarPago(id: number): Observable<CotizacionRead> {
     return this.http.patch<CotizacionRead>(`${this.BASE}/${id}/pago`, {});
   }
+
+  descargarPdf(id: number): Observable<Blob> {
+    return this.http.get(`${this.BASE}/${id}/pdf`, { responseType: 'blob' });
+  }
 }

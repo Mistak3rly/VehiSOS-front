@@ -1,8 +1,27 @@
 <div class="mapa-container">
   <header class="page-header">
-    <h1>Análisis Geográfico de Incidentes</h1>
-    <p>Visualiza dónde ocurren los incidentes · CU-028</p>
+    <div>
+      <h1>Análisis Geográfico de Incidentes</h1>
+      <p>Visualiza dónde ocurren los incidentes</p>
+    </div>
   </header>
+
+  <!-- Filtros de fecha -->
+  <div class="filtros-fecha card">
+    <span class="material-icons-round" style="color:#6b7280;font-size:1.1rem;">date_range</span>
+    <label>Desde:</label>
+    <input type="date" [(ngModel)]="filtroDesde" class="date-input">
+    <label>Hasta:</label>
+    <input type="date" [(ngModel)]="filtroHasta" class="date-input">
+    <button class="btn-aplicar" (click)="aplicarFiltroFecha()">
+      <span class="material-icons-round">search</span> Aplicar
+    </button>
+    @if (filtroDesde || filtroHasta) {
+      <button class="btn-limpiar" (click)="limpiarFechas()">
+        <span class="material-icons-round">clear</span> Limpiar
+      </button>
+    }
+  </div>
 
   @if (isLoading()) { <div class="loading">Cargando datos del mapa...</div> }
   @if (errorMessage()) { <div class="alert alert-error">{{ errorMessage() }}</div> }

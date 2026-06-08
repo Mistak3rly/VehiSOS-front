@@ -1,5 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { AnaliticaService } from '../../../../core/services/analitica.service';
 import { AuthService } from '../../../../core/services/auth.service';
@@ -7,7 +8,7 @@ import { AuthService } from '../../../../core/services/auth.service';
 @Component({
   selector: 'app-rendimiento',
   standalone: true,
-  imports: [CommonModule, NgApexchartsModule],
+  imports: [CommonModule, NgApexchartsModule, FormsModule],
   templateUrl: './rendimiento.component.html',
   styleUrl: './rendimiento.component.scss',
 })
@@ -28,7 +29,9 @@ export class RendimientoComponent implements OnInit {
     dataLabels: { enabled: false },
   };
 
-  constructor(private svc: AnaliticaService, private authSvc: AuthService) {}
+  exportando = false;
+
+  constructor(private svc: AnaliticaService) {}
 
   ngOnInit(): void {
     this.cargarDatos();
@@ -54,6 +57,22 @@ export class RendimientoComponent implements OnInit {
     this.svc.rendimientoTalleres().subscribe({
       next: (data) => { this.talleres.set(data); this.isLoading.set(false); },
       error: (err) => { this.errorMessage.set(err.error?.detail || 'Error'); this.isLoading.set(false); },
+    });
+  }
+
+  exportarExcel(): void {
+    this.exportando = true;
+    this.svc.descargarExcelRendimiento().subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `rendimiento_vehisos_${new Date().toISOString().slice(0,10)}.xlsx`;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.exportando = false;
+      },
+      error: () => this.exportando = false,
     });
   }
 

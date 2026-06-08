@@ -65,6 +65,7 @@ export class SidebarComponent implements OnInit {
         { title: 'Seguimiento',         route: '/cliente/solicitudes/seguimiento' },
       ],
     },
+    { title: 'Cotizaciones', icon: 'receipt_long', route: '/cliente/cotizaciones', roles: ['cliente'] },
 
     // ── TALLER ────────────────────────────────────────────
     { title: 'Dashboard', icon: 'dashboard', route: '/taller/dashboard', roles: ['taller'] },
@@ -77,6 +78,16 @@ export class SidebarComponent implements OnInit {
       ],
     },
     { title: 'Servicios y Cobertura', icon: 'room_service', route: '/taller/servicios-cobertura', roles: ['taller'] },
+    { title: 'Cotizaciones',          icon: 'receipt_long',  route: '/taller/cotizaciones',        roles: ['taller'] },
+    {
+      title: 'Analítica', icon: 'analytics', roles: ['taller'],
+      subItems: [
+        { title: 'KPIs del taller',  route: '/taller/kpi' },
+        { title: 'Rendimiento',      route: '/taller/rendimiento' },
+        { title: 'Mapa',             route: '/taller/mapa' },
+        { title: 'Reportes',         route: '/taller/reportes' },
+      ],
+    },
 
     // ── TÉCNICO (mismo dashboard taller, sin gestionar técnicos) ──
     { title: 'Dashboard', icon: 'dashboard', route: '/taller/dashboard', roles: ['tecnico'] },
@@ -89,7 +100,7 @@ export class SidebarComponent implements OnInit {
     },
 
     // ── ADMINISTRADOR ─────────────────────────────────────
-    { title: 'Dashboard',              icon: 'dashboard',            route: '/admin/dashboard',          roles: ['admin', 'administrador'] },
+    { title: 'Dashboard',              icon: 'dashboard',            route: '/admin/dashboard',           roles: ['admin', 'administrador'] },
     { title: 'Aprobación de Talleres', icon: 'verified',             route: '/admin/talleres/aprobacion', roles: ['admin', 'administrador'] },
     { title: 'Tenants',                icon: 'domain',               route: '/admin/tenants',             roles: ['admin', 'administrador'] },
     { title: 'Config. Algoritmo',      icon: 'tune',                 route: '/admin/configuracion',       roles: ['admin', 'administrador'] },
@@ -97,6 +108,15 @@ export class SidebarComponent implements OnInit {
     { title: 'Gestión de Usuarios',    icon: 'manage_accounts',      route: '/admin/usuarios',            roles: ['admin', 'administrador'] },
     { title: 'Roles y Permisos',       icon: 'security',             route: '/admin/roles',               roles: ['admin', 'administrador'] },
     { title: 'Auditoría',              icon: 'fact_check',           route: '/admin/auditoria',           roles: ['admin', 'administrador'] },
+    {
+      title: 'Analítica Global', icon: 'analytics', roles: ['admin', 'administrador'],
+      subItems: [
+        { title: 'KPIs Globales', route: '/admin/kpi' },
+        { title: 'Rendimiento',   route: '/admin/rendimiento' },
+        { title: 'Mapa',         route: '/admin/mapa' },
+        { title: 'Reportes',     route: '/admin/reportes' },
+      ],
+    },
 
     // ── COMPARTIDOS ───────────────────────────────────────
     { title: 'Mi Perfil',       icon: 'person',        route: '/perfil',         roles: ['cliente', 'taller', 'admin', 'administrador', 'tecnico'] },

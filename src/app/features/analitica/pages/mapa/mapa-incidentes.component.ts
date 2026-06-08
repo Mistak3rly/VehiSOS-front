@@ -1,5 +1,6 @@
 import { Component, OnInit, AfterViewInit, ElementRef, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { AnaliticaService } from '../../../../core/services/analitica.service';
 import { DatosMapa, PuntoMapa } from '../../../../core/models/api.models';
@@ -8,7 +9,7 @@ import { environment } from '../../../../../environments/environment';
 @Component({
   selector: 'app-mapa-incidentes',
   standalone: true,
-  imports: [CommonModule, NgApexchartsModule],
+  imports: [CommonModule, NgApexchartsModule, FormsModule],
   templateUrl: './mapa-incidentes.component.html',
   styleUrl: './mapa-incidentes.component.scss',
 })
@@ -19,6 +20,8 @@ export class MapaIncidentesComponent implements OnInit, AfterViewInit {
   isLoading = signal(true);
   errorMessage = signal('');
   filtroTipo = signal<string>('todos');
+  filtroDesde = '';
+  filtroHasta = '';
   private map: any = null;
   private markers: any[] = [];
 
@@ -38,7 +41,12 @@ export class MapaIncidentesComponent implements OnInit, AfterViewInit {
   constructor(private svc: AnaliticaService) {}
 
   ngOnInit(): void {
-    this.svc.datosMapa().subscribe({
+    this.cargarMapa();
+  }
+
+  cargarMapa(): void {
+    this.isLoading.set(true);
+    this.svc.datosMapa(undefined, this.filtroDesde || undefined, this.filtroHasta || undefined).subscribe({
       next: (data) => {
         this.datos.set(data);
         this.pieChart = {
@@ -51,6 +59,16 @@ export class MapaIncidentesComponent implements OnInit, AfterViewInit {
       },
       error: (err) => { this.errorMessage.set(err.error?.detail || 'Error al cargar mapa'); this.isLoading.set(false); },
     });
+  }
+
+  aplicarFiltroFecha(): void {
+    this.cargarMapa();
+  }
+
+  limpiarFechas(): void {
+    this.filtroDesde = '';
+    this.filtroHasta = '';
+    this.cargarMapa();
   }
 
   ngAfterViewInit(): void {

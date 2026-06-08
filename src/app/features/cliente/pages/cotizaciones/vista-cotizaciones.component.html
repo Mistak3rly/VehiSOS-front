@@ -1,7 +1,7 @@
 <div class="cotizaciones-container">
   <header class="page-header">
     <h1>Mis Cotizaciones</h1>
-    <p>Revisa y aprueba las cotizaciones de los talleres · CU-025</p>
+    <p>Revisa y aprueba las cotizaciones de los talleres</p>
   </header>
 
   @if (successMessage()) { <div class="alert alert-success">{{ successMessage() }}</div> }
@@ -67,6 +67,12 @@
           @if (c.motivo_rechazo) {
             <p class="rechazo">Motivo rechazo: {{ c.motivo_rechazo }}</p>
           }
+
+          <div class="acciones-pdf">
+            <button class="btn-pdf-cot" (click)="descargarPdf(c.id)" title="Descargar PDF de la cotización">
+              <span class="material-icons-round">picture_as_pdf</span> Descargar PDF
+            </button>
+          </div>
 
           <small class="fecha">Recibida: {{ c.fecha_creacion | date:'mediumDate' }}</small>
           @if (c.fecha_vencimiento) {

@@ -1,137 +1,215 @@
 <div class="resumen-container">
-  <header class="page-header no-print">
-    <h1>Resumen Final de Asistencia</h1>
-    <p>Expediente digital completo · CU-030</p>
-    @if (resumen()) {
-      <button class="btn-print" (click)="imprimirPagina()">
-        <span class="material-icons-round">print</span> Imprimir / Guardar PDF
-      </button>
-    }
-  </header>
 
-  @if (isLoading()) { <div class="loading">Cargando resumen...</div> }
+  <!-- Back nav -->
+  <div class="back-nav no-print">
+    <button class="btn-back" (click)="volver()">
+      <span class="material-icons-round">arrow_back</span>
+      Resumen final de asistencia
+      @if (datosIncidente) { <span class="inc-code">— {{ datosIncidente.codigo }}</span> }
+    </button>
+  </div>
 
-  @if (errorMessage()) {
-    <div class="alert alert-error">
-      {{ errorMessage() }}
+  <!-- Loading -->
+  @if (isLoading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando resumen...</p>
+    </div>
+  }
+
+  <!-- Error / Sin resumen -->
+  @if (!isLoading() && errorMessage()) {
+    <div class="card error-card">
+      <span class="material-icons-round">info</span>
+      <p>{{ errorMessage() }}</p>
       @if (incidenteId()) {
-        <button class="btn-generar" (click)="generar()" [disabled]="isGenerating()">
-          {{ isGenerating() ? 'Generando...' : '🔄 Generar resumen ahora' }}
+        <button class="btn-generar-now" (click)="generar()" [disabled]="isGenerating()">
+          <span class="material-icons-round">{{ isGenerating() ? 'hourglass_empty' : 'refresh' }}</span>
+          {{ isGenerating() ? 'Generando...' : 'Generar resumen ahora' }}
         </button>
       }
     </div>
   }
 
-  @if (resumen(); as r) {
-    <div class="documento">
-      <!-- Encabezado del documento -->
-      <div class="doc-header">
-        <div class="logo-area">
-          <h2 class="app-name">VehiSOS</h2>
-          <p class="app-sub">Sistema de Asistencia Vehicular</p>
-        </div>
-        <div class="doc-meta">
-          <div class="codigo">{{ r.codigo_auditoria }}</div>
-          <div class="fecha">{{ r.fecha_generacion | date:'medium' }}</div>
-          <div class="estado-badge">EXPEDIENTE OFICIAL</div>
+  <!-- Contenido principal -->
+  @if (!isLoading() && resumen(); as r) {
+    <!-- Header del documento -->
+    <div class="doc-header card">
+      <div class="header-left">
+        @if (datosIncidente?.codigo) {
+          <span class="inc-chip">{{ datosIncidente.codigo }}</span>
+        }
+        <h1>Resumen final de asistencia</h1>
+      </div>
+      <span class="status-chip">
+        <span class="material-icons-round">check_circle</span>
+        Atención finalizada
+      </span>
+    </div>
+
+    <!-- Grid de información principal -->
+    <div class="info-grid card">
+      <div class="info-cell">
+        <div class="cell-label">Vehículo</div>
+        <div class="cell-value">
+          @if (datosVehiculo) {
+            {{ datosVehiculo.marca }} {{ datosVehiculo.modelo }}
+            <span class="placa-badge">({{ datosVehiculo.placa }})</span>
+          } @else { — }
         </div>
       </div>
+      <div class="info-cell">
+        <div class="cell-label">Técnico</div>
+        <div class="cell-value">{{ tecnicoNombre() || 'Técnico asignado' }}</div>
+      </div>
+      <div class="info-cell">
+        <div class="cell-label">Duración total</div>
+        <div class="cell-value">{{ duracionTotal() || 'N/D' }}</div>
+      </div>
+      <div class="info-cell">
+        <div class="cell-label">Taller</div>
+        <div class="cell-value">{{ tallerNombre() || 'Taller asignado' }}</div>
+      </div>
+    </div>
 
-      <hr class="divider">
+    <!-- Diagnóstico y trabajos -->
+    <div class="card section-card">
+      <h2 class="section-title">Diagnóstico y trabajos realizados</h2>
 
-      <!-- Incidente -->
-      @if (datosIncidente) {
-        <section class="section">
-          <h3><span class="material-icons-round">emergency</span> Datos del Incidente</h3>
-          <div class="info-grid">
-            <div class="info-item"><span>Código</span><strong>{{ datosIncidente.codigo }}</strong></div>
-            <div class="info-item"><span>Título</span><strong>{{ datosIncidente.titulo }}</strong></div>
-            <div class="info-item"><span>Fecha reporte</span><strong>{{ datosIncidente.fecha_reporte | date:'medium' }}</strong></div>
-            <div class="info-item full"><span>Descripción</span><p>{{ datosIncidente.descripcion || '—' }}</p></div>
-            <div class="info-item full"><span>Ubicación</span><p>{{ datosIncidente.referencia_ubicacion || 'Lat: '+datosIncidente.latitud+', Lng: '+datosIncidente.longitud }}</p></div>
+      @if (diagnostico) {
+        <div class="trabajo-item">
+          <div class="trabajo-icon diagnostico">
+            <span class="material-icons-round">medical_services</span>
           </div>
-        </section>
-      }
-
-      <!-- Vehículo -->
-      @if (datosVehiculo) {
-        <section class="section">
-          <h3><span class="material-icons-round">directions_car</span> Vehículo</h3>
-          <div class="info-grid">
-            <div class="info-item"><span>Placa</span><strong class="placa">{{ datosVehiculo.placa }}</strong></div>
-            <div class="info-item"><span>Marca</span><strong>{{ datosVehiculo.marca }}</strong></div>
-            <div class="info-item"><span>Modelo</span><strong>{{ datosVehiculo.modelo }}</strong></div>
-            <div class="info-item"><span>Año</span><strong>{{ datosVehiculo.anio || '—' }}</strong></div>
+          <div class="trabajo-content">
+            <div class="trabajo-label">Diagnóstico</div>
+            <p class="trabajo-texto">{{ diagnostico }}</p>
           </div>
-        </section>
+        </div>
       }
 
-      <!-- Diagnóstico -->
-      @if (r.diagnostico) {
-        <section class="section">
-          <h3><span class="material-icons-round">medical_services</span> Diagnóstico</h3>
-          <p class="diagnostico-text">{{ r.diagnostico }}</p>
-        </section>
-      }
-
-      <!-- Cotización / Financiero -->
-      @if (cotizacion) {
-        <section class="section">
-          <h3><span class="material-icons-round">receipt_long</span> Información Financiera</h3>
-          <div class="info-grid">
-            <div class="info-item"><span>Cotización ID</span><strong>#{{ cotizacion.id }}</strong></div>
-            <div class="info-item"><span>Total pagado</span><strong class="monto">Bs. {{ cotizacion.total | number:'1.2-2' }}</strong></div>
-            <div class="info-item"><span>Estado</span><strong>{{ cotizacion.estado | uppercase }}</strong></div>
-            <div class="info-item"><span>Método de pago</span><strong>{{ cotizacion.metodo_pago || '—' }}</strong></div>
+      @if (trabajosRealizados && trabajosRealizados !== diagnostico) {
+        <div class="trabajo-item">
+          <div class="trabajo-icon trabajos">
+            <span class="material-icons-round">build</span>
           </div>
-        </section>
-      }
-
-      <!-- Evidencias -->
-      @if (evidencias.length > 0) {
-        <section class="section">
-          <h3><span class="material-icons-round">attach_file</span> Evidencias ({{ evidencias.length }})</h3>
-          <div class="evidencias-list">
-            @for (e of evidencias; track $index) {
-              <div class="evidencia-item">
-                @if (e.tipo === 'imagen') { <span class="material-icons-round">image</span> }
-                @else if (e.tipo === 'audio') { <span class="material-icons-round">mic</span> }
-                @else { <span class="material-icons-round">article</span> }
-                <div>
-                  <strong>{{ e.tipo | titlecase }}</strong>
-                  @if (e.archivo) { <span> - {{ e.archivo }}</span> }
-                  @if (e.texto) { <p class="evidencia-texto">{{ e.texto }}</p> }
-                </div>
-              </div>
-            }
+          <div class="trabajo-content">
+            <div class="trabajo-label">Trabajos realizados</div>
+            <p class="trabajo-texto">{{ trabajosRealizados }}</p>
           </div>
-        </section>
+        </div>
       }
 
-      <!-- Trazabilidad -->
+      <!-- Trazabilidad colapsada -->
       @if (historial.length > 0) {
-        <section class="section">
-          <h3><span class="material-icons-round">timeline</span> Trazabilidad ({{ historial.length }} eventos)</h3>
-          <div class="timeline">
-            @for (h of historial; track $index) {
-              <div class="timeline-item">
-                <div class="timeline-dot"></div>
-                <div class="timeline-content">
-                  <strong>{{ h.evento }}</strong>
-                  <span>{{ h.descripcion || '' }}</span>
-                  <small>{{ h.fecha | date:'medium' }}</small>
-                </div>
-              </div>
-            }
+        <div class="trabajo-item">
+          <div class="trabajo-icon trazabilidad">
+            <span class="material-icons-round">timeline</span>
           </div>
-        </section>
+          <div class="trabajo-content">
+            <div class="trabajo-label">Trazabilidad ({{ historial.length }} eventos)</div>
+            <div class="timeline-mini">
+              @for (h of historial; track $index) {
+                <div class="tl-item">
+                  <span class="tl-dot"></span>
+                  <span class="tl-evento">{{ h.evento }}</span>
+                  <span class="tl-fecha">{{ h.fecha | date:'dd/MM HH:mm' }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
       }
+    </div>
 
-      <hr class="divider">
-      <footer class="doc-footer">
-        <p>Documento generado automáticamente por VehiSOS · Código de auditoría: <strong>{{ r.codigo_auditoria }}</strong></p>
-        <p>Fecha de emisión: {{ r.fecha_generacion | date:'fullDate' }}</p>
-      </footer>
+    <!-- Evidencias multimedia -->
+    @if (evidencias.length > 0) {
+      <div class="card section-card">
+        <h2 class="section-title">Evidencias multimedia</h2>
+        <div class="evidencias-grid">
+          @for (e of evidencias; track $index) {
+            <div class="evidencia-thumb" [title]="e.archivo || e.tipo">
+              <span class="material-icons-round">
+                {{ e.tipo === 'imagen' ? 'photo_camera' : e.tipo === 'audio' ? 'mic' : 'article' }}
+              </span>
+              <span class="ev-tipo">{{ e.tipo }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Información financiera -->
+    @if (cotizacion) {
+      <div class="card section-card">
+        <h2 class="section-title">Información financiera</h2>
+        <div class="finanzas-row">
+          <div class="fin-item">
+            <span class="fin-label">Total pagado</span>
+            <span class="fin-valor total">Bs. {{ cotizacion.total | number:'1.2-2' }}</span>
+          </div>
+          <div class="fin-item">
+            <span class="fin-label">Estado</span>
+            <span class="fin-chip" [class.pagada]="cotizacion.estado === 'pagada'">{{ cotizacion.estado | uppercase }}</span>
+          </div>
+          @if (cotizacion.metodo_pago) {
+            <div class="fin-item">
+              <span class="fin-label">Método de pago</span>
+              <span class="fin-valor">{{ cotizacion.metodo_pago }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Confirmación archivado -->
+    <div class="archivo-card">
+      <span class="material-icons-round">verified</span>
+      <p>Resumen archivado y firmado digitalmente. Disponible en tu historial de asistencias.</p>
+      <span class="codigo-auditoria">{{ r.codigo_auditoria }}</span>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="actions-row no-print">
+      <button class="btn-pdf-dl" (click)="descargarPdf()" [disabled]="descargandoPdf">
+        <span class="material-icons-round">file_download</span>
+        {{ descargandoPdf ? 'Generando...' : 'Descargar PDF' }}
+      </button>
+      <button class="btn-calificar" (click)="abrirCalificacion()">
+        <span class="material-icons-round">star_outline</span>
+        Calificar servicio
+      </button>
     </div>
   }
 </div>
+
+<!-- Modal calificación -->
+@if (showRatingModal) {
+  <div class="modal-overlay" (click)="cerrarCalificacion()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Calificar servicio</h3>
+        <button class="btn-close-modal" (click)="cerrarCalificacion()">
+          <span class="material-icons-round">close</span>
+        </button>
+      </div>
+      <p class="modal-sub">¿Cómo fue tu experiencia con el servicio?</p>
+      <div class="stars-row">
+        @for (i of [1,2,3,4,5]; track i) {
+          <span class="star-btn" [class.filled]="i <= ratingValue" (click)="setRating(i)">
+            {{ i <= ratingValue ? 'star' : 'star_border' }}
+          </span>
+        }
+      </div>
+      <textarea class="rating-textarea" placeholder="Cuéntanos tu experiencia (opcional)..."
+        [(ngModel)]="ratingComment" rows="3">
+      </textarea>
+      <div class="modal-actions">
+        <button class="btn-cancelar" (click)="cerrarCalificacion()">Cancelar</button>
+        <button class="btn-enviar" [disabled]="ratingValue === 0" (click)="enviarCalificacion()">
+          Enviar calificación
+        </button>
+      </div>
+    </div>
+  </div>
+}

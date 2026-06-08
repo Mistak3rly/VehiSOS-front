@@ -1,7 +1,19 @@
 .kpi-container { padding: 24px; max-width: 1400px; margin: 0 auto; }
-.page-header { margin-bottom: 28px; }
+.page-header { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem; margin-bottom: 28px; }
 .page-header h1 { font-size: 1.75rem; font-weight: 700; margin: 0; }
 .page-header p { color: #6b7280; margin: 4px 0 0; }
+.header-actions { display:flex; gap:8px; }
+.btn-export { display:flex; align-items:center; gap:6px; padding:8px 14px; border:1px solid #e5e7eb; border-radius:8px; background:#fff; font-size:.85rem; font-weight:600; cursor:pointer; color:#374151; }
+.btn-export:hover { background:#f9fafb; }
+.btn-export .material-icons-round { font-size:1rem; }
+.btn-dias { padding:4px 10px; border:1px solid #e5e7eb; border-radius:6px; background:#fff; font-size:.8rem; cursor:pointer; color:#6b7280; }
+.btn-dias.active { background:#6366f1; color:#fff; border-color:#6366f1; }
+.tables-row { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px; }
+.rank { font-weight:700; color:#6366f1; width:28px; }
+.rating-row { display:flex; align-items:center; gap:8px; }
+.loading { display:flex; flex-direction:column; align-items:center; gap:12px; padding:60px; color:#6b7280; }
+.spinner { width:32px; height:32px; border:3px solid #e5e7eb; border-top-color:#6366f1; border-radius:50%; animation:spin .7s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
 .kpi-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
 .kpi-card { border-radius: 12px; padding: 20px; color: #fff; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
 .kpi-card span { font-size: 2rem; opacity: .9; }

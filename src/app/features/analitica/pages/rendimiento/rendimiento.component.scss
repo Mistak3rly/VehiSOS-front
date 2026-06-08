@@ -1,4 +1,7 @@
 .rendimiento-container { padding: 24px; max-width: 1300px; margin: 0 auto; }
+.btn-excel { display:flex;align-items:center;gap:6px;padding:9px 16px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:.85rem;font-weight:700;cursor:pointer;flex-shrink:0; }
+.btn-excel:disabled { opacity:.6;cursor:not-allowed; }
+.btn-excel .material-icons-round { font-size:1rem; }
 .page-header { margin-bottom: 20px; }
 .page-header h1 { font-size: 1.75rem; font-weight: 700; margin: 0; }
 .page-header p { color: #6b7280; margin: 4px 0 0; }

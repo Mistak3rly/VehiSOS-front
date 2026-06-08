@@ -923,3 +923,53 @@ export interface AuditLogRead {
   tenant_id: number | null;
   exitoso: boolean;
 }
+
+// ─────────────────────────────────────────────
+//  CU-026: DASHBOARD KPI (NUEVO)
+// ─────────────────────────────────────────────
+
+export interface KPISummaryResponse {
+  tiempo_promedio_asignacion_min: number;
+  tiempo_promedio_llegada_min: number;
+  total_incidentes: number;
+  casos_cancelados: number;
+  cumplimiento_sla_porcentaje: number;
+}
+
+export interface IncidentePorTipoResponse {
+  tipo: string;
+  cantidad: number;
+}
+
+export interface TallerEficienteResponse {
+  taller_id: number;
+  nombre_taller: string;
+  tiempo_promedio_respuesta_min: number;
+  servicios_finalizados: number;
+}
+
+export interface ZonaIncidenteResponse {
+  zona: string;
+  cantidad: number;
+}
+
+export interface CasosCanceladosDetalleResponse {
+  motivo: string;
+  cantidad: number;
+}
+
+export interface SLAResponse {
+  servicios_dentro_sla: number;
+  servicios_fuera_sla: number;
+  porcentaje_cumplimiento: number;
+}
+
+export interface DashboardKPIResponse {
+  resumen: KPISummaryResponse;
+  incidentes_por_tipo: IncidentePorTipoResponse[];
+  talleres_mas_eficientes: TallerEficienteResponse[];
+  zonas_con_mas_incidentes: ZonaIncidenteResponse[];
+  casos_cancelados_detalle: CasosCanceladosDetalleResponse[];
+  sla: SLAResponse;
+}
+

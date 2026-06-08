@@ -11,10 +11,16 @@
         <p>Monitor analítico en tiempo real</p>
       </div>
     </div>
-    <button class="btn-refresh" (click)="cargarDatos()" [disabled]="isLoading()">
-      <span class="material-icons-round" [class.spinning]="isLoading()">refresh</span>
-      Actualizar
-    </button>
+    <div style="display: flex; gap: 0.75rem;">
+      <button class="btn-refresh" style="background: var(--primary-red); color: white; border: 1px solid var(--primary-red);" routerLink="/admin/kpi">
+        <span class="material-icons-round">analytics</span>
+        Ver KPIs Operativos
+      </button>
+      <button class="btn-refresh" (click)="cargarDatos()" [disabled]="isLoading()">
+        <span class="material-icons-round" [class.spinning]="isLoading()">refresh</span>
+        Actualizar
+      </button>
+    </div>
   </header>
 
   <!-- LOADING STATE -->

@@ -14,6 +14,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { RouterModule } from '@angular/router';
 import { DashboardAnalisisResponse } from '../../../../core/models/api.models';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -23,6 +24,7 @@ import { takeUntil } from 'rxjs/operators';
   standalone: true,
   imports: [
     CommonModule,
+    RouterModule,
     MapComponent,
     AnalyticsDashboardComponent,
     MatTabsModule,

@@ -24,10 +24,17 @@
         <div class="form-grid">
           @if (!editingId()) {
             <div class="form-group">
-              <label>ID del Incidente *</label>
-              <input type="number" formControlName="id_incidente" placeholder="Ej. 123">
+              <label>Solicitud (Incidente) *</label>
+              <select formControlName="id_incidente">
+                <option [ngValue]="null" disabled>Selecciona una solicitud...</option>
+                @for (a of asignaciones(); track a.id) {
+                  <option [ngValue]="a.id_incidente">
+                    Incidente #{{ a.id_incidente }} — {{ a.estado_asignacion | uppercase }}
+                  </option>
+                }
+              </select>
               @if (form.get('id_incidente')?.invalid && form.get('id_incidente')?.touched) {
-                <small class="error">ID de incidente requerido</small>
+                <small class="error">Selecciona una solicitud</small>
               }
             </div>
           }

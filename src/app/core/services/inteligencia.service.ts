@@ -98,7 +98,7 @@ export class InteligenciaService {
   /** Retorna la trazabilidad completa del incidente */
   getTrazabilidad(incidenteId: number): Observable<TrazabilidadCombinadaResponse> {
     return this.http.get<TrazabilidadCombinadaResponse>(
-      `${this.BASE}/incidentes/${incidenteId}/trazabilidad`
+      `${this.BASE}/trazabilidad?incidente_id=${incidenteId}`
     );
   }
 

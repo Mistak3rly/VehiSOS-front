@@ -2,7 +2,8 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CotizacionService } from '../../../../core/services/cotizacion.service';
-import { CotizacionCreate, CotizacionRead, CotizacionUpdate } from '../../../../core/models/api.models';
+import { LogisticaService } from '../../../../core/services/logistica.service';
+import { AsignacionRead, CotizacionCreate, CotizacionRead, CotizacionUpdate } from '../../../../core/models/api.models';
 
 @Component({
   selector: 'app-gestion-cotizaciones',
@@ -13,6 +14,7 @@ import { CotizacionCreate, CotizacionRead, CotizacionUpdate } from '../../../../
 })
 export class GestionCotizacionesComponent implements OnInit {
   cotizaciones = signal<CotizacionRead[]>([]);
+  asignaciones = signal<AsignacionRead[]>([]);
   isLoading = signal(false);
   showForm = signal(false);
   editingId = signal<number | null>(null);
@@ -22,9 +24,13 @@ export class GestionCotizacionesComponent implements OnInit {
 
   form: FormGroup;
 
-  constructor(private fb: FormBuilder, private svc: CotizacionService) {
+  constructor(
+    private fb: FormBuilder,
+    private svc: CotizacionService,
+    private logisticaSvc: LogisticaService,
+  ) {
     this.form = this.fb.group({
-      id_incidente: ['', [Validators.required, Validators.pattern(/^\d+$/)]],
+      id_incidente: [null, [Validators.required]],
       descripcion_desperfecto: ['', [Validators.required, Validators.minLength(10)]],
       repuestos: [''],
       costo_repuestos: [0, [Validators.min(0)]],
@@ -34,7 +40,17 @@ export class GestionCotizacionesComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void { this.cargar(); }
+  ngOnInit(): void {
+    this.cargar();
+    this.cargarAsignaciones();
+  }
+
+  cargarAsignaciones(): void {
+    this.logisticaSvc.historialAsignaciones().subscribe({
+      next: (data) => this.asignaciones.set(data),
+      error: () => {},
+    });
+  }
 
   cargar(): void {
     this.isLoading.set(true);
@@ -75,7 +91,7 @@ export class GestionCotizacionesComponent implements OnInit {
       });
     } else {
       const payload: CotizacionCreate = {
-        id_incidente: parseInt(val.id_incidente),
+        id_incidente: val.id_incidente,
         descripcion_desperfecto: val.descripcion_desperfecto,
         repuestos: val.repuestos,
         costo_repuestos: val.costo_repuestos,
